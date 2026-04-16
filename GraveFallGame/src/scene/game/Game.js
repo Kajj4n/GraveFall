@@ -45,6 +45,17 @@ GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 GraveFallGame.scene.Game.prototype.init = function() {
     rune.scene.Scene.prototype.init.call(this);
 
+    var background = new rune.display.Graphic(
+        0,
+        0,
+        this.application.screen.width,
+        this.application.screen.height,
+        "background"
+    );
+
+    this.stage.addChild(background);
+
+
     var startGame = new rune.text.BitmapField("GraveFall");
     startGame.autoSize = true;
     startGame.center = this.application.screen.center;
