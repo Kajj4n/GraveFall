@@ -29,7 +29,9 @@ GraveFallGame.system.Main = function() {
         resources: GraveFallGame.data.Requests,
         useGamepads:true,
         useKeyboard:true,
-        framerate: 60,
+        framerate: 30,
+        screenResolutionX: 1280,
+        screenResolutionY: 720,
         debug: true
     });
 };
