@@ -45,42 +45,64 @@ GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 
 GraveFallGame.scene.Game.prototype.init = function () {
     rune.scene.Scene.prototype.init.call(this);
+    /*
+        // background settings
+        this.bgWidth = 390;
+        this.bgHeight = 225;
+        this.scrollSpeed = 1;
 
-    // background settings
-    this.bgWidth = 390;
-    this.bgHeight = 225;
-    this.scrollSpeed = 1;
+        // two background copies placed side by side
+        this.bg1 = new rune.display.Graphic(
+            0,
+            0,
+            this.bgWidth,
+            this.bgHeight,
+            "background"
+        );
 
-    // two background copies placed side by side
-    this.bg1 = new rune.display.Graphic(
-        0,
-        0,
-        this.bgWidth,
-        this.bgHeight,
-        "background"
-    );
+        this.bg2 = new rune.display.Graphic(
+            this.bgWidth,
+            0,
+            this.bgWidth,
+            this.bgHeight,
+            "background"
+        );
 
-    this.bg2 = new rune.display.Graphic(
-        this.bgWidth,
-        0,
-        this.bgWidth,
-        this.bgHeight,
-        "background"
-    );
+        this.stage.addChild(this.bg1);
+        this.stage.addChild(this.bg2);
+    */
+    var characterMenu = new rune.display.DisplayObjectContainer(0, 600, 320, 125);
+    var characterMenuCharacter = new rune.display.DisplayObjectContainer(0, 0, 320, 62.5);
+    var characterMenuActions = new rune.display.DisplayObjectContainer(0, 62.5, 320, 62.5);
 
-    this.stage.addChild(this.bg1);
-    this.stage.addChild(this.bg2);
+    var characterIcon = new rune.display.Graphic(0, 0, 50, 50, "character");
+    var characterClassIcon = new rune.display.Sprite( 35, 30, 100, 100, "Fighter_Icon_T");
 
-    var startGame = new rune.text.BitmapField("GraveFall");
-    startGame.autoSize = true;
-    startGame.center = this.application.screen.center;
-    this.stage.addChild(startGame);
+    var characterHealthBar = new rune.display.Graphic(100, 33, 200, 17);
+
+    characterMenu.backgroundColor = "";
+    characterMenuCharacter.backgroundColor = "";
+    characterMenuActions.backgroundColor = "#0000ff";
+    characterHealthBar.backgroundColor = "#ff0000";
+
+
+    characterClassIcon.scaleX = 0.35;
+    characterClassIcon.scaleY = 0.35;
+
+    characterMenu.addChild(characterMenuCharacter);
+    characterMenu.addChild(characterMenuActions);
+
+    characterMenuCharacter.addChild(characterIcon);
+    characterMenuCharacter.addChild(characterClassIcon);
+    characterMenuCharacter.addChild(characterHealthBar);
+    
+    this.stage.addChild(characterMenu);
 };
 
 //------------------------------------------------------------------------------
 // Helper
 //------------------------------------------------------------------------------
-
+/*
 GraveFallGame.scene.Game.prototype.scrollBackground = function (speed) {
     this.bg1.x -= speed;
     this.bg2.x -= speed;
@@ -95,6 +117,7 @@ GraveFallGame.scene.Game.prototype.scrollBackground = function (speed) {
         this.bg2.x = this.bg1.x + this.bgWidth;
     }
 };
+*/
 
 /**
  * This method is automatically executed once per "tick". The method is used for 
@@ -108,7 +131,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
     // moves background constantly
-    this.scrollBackground(this.scrollSpeed);
+    // this.scrollBackground(this.scrollSpeed);
 
     if (this.keyboard.justPressed("escape")) {
         this.application.scenes.load([
