@@ -10,13 +10,9 @@
  *
  * @class
  * @classdesc
- * * Game state.
+ * Game state.
  */
-GraveFallGame.scene.Menu = function() {
-    
-    //--------------------------------------------------------------------------
-    // Private properties
-    //--------------------------------------------------------------------------
+GraveFallGame.scene.Menu = function () {
 
     /**
      * Index of the currently selected menu option.
@@ -32,16 +28,34 @@ GraveFallGame.scene.Menu = function() {
      */
     this.options = null;
 
-    // Create a property for the pointer
+    /**
+     * Pointer graphic.
+     *
+     * @type {?rune.ui.VTMenuPointer}
+     */
     this.pointer = null;
 
-    //--------------------------------------------------------------------------
-    // Super call
-    //--------------------------------------------------------------------------
-    
     /**
-     * ...
+     * Gap between pointer and text.
+     *
+     * @type {number}
      */
+    this.pointerGap = 20;
+
+    /**
+     * Gap between menu rows.
+     *
+     * @type {number}
+     */
+    this.optionGap = 24;
+
+    /**
+     * Menu scale.
+     *
+     * @type {number}
+     */
+    this.menuScale = 4;
+
     rune.scene.Scene.call(this);
 };
 
@@ -59,26 +73,59 @@ GraveFallGame.scene.Menu.prototype.constructor = GraveFallGame.scene.Menu;
 /**
  * @inheritDoc
  */
-GraveFallGame.scene.Menu.prototype.init = function(step) {
+GraveFallGame.scene.Menu.prototype.init = function (step) {
     rune.scene.Scene.prototype.init.call(this);
+
+    var screen = this.application.screen;
 
     this.options = [
         new rune.text.BitmapField("Start Game"),
         new rune.text.BitmapField("Rules")
     ];
 
-    for (var i = 0; i < this.options.length; i++) {
-        var opt = this.options[i];
+    // Create the pointer first so we can use its scaled width
+    this.pointer = new rune.ui.VTMenuPointer();
+    this.pointer.scaleX = this.menuScale;
+    this.pointer.scaleY = this.menuScale;
+    this.stage.addChild(this.pointer);
+
+    var i;
+    var opt;
+    var maxWidth = 0;
+    var totalHeight = 0;
+
+    // Scale menu text up and measure final size
+    for (i = 0; i < this.options.length; i++) {
+        opt = this.options[i];
         opt.autoSize = true;
-        // Left-aligned to the center with a small offset
-        opt.x = this.application.screen.centerX - 50; 
-        opt.y = 100 + (i * 15);
-        this.stage.addChild(opt);
+        opt.scaleX = this.menuScale;
+        opt.scaleY = this.menuScale;
+
+        if (opt.width > maxWidth) {
+            maxWidth = opt.width;
+        }
+
+        totalHeight += opt.height;
     }
 
-    // --- Create and add the pointer ---
-    this.pointer = new rune.ui.VTMenuPointer();
-    this.stage.addChild(this.pointer);
+    totalHeight += this.optionGap * (this.options.length - 1);
+
+    // Center the whole menu block on screen
+    var blockWidth = this.pointer.width + this.pointerGap + maxWidth;
+    var menuLeft = Math.round(screen.centerX - (blockWidth / 2));
+    var textX = menuLeft + this.pointer.width + this.pointerGap;
+    var currentY = Math.round(screen.centerY - (totalHeight / 2));
+
+    // Position options using their real scaled height
+    for (i = 0; i < this.options.length; i++) {
+        opt = this.options[i];
+        opt.x = textX;
+        opt.y = currentY;
+
+        this.stage.addChild(opt);
+
+        currentY += opt.height + this.optionGap;
+    }
 
     this.updateVisuals();
 };
@@ -86,22 +133,19 @@ GraveFallGame.scene.Menu.prototype.init = function(step) {
 /**
  * @inheritDoc
  */
-GraveFallGame.scene.Menu.prototype.update = function(step) {
+GraveFallGame.scene.Menu.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
-    // Move selection down
     if (this.keyboard.justPressed("down") && this.index < this.options.length - 1) {
         this.index++;
         this.updateVisuals();
     }
 
-    // Move selection up
     if (this.keyboard.justPressed("up") && this.index > 0) {
         this.index--;
         this.updateVisuals();
     }
 
-    // Select option
     if (this.keyboard.justPressed("space")) {
         if (this.index === 0) {
             this.application.scenes.load([
@@ -124,14 +168,10 @@ GraveFallGame.scene.Menu.prototype.update = function(step) {
  *
  * @returns {undefined}
  */
-GraveFallGame.scene.Menu.prototype.updateVisuals = function() {
-    // Get the currently selected text object
+GraveFallGame.scene.Menu.prototype.updateVisuals = function () {
     var selectedOption = this.options[this.index];
 
-    // Position the pointer to the left of the selected text
-    // We subtract the pointer's width and a 10px gap
-    this.pointer.x = selectedOption.x - this.pointer.width - 10;
-
-    // Center the pointer vertically against the text line
-    this.pointer.centerY = selectedOption.centerY - 1;
+    // Keep the pointer aligned to the selected option's actual scaled bounds
+    this.pointer.x = Math.round(selectedOption.x - this.pointer.width - this.pointerGap);
+    this.pointer.centerY = selectedOption.centerY;
 };

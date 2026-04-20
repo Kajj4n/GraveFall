@@ -13,12 +13,12 @@
  * 
  * Rule scene.
  */
-GraveFallGame.scene.Rule = function() {
+GraveFallGame.scene.Rule = function () {
 
     //--------------------------------------------------------------------------
     // Super call
     //--------------------------------------------------------------------------
-    
+
     /**
      * Calls the constructor method of the super class.
      */
@@ -45,9 +45,21 @@ GraveFallGame.scene.Rule.prototype.constructor = GraveFallGame.scene.Rule;
 GraveFallGame.scene.Rule.prototype.init = function() {
     rune.scene.Scene.prototype.init.call(this);
 
-    var ruleText = new rune.text.BitmapField("How to play GraveFall...");
+    var ruleText = new rune.text.BitmapField(
+        "HOW TO PLAY\n\n" +
+        "MOVE WITH ARROW KEYS\n" +
+        "AVOID THE PROJECTILES\n" +
+        "SURVIVE AS LONG AS YOU CAN\n\n" +
+        "PRESS ESCAPE TO GO BACK"
+    );
+
     ruleText.autoSize = true;
-    ruleText.center = this.application.screen.center;
+    ruleText.scaleX = 3;
+    ruleText.scaleY = 3;
+
+    ruleText.x = Math.round(this.application.screen.centerX - (ruleText.width / 2));
+    ruleText.y = Math.round(this.application.screen.centerY - (ruleText.height / 2));
+
     this.stage.addChild(ruleText);
 };
 
@@ -77,6 +89,6 @@ GraveFallGame.scene.Rule.prototype.update = function(step) {
  *
  * @returns {undefined}
  */
-GraveFallGame.scene.Rule.prototype.dispose = function() {
+GraveFallGame.scene.Rule.prototype.dispose = function () {
     rune.scene.Scene.prototype.dispose.call(this);
 };
