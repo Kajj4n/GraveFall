@@ -33,6 +33,137 @@ GraveFallGame.scene.Game.prototype = Object.create(rune.scene.Scene.prototype);
 GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 
 //------------------------------------------------------------------------------
+// Static palette data
+//------------------------------------------------------------------------------
+
+/**
+ * Player accent colors used by the current proof-of-concept UI.
+ *
+ * The monochrome icons in the project are authored with the color C4C4C3, so
+ * they can be recolored safely per player already. Character portraits / stand
+ * sprites are not yet authored with a neutral palette, so dedicated palette
+ * swap arrays can be supplied later via options.standPaletteSwaps and
+ * options.portraitPaletteSwaps.
+ *
+ * @type {Array<Object>}
+ */
+GraveFallGame.scene.Game.PLAYER_THEMES = [
+    {
+        accent: "#E53935",
+        accentDark: "#3B1010",
+        accentLight: "#FF8A80"
+    },
+    {
+        accent: "#1E88E5",
+        accentDark: "#10263B",
+        accentLight: "#82B1FF"
+    },
+    {
+        accent: "#FDD835",
+        accentDark: "#3B340F",
+        accentLight: "#FFF59D"
+    },
+    {
+        accent: "#43A047",
+        accentDark: "#112F14",
+        accentLight: "#A5D6A7"
+    }
+];
+
+/**
+ * Shared source color used by the monochrome transparent icon set.
+ *
+ * @type {string}
+ */
+GraveFallGame.scene.Game.MONO_ICON_SOURCE = "#C4C4C3";
+
+//------------------------------------------------------------------------------
+// Helper
+//------------------------------------------------------------------------------
+
+/**
+ * Returns the theme for a specific player slot.
+ *
+ * @param {number} index
+ * @returns {Object}
+ */
+GraveFallGame.scene.Game.prototype.getPlayerTheme = function (index) {
+    return GraveFallGame.scene.Game.PLAYER_THEMES[index % GraveFallGame.scene.Game.PLAYER_THEMES.length];
+};
+
+/**
+ * Applies a list of exact palette swaps to a sprite / graphic texture.
+ *
+ * @param {?rune.display.Graphic} graphic
+ * @param {?Array<Object>} paletteSwaps
+ * @returns {undefined}
+ */
+GraveFallGame.scene.Game.prototype.applyPaletteSwaps = function (graphic, paletteSwaps) {
+    var i;
+    var swap;
+
+    if (!graphic || !graphic.texture || !paletteSwaps || paletteSwaps.length === 0) {
+        return;
+    }
+
+    for (i = 0; i < paletteSwaps.length; i++) {
+        swap = paletteSwaps[i];
+
+        graphic.texture.replaceColor(
+            rune.color.Color24.fromHex(swap.from),
+            rune.color.Color24.fromHex(swap.to)
+        );
+    }
+};
+
+/**
+ * Recolors one of the monochrome transparent icons to the provided accent.
+ *
+ * @param {?rune.display.Graphic} graphic
+ * @param {string} targetColor
+ * @returns {undefined}
+ */
+GraveFallGame.scene.Game.prototype.applyMonochromeIconColor = function (graphic, targetColor) {
+    this.applyPaletteSwaps(graphic, [
+        {
+            from: GraveFallGame.scene.Game.MONO_ICON_SOURCE,
+            to: targetColor
+        }
+    ]);
+};
+
+/**
+ * Applies the player color theme to the menu art that can already be recolored
+ * safely in the current asset set.
+ *
+ * @param {Object} theme
+ * @param {Object} parts
+ * @param {Object} options
+ * @returns {undefined}
+ */
+GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, options) {
+    var i;
+
+    parts.menuRoot.backgroundColor = "#090909";
+    parts.menuCharacter.backgroundColor = "#141414";
+    parts.menuActions.backgroundColor = "#101010";
+    parts.menuAccent.backgroundColor = theme.accent;
+    parts.actionAccent.backgroundColor = theme.accentDark;
+    parts.selectionBar.backgroundColor = theme.accent;
+    parts.healthBar.backgroundColor = theme.accent;
+
+    this.applyMonochromeIconColor(parts.classIcon, theme.accent);
+
+    for (i = 0; i < parts.actions.length; i++) {
+        this.applyMonochromeIconColor(parts.actions[i], theme.accentLight);
+    }
+
+    // Hook for future art-ready palette swaps.
+    this.applyPaletteSwaps(parts.stand, options.standPaletteSwaps);
+    this.applyPaletteSwaps(parts.portrait, options.portraitPaletteSwaps);
+};
+
+//------------------------------------------------------------------------------
 // Override public prototype methods (ENGINE)
 //------------------------------------------------------------------------------
 
@@ -57,6 +188,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
         standX: 100,
         hpCurrent: 130,
         hpMax: 160,
+        playerTheme: this.getPlayerTheme(0),
         controls: {
             left: "a",
             right: "d",
@@ -74,6 +206,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
         standX: 430,
         hpCurrent: 95,
         hpMax: 120,
+        playerTheme: this.getPlayerTheme(1),
         controls: {
             left: "left",
             right: "right",
@@ -91,13 +224,13 @@ GraveFallGame.scene.Game.prototype.init = function () {
         standX: 740,
         hpCurrent: 34,
         hpMax: 80,
+        playerTheme: this.getPlayerTheme(2),
         controls: {
             left: "j",
             right: "l",
             confirm: "k"
         }
     }));
-
 
     // Player 4
     this.playerMenus.push(this.createCharacterMenu({
@@ -109,15 +242,13 @@ GraveFallGame.scene.Game.prototype.init = function () {
         standX: 1040,
         hpCurrent: 34,
         hpMax: 80,
+        playerTheme: this.getPlayerTheme(3),
         controls: {
             left: "v",
             right: "n",
             confirm: "b"
         }
     }));
-
-
-    
 };
 
 //------------------------------------------------------------------------------
@@ -133,7 +264,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
 GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var menuWidth = 320;
     var menuHeight = 125;
-
+    var actionPositions = [10, 95, 180, 255];
     var characterMenu = new rune.display.DisplayObjectContainer(
         options.x,
         options.y,
@@ -155,6 +286,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         62.5
     );
 
+    var menuAccent = new rune.display.Graphic(0, 0, menuWidth, 4);
+    var actionAccent = new rune.display.Graphic(0, 0, menuWidth, 2);
+    var actionSelectionBar = new rune.display.Graphic(actionPositions[0], 56, 60, 4);
+
     var characterStand = new rune.display.Sprite(options.standX, 400, 100, 100, options.stand);
     var characterIcon = new rune.display.Sprite(0, 0, 50, 50, options.portrait);
     var characterClassIcon = new rune.display.Sprite(35, 30, 100, 100, options.classIcon);
@@ -168,13 +303,6 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var characterHealthMax = new rune.text.BitmapField("/" + options.hpMax);
     var characterHealthCurrent = new rune.text.BitmapField(String(options.hpCurrent));
     var HpText = new rune.text.BitmapField("HP");
-
-    // Background / panel styling
-    characterMenu.backgroundColor = "";
-    characterMenuCharacter.backgroundColor = "";
-    characterMenuActions.backgroundColor = "";
-    characterHealthBar.backgroundColor = "#ff0000";
-    characterClassIcon.Color32 = "#ff0000";
 
     // HP text styling
     characterHealthMax.scaleX = 2;
@@ -212,13 +340,15 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     characterStand.scaleY = 2.3;
 
     // Build hierarchy
-
     characterMenu.addChild(characterMenuCharacter);
     characterMenu.addChild(characterMenuActions);
 
+    characterMenuCharacter.addChild(menuAccent);
+    characterMenuActions.addChild(actionAccent);
+    characterMenuActions.addChild(actionSelectionBar);
+
     characterMenuCharacter.addChild(characterIcon);
     characterMenuCharacter.addChild(characterClassIcon);
-
     characterMenuCharacter.addChild(characterHealthBar);
     characterMenuCharacter.addChild(characterHealthMax);
     characterMenuCharacter.addChild(characterHealthCurrent);
@@ -229,14 +359,28 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     characterMenuActions.addChild(buffIcon);
     characterMenuActions.addChild(itemIcon);
 
+    this.applyPlayerTheme(options.playerTheme, {
+        menuRoot: characterMenu,
+        menuCharacter: characterMenuCharacter,
+        menuActions: characterMenuActions,
+        menuAccent: menuAccent,
+        actionAccent: actionAccent,
+        selectionBar: actionSelectionBar,
+        portrait: characterIcon,
+        classIcon: characterClassIcon,
+        stand: characterStand,
+        healthBar: characterHealthBar,
+        actions: [fightIcon, defendIcon, buffIcon, itemIcon]
+    }, options);
+
     this.stage.addChild(characterStand);
-
-
     this.stage.addChild(characterMenu);
 
     return {
         container: characterMenu,
         actions: [fightIcon, defendIcon, buffIcon, itemIcon],
+        actionPositions: actionPositions,
+        selectionBar: actionSelectionBar,
         selectedIndex: 0,
         confirmed: false,
         baseY: options.y,
@@ -252,7 +396,11 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
  * @returns {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
-    for (var i = 0; i < playerMenu.actions.length; i++) {
+    var i;
+
+    playerMenu.selectionBar.x = playerMenu.actionPositions[playerMenu.selectedIndex];
+
+    for (i = 0; i < playerMenu.actions.length; i++) {
         if (i === playerMenu.selectedIndex) {
             playerMenu.actions[i].scaleX = 0.7;
             playerMenu.actions[i].scaleY = 0.7;
