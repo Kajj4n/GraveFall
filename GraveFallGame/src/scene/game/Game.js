@@ -51,22 +51,42 @@ GraveFallGame.scene.Game.PLAYER_THEMES = [
     {
         accent: "#E53935",
         accentDark: "#3B1010",
-        accentLight: "#FF8A80"
+        accentLight: "#FF8A80",
+        clothing: {
+            light: "#FF8A80",
+            mid: "#E53935",
+            dark: "#8E1B1B"
+        }
     },
     {
         accent: "#1E88E5",
         accentDark: "#10263B",
-        accentLight: "#82B1FF"
+        accentLight: "#82B1FF",
+        clothing: {
+            light: "#82B1FF",
+            mid: "#1E88E5",
+            dark: "#0D47A1"
+        }
     },
     {
         accent: "#FDD835",
         accentDark: "#3B340F",
-        accentLight: "#FFF59D"
+        accentLight: "#FFF59D",
+        clothing: {
+            light: "#FFF59D",
+            mid: "#FDD835",
+            dark: "#C6A700"
+        }
     },
     {
         accent: "#43A047",
         accentDark: "#112F14",
-        accentLight: "#A5D6A7"
+        accentLight: "#A5D6A7",
+        clothing: {
+            light: "#A5D6A7",
+            mid: "#43A047",
+            dark: "#1B5E20"
+        }
     }
 ];
 
@@ -76,6 +96,12 @@ GraveFallGame.scene.Game.PLAYER_THEMES = [
  * @type {string}
  */
 GraveFallGame.scene.Game.MONO_ICON_SOURCE = "#C4C4C3";
+
+GraveFallGame.scene.Game.CLOTHING_SOURCE = {
+    mid: "#b654b7",
+    dark: "#942f97",
+    light: "#ca75ca"
+};
 
 //------------------------------------------------------------------------------
 // Helper
@@ -89,6 +115,23 @@ GraveFallGame.scene.Game.MONO_ICON_SOURCE = "#C4C4C3";
  */
 GraveFallGame.scene.Game.prototype.getPlayerTheme = function (index) {
     return GraveFallGame.scene.Game.PLAYER_THEMES[index % GraveFallGame.scene.Game.PLAYER_THEMES.length];
+};
+
+GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {
+    return [
+        {
+            from: GraveFallGame.scene.Game.CLOTHING_SOURCE.light,
+            to: theme.clothing.light
+        },
+        {
+            from: GraveFallGame.scene.Game.CLOTHING_SOURCE.mid,
+            to: theme.clothing.mid
+        },
+        {
+            from: GraveFallGame.scene.Game.CLOTHING_SOURCE.dark,
+            to: theme.clothing.dark
+        }
+    ];
 };
 
 /**
@@ -158,9 +201,17 @@ GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, op
         this.applyMonochromeIconColor(parts.actions[i], theme.accentLight);
     }
 
-    // Hook for future art-ready palette swaps.
-    this.applyPaletteSwaps(parts.stand, options.standPaletteSwaps);
-    this.applyPaletteSwaps(parts.portrait, options.portraitPaletteSwaps);
+    var defaultClothingPalette = this.getClothingPaletteSwaps(theme);
+
+    this.applyPaletteSwaps(
+        parts.stand,
+        options.standPaletteSwaps || defaultClothingPalette
+    );
+
+    this.applyPaletteSwaps(
+        parts.portrait,
+        options.portraitPaletteSwaps || defaultClothingPalette
+    );
 };
 
 //------------------------------------------------------------------------------
