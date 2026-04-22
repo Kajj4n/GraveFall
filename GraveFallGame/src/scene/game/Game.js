@@ -234,7 +234,7 @@ GraveFallGame.scene.Game.prototype.createBoxFrame = function (x, y, width, heigh
 };
 
 GraveFallGame.scene.Game.prototype.createSeparator = function (x, y, width, paletteSwaps) {
-    var tile = 8;
+    var tile = 16;
     var sep = new rune.display.DisplayObjectContainer(x, y, width, tile);
     var px;
 
@@ -322,7 +322,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     // Player 1
     this.playerMenus.push(this.createCharacterMenu({
         x: 0,
-        y: 600,
+        y: 592,
         portrait: "Fighter_Portrait",
         classIcon: "Fighter_Icon_T",
         stand: "Fighter_Idle_Stance",
@@ -340,7 +340,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     // Player 2
     this.playerMenus.push(this.createCharacterMenu({
         x: 320,
-        y: 600,
+        y: 592,
         portrait: "Assassin_Portrait",
         classIcon: "Assassin_Icon_T",
         stand: "Assassin_Idle_Stance",
@@ -358,7 +358,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     // Player 3
     this.playerMenus.push(this.createCharacterMenu({
         x: 640,
-        y: 600,
+        y: 592,
         portrait: "Wizard_Portrait",
         classIcon: "Wizard_Icon_T",
         stand: "Wizard_Idle_Stance",
@@ -376,7 +376,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     // Player 4
     this.playerMenus.push(this.createCharacterMenu({
         x: 960,
-        y: 600,
+        y: 592,
         portrait: "Ranger_Portrait",
         classIcon: "Ranger_Icon_T",
         stand: "Ranger_Idle_Stance",
@@ -538,7 +538,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         selectedIndex: 0,
         confirmed: false,
         baseY: options.y,
-        confirmedY: options.y + 60,
+        confirmedY: options.y + 58,
         controls: options.controls
     };
 };
