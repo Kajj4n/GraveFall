@@ -103,6 +103,33 @@ GraveFallGame.scene.Game.CLOTHING_SOURCE = {
     light: "#ca75ca"
 };
 
+GraveFallGame.scene.Game.FRAME_SOURCE = {
+    light: "#ca75ca",
+    mid: "#b654b7",
+    dark: "#942f97"
+};
+
+GraveFallGame.scene.Game.UI_SKINS = {
+    dungeonGrey: {
+        panelTop: "#141312",
+        panelBottom: "#100F0E",
+        frame: {
+            light: "#8F8B85",
+            mid: "#5D5953",
+            dark: "#2F2C29"
+        }
+    },
+    dullBrown: {
+        panelTop: "#211A14",
+        panelBottom: "#18120D",
+        frame: {
+            light: "#B08C68",
+            mid: "#7A5B3B",
+            dark: "#463322"
+        }
+    }
+};
+
 //------------------------------------------------------------------------------
 // Helper
 //------------------------------------------------------------------------------
@@ -134,6 +161,29 @@ GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {
     ];
 };
 
+GraveFallGame.scene.Game.prototype.getFramePaletteSwaps = function (uiSkin) {
+    return [
+        {
+            from: GraveFallGame.scene.Game.FRAME_SOURCE.light,
+            to: uiSkin.frame.light
+        },
+        {
+            from: GraveFallGame.scene.Game.FRAME_SOURCE.mid,
+            to: uiSkin.frame.mid
+        },
+        {
+            from: GraveFallGame.scene.Game.FRAME_SOURCE.dark,
+            to: uiSkin.frame.dark
+        }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.createFramePiece = function (x, y, resource, paletteSwaps) {
+    var piece = new rune.display.Sprite(x, y, 16, 16, resource);
+    this.applyPaletteSwaps(piece, paletteSwaps);
+    return piece;
+};
+
 /**
  * Applies a list of exact palette swaps to a sprite / graphic texture.
  *
@@ -157,6 +207,46 @@ GraveFallGame.scene.Game.prototype.applyPaletteSwaps = function (graphic, palett
             rune.color.Color24.fromHex(swap.to)
         );
     }
+};
+
+GraveFallGame.scene.Game.prototype.createBoxFrame = function (x, y, width, height, paletteSwaps) {
+    var tile = 16;
+    var frame = new rune.display.DisplayObjectContainer(x, y, width, height);
+    var px;
+    var py;
+
+    frame.addChild(this.createFramePiece(0, 0, "UI_Frame_TL_T", paletteSwaps));
+    frame.addChild(this.createFramePiece(width - tile, 0, "UI_Frame_TR_T", paletteSwaps));
+    frame.addChild(this.createFramePiece(0, height - tile, "UI_Frame_BL_T", paletteSwaps));
+    frame.addChild(this.createFramePiece(width - tile, height - tile, "UI_Frame_BR_T", paletteSwaps));
+
+    for (px = tile; px < width - tile; px += tile) {
+        frame.addChild(this.createFramePiece(px, 0, "UI_Frame_T_T", paletteSwaps));
+        frame.addChild(this.createFramePiece(px, height - tile, "UI_Frame_B_T", paletteSwaps));
+    }
+
+    for (py = tile; py < height - tile; py += tile) {
+        frame.addChild(this.createFramePiece(0, py, "UI_Frame_L_T", paletteSwaps));
+        frame.addChild(this.createFramePiece(width - tile, py, "UI_Frame_R_T", paletteSwaps));
+    }
+
+    return frame;
+};
+
+GraveFallGame.scene.Game.prototype.createSeparator = function (x, y, width, paletteSwaps) {
+    var tile = 8;
+    var sep = new rune.display.DisplayObjectContainer(x, y, width, tile);
+    var px;
+
+    sep.addChild(this.createFramePiece(0, 0, "UI_Separator_L_T", paletteSwaps));
+
+    for (px = tile; px < width - tile; px += tile) {
+        sep.addChild(this.createFramePiece(px, 0, "UI_Separator_M_T", paletteSwaps));
+    }
+
+    sep.addChild(this.createFramePiece(width - tile, 0, "UI_Separator_R_T", paletteSwaps));
+
+    return sep;
 };
 
 /**
@@ -314,7 +404,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
  */
 GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var menuWidth = 320;
-    var menuHeight = 125;
+    var menuHeight = 128;
+    var topPanelHeight = 64;
+    var bottomPanelHeight = 64;
     var actionPositions = [10, 95, 180, 255];
     var characterMenu = new rune.display.DisplayObjectContainer(
         options.x,
@@ -327,15 +419,23 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         0,
         0,
         menuWidth,
-        62.5
+        topPanelHeight
     );
 
     var characterMenuActions = new rune.display.DisplayObjectContainer(
         0,
-        62.5,
+        topPanelHeight,
         menuWidth,
-        62.5
+        bottomPanelHeight
     );
+
+    var uiSkin = options.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
+    characterMenuCharacter.backgroundColor = uiSkin.panelTop;
+    characterMenuActions.backgroundColor = uiSkin.panelBottom;
+
+    var outerFrame = this.createBoxFrame(0, 0, menuWidth, menuHeight, framePaletteSwaps);
+    var separator = this.createSeparator(0, topPanelHeight - 4, menuWidth, framePaletteSwaps);
 
     var menuAccent = new rune.display.Graphic(0, 0, menuWidth, 4);
     var actionAccent = new rune.display.Graphic(0, 0, menuWidth, 2);
@@ -393,6 +493,9 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     // Build hierarchy
     characterMenu.addChild(characterMenuCharacter);
     characterMenu.addChild(characterMenuActions);
+
+    characterMenu.addChild(outerFrame);
+    characterMenu.addChild(separator);
 
     characterMenuCharacter.addChild(menuAccent);
     characterMenuActions.addChild(actionAccent);
