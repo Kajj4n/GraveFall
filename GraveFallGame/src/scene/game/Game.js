@@ -136,15 +136,15 @@ GraveFallGame.scene.Game.UI_SKINS = {
  * spawnEnemyPatternById().
  */
 GraveFallGame.scene.Game.ENEMIES = {
-    nikita: {
-        name: "Nikita",
+    boss: {
+        name: "Boss",
         actionPhaseDuration: 300,
         patternInterval: 55,
         patterns: [
-            "nikita_sword_rain",
-            "nikita_vertical_sweep",
-            "nikita_orb_burst",
-            "nikita_diagonal_drop"
+            "boss_sword_rain",
+            "boss_vertical_sweep",
+            "boss_orb_burst",
+            "boss_diagonal_drop"
         ]
     },
     goblin: {
@@ -168,7 +168,7 @@ GraveFallGame.scene.Game.prototype.getPlayerTheme = function (index) {
 };
 
 GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
-    return GraveFallGame.scene.Game.ENEMIES[this.currentEnemyType] || GraveFallGame.scene.Game.ENEMIES.nikita;
+    return GraveFallGame.scene.Game.ENEMIES[this.currentEnemyType] || GraveFallGame.scene.Game.ENEMIES.boss;
 };
 
 GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {
@@ -610,20 +610,20 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPattern = function () {
 
 GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) {
     switch (patternId) {
-        case "nikita_sword_rain":
-            this.spawnNikitaSwordRain();
+        case "boss_sword_rain":
+            this.spawnBossSwordRain();
             break;
 
-        case "nikita_vertical_sweep":
-            this.spawnNikitaVerticalSweep();
+        case "boss_vertical_sweep":
+            this.spawnBossVerticalSweep();
             break;
 
-        case "nikita_orb_burst":
-            this.spawnNikitaOrbBurst();
+        case "boss_orb_burst":
+            this.spawnBossOrbBurst();
             break;
 
-        case "nikita_diagonal_drop":
-            this.spawnNikitaDiagonalDrop();
+        case "boss_diagonal_drop":
+            this.spawnBossDiagonalDrop();
             break;
 
         case "goblin_pebble_rain":
@@ -640,7 +640,7 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnNikitaSwordRain = function () {
+GraveFallGame.scene.Game.prototype.spawnBossSwordRain = function () {
     var inner = this.getArenaInnerBounds();
     var count = 5 + Math.floor(Math.random() * 3);
     var i;
@@ -661,7 +661,7 @@ GraveFallGame.scene.Game.prototype.spawnNikitaSwordRain = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnNikitaVerticalSweep = function () {
+GraveFallGame.scene.Game.prototype.spawnBossVerticalSweep = function () {
     var inner = this.getArenaInnerBounds();
     var fromTop = Math.random() > 0.5;
     var count = 1 + Math.floor(Math.random() * 2);
@@ -689,7 +689,7 @@ GraveFallGame.scene.Game.prototype.spawnNikitaVerticalSweep = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnNikitaOrbBurst = function () {
+GraveFallGame.scene.Game.prototype.spawnBossOrbBurst = function () {
     var inner = this.getArenaInnerBounds();
     var originX = inner.x + (inner.width / 2);
     var originY = inner.y + 30;
@@ -717,7 +717,7 @@ GraveFallGame.scene.Game.prototype.spawnNikitaOrbBurst = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnNikitaDiagonalDrop = function () {
+GraveFallGame.scene.Game.prototype.spawnBossDiagonalDrop = function () {
     var inner = this.getArenaInnerBounds();
     var fromLeft = Math.random() > 0.5;
     var count = 4 + Math.floor(Math.random() * 3);
@@ -1005,17 +1005,24 @@ GraveFallGame.scene.Game.prototype.init = function () {
     rune.scene.Scene.prototype.init.call(this);
 
     this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
-    this.currentEnemyType = "nikita";
+    this.currentEnemyType = "boss";
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
     this.projectiles = [];
     this.playerMenus = [];
 
-    this.bossPlaceholder = new rune.display.Graphic(0, 0, 260, 260, "Nikita_Boss");
-    this.bossPlaceholder.scaleX = 0.65;
-    this.bossPlaceholder.scaleY = 0.65;
-    this.bossPlaceholder.x = (this.application.screen.width / 2) - ((this.bossPlaceholder.width * this.bossPlaceholder.scaleX) / 2);
-    this.bossPlaceholder.y = 8;
+    this.backgroundBackdrop = new rune.display.Sprite(0, 0, this.application.screen.width, this.application.screen.height, "Background_Test");
+    this.applyPaletteSwaps(
+        this.backgroundBackdrop,
+        this.getFramePaletteSwaps(GraveFallGame.scene.Game.UI_SKINS.dullBrown)
+    );
+    this.stage.addChild(this.backgroundBackdrop);
+
+    this.bossPlaceholder = new rune.display.Sprite(0, 0, 100, 100, "Goblin_Idle_T");
+    this.bossPlaceholder.scaleX = 3.2;
+    this.bossPlaceholder.scaleY = 3.2;
+    this.bossPlaceholder.x = (this.application.screen.width / 1) - ((this.bossPlaceholder.width * this.bossPlaceholder.scaleX) / 1.28);
+    this.bossPlaceholder.y = 180;
     this.stage.addChild(this.bossPlaceholder);
 
     this.createBattleArena();
@@ -1154,7 +1161,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
 
     var menuAccent = new rune.display.Graphic(0, 0, menuWidth, 4);
     var actionAccent = new rune.display.Graphic(0, 0, menuWidth, 2);
-    var actionSelectionBar = new rune.display.Graphic(actionPositions[0], 56, 60, 4);
+    var actionSelectionBar = new rune.display.Graphic(actionPositions[0], 57, 60, 3);
 
     var characterStand = new rune.display.Sprite(standX, 400, 100, 100, options.stand);
     var battleAvatar = new rune.display.Sprite(0, 0, 100, 100, options.classIcon);
@@ -1162,10 +1169,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var characterIcon = new rune.display.Sprite(10, 5, 50, 50, options.portrait);
     var characterClassIcon = new rune.display.Sprite(55, 30, 100, 100, options.classIcon);
 
-    var fightIcon = new rune.display.Sprite(15, 10, 100, 100, "Fight_Icon_T");
-    var defendIcon = new rune.display.Sprite(100, 10, 100, 100, "Defend_Icon_T");
-    var buffIcon = new rune.display.Sprite(185, 10, 100, 100, "Buff_Icon_T");
-    var itemIcon = new rune.display.Sprite(260, 10, 100, 100, "Item_Icon_T");
+    var fightIcon = new rune.display.Sprite(10, 10, 100, 100, "Fight_Icon_T");
+    var defendIcon = new rune.display.Sprite(95, 10, 100, 100, "Defend_Icon_T");
+    var buffIcon = new rune.display.Sprite(180, 10, 100, 100, "Buff_Icon_T");
+    var itemIcon = new rune.display.Sprite(255, 10, 100, 100, "Item_Icon_T");
 
     var characterHealthBarBackground = new rune.display.Graphic(100, 38, 200, 17);
     var characterHealthBar = new rune.display.Graphic(100, 38, 200, 17);
@@ -1367,6 +1374,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.clearProjectiles();
     this.projectiles = null;
     this.playerMenus = null;
+    this.backgroundBackdrop = null;
     this.bossPlaceholder = null;
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;
