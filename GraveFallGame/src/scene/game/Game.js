@@ -142,7 +142,7 @@ GraveFallGame.scene.Game.ENEMIES = {
         patternInterval: 55,
         patterns: [
             "nikita_sword_rain",
-            "nikita_side_sweep",
+            "nikita_vertical_sweep",
             "nikita_orb_burst",
             "nikita_diagonal_drop"
         ]
@@ -560,6 +560,48 @@ GraveFallGame.scene.Game.prototype.spawnProjectile = function (options) {
     return projectile;
 };
 
+GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (options) {
+    var hitbox = new rune.display.DisplayObjectContainer(
+        options.x,
+        options.y,
+        options.collisionWidth || 16,
+        options.collisionHeight || 160
+    );
+    var sweepSprite = new rune.display.Sprite(
+        -((options.spriteWidth || 160) - hitbox.width) / 2,
+        -((options.spriteHeight || 12) - hitbox.height) / 2,
+        options.spriteWidth || 160,
+        options.spriteHeight || 12,
+        options.resource || "Horizontal_Sweep_Attack_T"
+    );
+
+    this.applyPaletteSwaps(
+        sweepSprite,
+        this.getProjectilePaletteSwaps(options.projectilePalette)
+    );
+
+    if (options.rotation) {
+        sweepSprite.rotation = options.rotation;
+    }
+
+    if (options.flippedX === true) {
+        sweepSprite.flippedX = true;
+    }
+
+    hitbox.addChild(sweepSprite);
+    hitbox.vx = options.vx || 0;
+    hitbox.vy = options.vy || 0;
+    hitbox.damage = options.damage || 8;
+    hitbox.life = options.life || 180;
+    hitbox.type = options.type || "generic";
+    hitbox.hitFlashFrames = 0;
+    hitbox.hit = false;
+
+    this.arenaProjectileLayer.addChild(hitbox);
+    this.projectiles.push(hitbox);
+    return hitbox;
+};
+
 GraveFallGame.scene.Game.prototype.spawnEnemyPattern = function () {
     var enemy = this.getCurrentEnemyConfig();
     var patternId = enemy.patterns[Math.floor(Math.random() * enemy.patterns.length)];
@@ -572,8 +614,8 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
             this.spawnNikitaSwordRain();
             break;
 
-        case "nikita_side_sweep":
-            this.spawnNikitaSideSweep();
+        case "nikita_vertical_sweep":
+            this.spawnNikitaVerticalSweep();
             break;
 
         case "nikita_orb_burst":
@@ -619,28 +661,30 @@ GraveFallGame.scene.Game.prototype.spawnNikitaSwordRain = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnNikitaSideSweep = function () {
+GraveFallGame.scene.Game.prototype.spawnNikitaVerticalSweep = function () {
     var inner = this.getArenaInnerBounds();
-    var fromLeft = Math.random() > 0.5;
+    var fromTop = Math.random() > 0.5;
     var count = 1 + Math.floor(Math.random() * 2);
     var i;
-    var y;
+    var x;
 
     for (i = 0; i < count; i++) {
-        y = inner.y + this.randomRange(35, inner.height - 55);
+        x = inner.x + this.randomRange(48, inner.width - 60);
 
-        this.spawnProjectile({
-            x: fromLeft ? inner.x - 160 : inner.x + inner.width + 20,
-            y: y,
-            width: 140,
-            height: 12,
+        this.spawnVerticalSweepProjectile({
+            x: x,
+            y: fromTop ? inner.y - 170 : inner.y + inner.height + 10,
+            collisionWidth: 16,
+            collisionHeight: 160,
+            spriteWidth: 160,
+            spriteHeight: 12,
             resource: "Horizontal_Sweep_Attack_T",
-            flippedX: fromLeft ? false : true,
-            vx: fromLeft ? this.randomRange(10.0, 13.5) : this.randomRange(-13.5, -10.0),
-            vy: 0,
+            rotation: fromTop ? 90 : -90,
+            vx: 0,
+            vy: fromTop ? this.randomRange(3.0, 4.3) : this.randomRange(-4.3, -3.0),
             damage: 12,
-            life: 80,
-            type: "side_sweep"
+            life: 110,
+            type: "vertical_sweep"
         });
     }
 };
@@ -970,7 +1014,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.bossPlaceholder = new rune.display.Graphic(0, 0, 260, 260, "Nikita_Boss");
     this.bossPlaceholder.scaleX = 0.65;
     this.bossPlaceholder.scaleY = 0.65;
-    this.bossPlaceholder.x = (this.application.screen.width / 2) - (this.bossPlaceholder.width / 2);
+    this.bossPlaceholder.x = (this.application.screen.width / 2) - ((this.bossPlaceholder.width * this.bossPlaceholder.scaleX) / 2);
     this.bossPlaceholder.y = 8;
     this.stage.addChild(this.bossPlaceholder);
 
@@ -1146,17 +1190,17 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     HpText.x = 100;
     HpText.y = 15;
 
-    fightIcon.scaleX = 0.2;
-    fightIcon.scaleY = 0.2;
+    fightIcon.scaleX = 0.6;
+    fightIcon.scaleY = 0.6;
 
-    defendIcon.scaleX = 0.4;
-    defendIcon.scaleY = 0.4;
+    defendIcon.scaleX = 0.6;
+    defendIcon.scaleY = 0.6;
 
-    buffIcon.scaleX = 0.4;
-    buffIcon.scaleY = 0.4;
+    buffIcon.scaleX = 0.6;
+    buffIcon.scaleY = 0.6;
 
-    itemIcon.scaleX = 0.4;
-    itemIcon.scaleY = 0.4;
+    itemIcon.scaleX = 0.6;
+    itemIcon.scaleY = 0.6;
 
     characterClassIcon.scaleX = 0.35;
     characterClassIcon.scaleY = 0.35;
@@ -1215,7 +1259,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     this.arenaAvatarLayer.addChild(battleAvatar);
     this.stage.addChild(characterMenu);
 
-    return {
+    var playerMenu = {
         container: characterMenu,
         stand: characterStand,
         battleAvatar: battleAvatar,
@@ -1237,6 +1281,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         moveSpeed: 4,
         hitCooldown: 0
     };
+
+    this.updateCharacterMenuVisuals(playerMenu);
+
+    return playerMenu;
 };
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
@@ -1246,16 +1294,13 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 
     for (i = 0; i < playerMenu.actions.length; i++) {
         if (i === playerMenu.selectedIndex) {
-            playerMenu.actions[i].scaleX = 0.5;
-            playerMenu.actions[i].scaleY = 0.5;
+            playerMenu.actions[i].scaleX = 0.7;
+            playerMenu.actions[i].scaleY = 0.7;
         } else {
-            playerMenu.actions[i].scaleX = 0.4;
-            playerMenu.actions[i].scaleY = 0.4;
+            playerMenu.actions[i].scaleX = 0.6;
+            playerMenu.actions[i].scaleY = 0.6;
         }
     }
-
-    playerMenu.actions[0].scaleX = playerMenu.selectedIndex === 0 ? 0.25 : 0.2;
-    playerMenu.actions[0].scaleY = playerMenu.selectedIndex === 0 ? 0.25 : 0.2;
 };
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMenu) {
