@@ -283,9 +283,12 @@ GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, op
     parts.menuAccent.backgroundColor = theme.accent;
     parts.actionAccent.backgroundColor = theme.accentDark;
     parts.selectionBar.backgroundColor = theme.accent;
-    parts.healthBar.backgroundColor = theme.accent;
+
+    parts.healthBarBackground.backgroundColor = "#ffffff";
+    parts.healthBarFill.backgroundColor = theme.accent;
 
     this.applyMonochromeIconColor(parts.classIcon, theme.accent);
+    this.applyMonochromeIconColor(parts.battleAvatar, theme.accent);
 
     for (i = 0; i < parts.actions.length; i++) {
         this.applyMonochromeIconColor(parts.actions[i], theme.accentLight);
@@ -304,6 +307,76 @@ GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, op
     );
 };
 
+GraveFallGame.scene.Game.prototype.areAllPlayersConfirmed = function () {
+    var i;
+
+    if (!this.playerMenus || this.playerMenus.length === 0) {
+        return false;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        if (this.playerMenus[i].confirmed !== true) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
+GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (playerMenu) {
+    var speed = playerMenu.moveSpeed || 3;
+    var avatar = playerMenu.battleAvatar;
+    var screenWidth = this.application.screen.width;
+    var screenHeight = this.application.screen.height;
+    var maxX = screenWidth - avatar.width;
+    var maxY = screenHeight - avatar.height;
+
+    if (this.keyboard.pressed(playerMenu.moveControls.left)) {
+        avatar.x -= speed;
+    }
+
+    if (this.keyboard.pressed(playerMenu.moveControls.right)) {
+        avatar.x += speed;
+    }
+
+    if (this.keyboard.pressed(playerMenu.moveControls.up)) {
+        avatar.y -= speed;
+    }
+
+    if (this.keyboard.pressed(playerMenu.moveControls.down)) {
+        avatar.y += speed;
+    }
+
+    if (avatar.x < 0) {
+        avatar.x = 0;
+    }
+
+    if (avatar.y < 0) {
+        avatar.y = 0;
+    }
+
+    if (avatar.x > maxX) {
+        avatar.x = maxX;
+    }
+
+    if (avatar.y > maxY) {
+        avatar.y = maxY;
+    }
+};
+
+/**
+ * Shows the larger class icon used after a player confirms their action.
+ *
+ * @param {Object} playerMenu
+ * @returns {undefined}
+ */
+GraveFallGame.scene.Game.prototype.activateBattleAvatar = function (playerMenu) {
+    playerMenu.stand.alpha = 0;
+    playerMenu.battleAvatar.alpha = 1;
+    playerMenu.battleAvatar.x = playerMenu.stand.x + 100;
+    playerMenu.battleAvatar.y = playerMenu.stand.y + 100;
+};
+
 //------------------------------------------------------------------------------
 // Override public prototype methods (ENGINE)
 //------------------------------------------------------------------------------
@@ -319,6 +392,11 @@ GraveFallGame.scene.Game.prototype.init = function () {
 
     this.playerMenus = [];
 
+    this.bossPlaceholder = new rune.display.Graphic(0, 0, 260, 260, "Nikita_Boss");
+    this.bossPlaceholder.x = (this.application.screen.width / 2) - 130;
+    this.bossPlaceholder.y = 140;
+    this.stage.addChild(this.bossPlaceholder);
+
     // Player 1
     this.playerMenus.push(this.createCharacterMenu({
         x: 0,
@@ -326,14 +404,19 @@ GraveFallGame.scene.Game.prototype.init = function () {
         portrait: "Fighter_Portrait",
         classIcon: "Fighter_Icon_T",
         stand: "Fighter_Idle_Stance",
-        standX: 100,
-        hpCurrent: 130,
+        hpCurrent: 75,
         hpMax: 160,
         playerTheme: this.getPlayerTheme(0),
         controls: {
             left: "a",
             right: "d",
             confirm: "space"
+        },
+        moveControls: {
+            left: "a",
+            right: "d",
+            up: "w",
+            down: "s"
         }
     }));
 
@@ -344,7 +427,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
         portrait: "Assassin_Portrait",
         classIcon: "Assassin_Icon_T",
         stand: "Assassin_Idle_Stance",
-        standX: 430,
         hpCurrent: 95,
         hpMax: 120,
         playerTheme: this.getPlayerTheme(1),
@@ -352,6 +434,12 @@ GraveFallGame.scene.Game.prototype.init = function () {
             left: "left",
             right: "right",
             confirm: "enter"
+        },
+        moveControls: {
+            left: "left",
+            right: "right",
+            up: "up",
+            down: "down"
         }
     }));
 
@@ -362,14 +450,20 @@ GraveFallGame.scene.Game.prototype.init = function () {
         portrait: "Wizard_Portrait",
         classIcon: "Wizard_Icon_T",
         stand: "Wizard_Idle_Stance",
-        standX: 740,
         hpCurrent: 34,
-        hpMax: 80,
+        hpMax: 100,
         playerTheme: this.getPlayerTheme(2),
+        flipStandX: true,
         controls: {
             left: "j",
             right: "l",
             confirm: "k"
+        },
+        moveControls: {
+            left: "j",
+            right: "l",
+            up: "i",
+            down: "k"
         }
     }));
 
@@ -380,14 +474,20 @@ GraveFallGame.scene.Game.prototype.init = function () {
         portrait: "Ranger_Portrait",
         classIcon: "Ranger_Icon_T",
         stand: "Ranger_Idle_Stance",
-        standX: 1040,
         hpCurrent: 34,
-        hpMax: 80,
+        hpMax: 112,
         playerTheme: this.getPlayerTheme(3),
+        flipStandX: true,
         controls: {
             left: "v",
             right: "n",
             confirm: "b"
+        },
+        moveControls: {
+            left: "f",
+            right: "h",
+            up: "t",
+            down: "g"
         }
     }));
 };
@@ -408,6 +508,14 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var topPanelHeight = 64;
     var bottomPanelHeight = 64;
     var actionPositions = [10, 95, 180, 255];
+    var standScale = 2.3;
+    var standWidth = 100 * standScale;
+    var battleAvatarScale = 0.7;
+    var battleAvatarWidth = 100 * battleAvatarScale;
+    var standX = options.x + (menuWidth / 2) - (standWidth / 2);
+    var battleAvatarX = standX;
+    var battleAvatarY = 400;
+
     var characterMenu = new rune.display.DisplayObjectContainer(
         options.x,
         options.y,
@@ -441,54 +549,71 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var actionAccent = new rune.display.Graphic(0, 0, menuWidth, 2);
     var actionSelectionBar = new rune.display.Graphic(actionPositions[0], 56, 60, 4);
 
-    var characterStand = new rune.display.Sprite(options.standX, 400, 100, 100, options.stand);
-    var characterIcon = new rune.display.Sprite(0, 0, 50, 50, options.portrait);
-    var characterClassIcon = new rune.display.Sprite(35, 30, 100, 100, options.classIcon);
+    var characterStand = new rune.display.Sprite(standX, 400, 100, 100, options.stand);
+    var battleAvatar = new rune.display.Sprite(battleAvatarX, battleAvatarY, 100, 100, options.classIcon);
 
-    var fightIcon = new rune.display.Sprite(10, 0, 100, 100, "Fight_Icon_T");
-    var defendIcon = new rune.display.Sprite(95, 0, 100, 100, "Defend_Icon_T");
-    var buffIcon = new rune.display.Sprite(180, 0, 100, 100, "Buff_Icon_T");
-    var itemIcon = new rune.display.Sprite(255, 0, 100, 100, "Item_Icon_T");
+    var characterIcon = new rune.display.Sprite(10, 5, 50, 50, options.portrait);
+    var characterClassIcon = new rune.display.Sprite(55, 30, 100, 100, options.classIcon);
 
-    var characterHealthBar = new rune.display.Graphic(100, 33, 200, 17);
+    var fightIcon = new rune.display.Sprite(15, 10, 100, 100, "Fight_Icon_T");
+    var defendIcon = new rune.display.Sprite(100, 10, 100, 100, "Defend_Icon_T");
+    var buffIcon = new rune.display.Sprite(185, 10, 100, 100, "Buff_Icon_T");
+    var itemIcon = new rune.display.Sprite(260, 10, 100, 100, "Item_Icon_T");
+
+    var characterHealthBarBackground = new rune.display.Graphic(100, 38, 200, 17);
+    var characterHealthBar = new rune.display.Graphic(100, 38, 200, 17);
     var characterHealthMax = new rune.text.BitmapField("/" + options.hpMax);
     var characterHealthCurrent = new rune.text.BitmapField(String(options.hpCurrent));
     var HpText = new rune.text.BitmapField("HP");
+
+    // HP bar sizing
+    characterHealthBar.scaleX = Math.max(0, Math.min(1, options.hpCurrent / options.hpMax));
 
     // HP text styling
     characterHealthMax.scaleX = 2;
     characterHealthMax.scaleY = 2;
     characterHealthMax.x = 255;
-    characterHealthMax.y = 5;
+    characterHealthMax.y = 13;
 
     characterHealthCurrent.scaleX = 2;
     characterHealthCurrent.scaleY = 2;
-    characterHealthCurrent.x = 210;
-    characterHealthCurrent.y = 5;
+    characterHealthCurrent.x = 230;
+    characterHealthCurrent.y = 13;
 
     HpText.scaleX = 2;
     HpText.scaleY = 2;
     HpText.x = 100;
-    HpText.y = 7;
+    HpText.y = 15;
 
     // Icon scaling
-    fightIcon.scaleX = 0.6;
-    fightIcon.scaleY = 0.6;
+    fightIcon.scaleX = 0.2;
+    fightIcon.scaleY = 0.2;
 
-    defendIcon.scaleX = 0.6;
-    defendIcon.scaleY = 0.6;
+    defendIcon.scaleX = 0.4;
+    defendIcon.scaleY = 0.4;
 
-    buffIcon.scaleX = 0.6;
-    buffIcon.scaleY = 0.6;
+    buffIcon.scaleX = 0.4;
+    buffIcon.scaleY = 0.4;
 
-    itemIcon.scaleX = 0.6;
-    itemIcon.scaleY = 0.6;
+    itemIcon.scaleX = 0.4;
+    itemIcon.scaleY = 0.4;
 
     characterClassIcon.scaleX = 0.35;
     characterClassIcon.scaleY = 0.35;
 
-    characterStand.scaleX = 2.3;
-    characterStand.scaleY = 2.3;
+    battleAvatar.scaleX = battleAvatarScale;
+    battleAvatar.scaleY = battleAvatarScale;
+
+    characterStand.scaleX = standScale;
+    characterStand.scaleY = standScale;
+
+    if (options.flipStandX === true) {
+        characterStand.flippedX = true;
+        battleAvatar.flippedX = true;
+    }
+
+    characterStand.alpha = 1;
+    battleAvatar.alpha = 0;
 
     // Build hierarchy
     characterMenu.addChild(characterMenuCharacter);
@@ -503,6 +628,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
 
     characterMenuCharacter.addChild(characterIcon);
     characterMenuCharacter.addChild(characterClassIcon);
+
+    characterMenuCharacter.addChild(characterHealthBarBackground);
     characterMenuCharacter.addChild(characterHealthBar);
     characterMenuCharacter.addChild(characterHealthMax);
     characterMenuCharacter.addChild(characterHealthCurrent);
@@ -522,24 +649,36 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         selectionBar: actionSelectionBar,
         portrait: characterIcon,
         classIcon: characterClassIcon,
+        battleAvatar: battleAvatar,
         stand: characterStand,
-        healthBar: characterHealthBar,
+        healthBarBackground: characterHealthBarBackground,
+        healthBarFill: characterHealthBar,
         actions: [fightIcon, defendIcon, buffIcon, itemIcon]
     }, options);
 
     this.stage.addChild(characterStand);
+    this.stage.addChild(battleAvatar);
     this.stage.addChild(characterMenu);
 
     return {
         container: characterMenu,
+        stand: characterStand,
+        battleAvatar: battleAvatar,
         actions: [fightIcon, defendIcon, buffIcon, itemIcon],
         actionPositions: actionPositions,
         selectionBar: actionSelectionBar,
+        healthBarBackground: characterHealthBarBackground,
+        healthBarFill: characterHealthBar,
+        healthCurrent: options.hpCurrent,
+        healthMax: options.hpMax,
         selectedIndex: 0,
+        selectedAction: null,
         confirmed: false,
         baseY: options.y,
         confirmedY: options.y + 58,
-        controls: options.controls
+        controls: options.controls,
+        moveControls: options.moveControls,
+        moveSpeed: 3
     };
 };
 
@@ -556,8 +695,8 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 
     for (i = 0; i < playerMenu.actions.length; i++) {
         if (i === playerMenu.selectedIndex) {
-            playerMenu.actions[i].scaleX = 0.7;
-            playerMenu.actions[i].scaleY = 0.7;
+            playerMenu.actions[i].scaleX = 0.6;
+            playerMenu.actions[i].scaleY = 0.6;
         } else {
             playerMenu.actions[i].scaleX = 0.6;
             playerMenu.actions[i].scaleY = 0.6;
@@ -574,6 +713,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMenu) {
     if (playerMenu.confirmed) {
         playerMenu.container.y = playerMenu.confirmedY;
+        this.activateBattleAvatar(playerMenu);
         this.updateCharacterMenuVisuals(playerMenu);
         return;
     }
@@ -595,8 +735,10 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     }
 
     if (this.keyboard.justPressed(playerMenu.controls.confirm)) {
+        playerMenu.selectedAction = playerMenu.selectedIndex;
         playerMenu.confirmed = true;
         playerMenu.container.y = playerMenu.confirmedY;
+        this.activateBattleAvatar(playerMenu);
     }
 
     this.updateCharacterMenuVisuals(playerMenu);
@@ -613,8 +755,14 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
 GraveFallGame.scene.Game.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
-    for (var i = 0; i < this.playerMenus.length; i++) {
-        this.updateCharacterMenuInput(this.playerMenus[i]);
+    if (this.areAllPlayersConfirmed()) {
+        for (var i = 0; i < this.playerMenus.length; i++) {
+            this.updateBattleAvatarMovement(this.playerMenus[i]);
+        }
+    } else {
+        for (var j = 0; j < this.playerMenus.length; j++) {
+            this.updateCharacterMenuInput(this.playerMenus[j]);
+        }
     }
 
     if (this.keyboard.justPressed("escape")) {
@@ -634,5 +782,6 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
  */
 GraveFallGame.scene.Game.prototype.dispose = function () {
     this.playerMenus = null;
+    this.bossPlaceholder = null;
     rune.scene.Scene.prototype.dispose.call(this);
 };
