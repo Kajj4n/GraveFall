@@ -90,6 +90,18 @@ GraveFallGame.scene.Game.CLOTHING_SOURCE = {
     light: "#ca75ca"
 };
 
+GraveFallGame.scene.Game.PROJECTILE_SOURCE = {
+    light: "#ca75ca",
+    mid: "#b654b7",
+    dark: "#942f97"
+};
+
+GraveFallGame.scene.Game.PROJECTILE_NEUTRAL = {
+    light: "#ffffff",
+    mid: "#b8b8b8",
+    dark: "#1f1f1f"
+};
+
 GraveFallGame.scene.Game.FRAME_SOURCE = {
     light: "#ca75ca",
     mid: "#b654b7",
@@ -172,6 +184,25 @@ GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {
         {
             from: GraveFallGame.scene.Game.CLOTHING_SOURCE.dark,
             to: theme.clothing.dark
+        }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getProjectilePaletteSwaps = function (targetPalette) {
+    var palette = targetPalette || GraveFallGame.scene.Game.PROJECTILE_NEUTRAL;
+
+    return [
+        {
+            from: GraveFallGame.scene.Game.PROJECTILE_SOURCE.light,
+            to: palette.light
+        },
+        {
+            from: GraveFallGame.scene.Game.PROJECTILE_SOURCE.mid,
+            to: palette.mid
+        },
+        {
+            from: GraveFallGame.scene.Game.PROJECTILE_SOURCE.dark,
+            to: palette.dark
         }
     ];
 };
@@ -489,14 +520,15 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function () {
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
 
-    // Placeholder projectile rendering.
-    // Replace this with custom projectile sprites later if needed.
+    // Projectile art should use the transparent *_T files and the three-color
+    // pink source ramp. Those colors are palette-swapped here into a neutral
+    // white / grey / dark palette at runtime.
     if (options.resource) {
         display = new rune.display.Sprite(options.x, options.y, options.width, options.height, options.resource);
-
-        if (options.monoColor) {
-            this.applyMonochromeIconColor(display, options.monoColor);
-        }
+        this.applyPaletteSwaps(
+            display,
+            this.getProjectilePaletteSwaps(options.projectilePalette)
+        );
     } else {
         display = new rune.display.Graphic(options.x, options.y, options.width, options.height);
         display.backgroundColor = options.color || "#FFFFFF";
@@ -504,6 +536,10 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
 
     if (options.rotation) {
         display.rotation = options.rotation;
+    }
+
+    if (options.flippedX === true) {
+        display.flippedX = true;
     }
 
     display.vx = options.vx || 0;
@@ -569,11 +605,11 @@ GraveFallGame.scene.Game.prototype.spawnNikitaSwordRain = function () {
 
     for (i = 0; i < count; i++) {
         this.spawnProjectile({
-            x: this.randomRange(inner.x, inner.x + inner.width - 12),
+            x: this.randomRange(inner.x, inner.x + inner.width - 16),
             y: inner.y - this.randomRange(20, 160),
-            width: 10,
-            height: 42,
-            color: "#FFFFFF",
+            width: 16,
+            height: 48,
+            resource: "Falling_Sword_Attack_T",
             vx: this.randomRange(-0.5, 0.5),
             vy: this.randomRange(6.5, 9.0),
             damage: 10,
@@ -598,7 +634,8 @@ GraveFallGame.scene.Game.prototype.spawnNikitaSideSweep = function () {
             y: y,
             width: 140,
             height: 12,
-            color: "#F2F2F2",
+            resource: "Horizontal_Sweep_Attack_T",
+            flippedX: fromLeft ? false : true,
             vx: fromLeft ? this.randomRange(10.0, 13.5) : this.randomRange(-13.5, -10.0),
             vy: 0,
             damage: 12,
@@ -624,9 +661,9 @@ GraveFallGame.scene.Game.prototype.spawnNikitaOrbBurst = function () {
         this.spawnProjectile({
             x: originX,
             y: originY,
-            width: 12,
-            height: 12,
-            color: i % 2 === 0 ? "#FFFFFF" : "#9AC7FF",
+            width: 16,
+            height: 16,
+            resource: "Orb_Attack_T",
             vx: Math.cos(angle) * speed,
             vy: Math.sin(angle) * speed,
             damage: 7,
@@ -646,9 +683,10 @@ GraveFallGame.scene.Game.prototype.spawnNikitaDiagonalDrop = function () {
         this.spawnProjectile({
             x: fromLeft ? inner.x - this.randomRange(20, 80) : inner.x + inner.width + this.randomRange(20, 80),
             y: inner.y - this.randomRange(20, 120),
-            width: 10,
-            height: 34,
-            color: "#FFFFFF",
+            width: 32,
+            height: 16,
+            resource: "Knife_Attack_T",
+            flippedX: fromLeft ? false : true,
             vx: fromLeft ? this.randomRange(2.5, 4.2) : this.randomRange(-4.2, -2.5),
             vy: this.randomRange(5.0, 7.0),
             rotation: fromLeft ? 22 : -22,
@@ -666,11 +704,11 @@ GraveFallGame.scene.Game.prototype.spawnGoblinPebbleRain = function () {
 
     for (i = 0; i < count; i++) {
         this.spawnProjectile({
-            x: this.randomRange(inner.x, inner.x + inner.width - 8),
+            x: this.randomRange(inner.x, inner.x + inner.width - 16),
             y: inner.y - this.randomRange(10, 140),
-            width: 8,
-            height: 8,
-            color: "#9C7A54",
+            width: 16,
+            height: 16,
+            resource: "Orb_Attack_T",
             vx: this.randomRange(-1.2, 1.2),
             vy: this.randomRange(5.5, 8.0),
             damage: 6,
@@ -694,9 +732,10 @@ GraveFallGame.scene.Game.prototype.spawnGoblinDartFan = function () {
         this.spawnProjectile({
             x: originX,
             y: originY,
-            width: 26,
-            height: 6,
-            color: "#D6C07A",
+            width: 32,
+            height: 16,
+            resource: "Knife_Attack_T",
+            flippedX: side < 0 ? false : true,
             vx: side < 0 ? this.randomRange(7.0, 9.0) : this.randomRange(-9.0, -7.0),
             vy: vy,
             damage: 8,
@@ -713,10 +752,10 @@ GraveFallGame.scene.Game.prototype.spawnGoblinStompWave = function () {
     for (i = 0; i < 7; i++) {
         this.spawnProjectile({
             x: inner.x + 50 + (i * ((inner.width - 100) / 6)),
-            y: inner.y + inner.height - 12,
-            width: 12,
-            height: 12,
-            color: "#8E6B45",
+            y: inner.y + inner.height - 16,
+            width: 16,
+            height: 16,
+            resource: "StompWave_Attack_T",
             vx: this.randomRange(-0.8, 0.8),
             vy: this.randomRange(-6.5, -4.0),
             damage: 7,
