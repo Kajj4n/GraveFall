@@ -467,6 +467,9 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
 
+    this.clearArenaItem();
+    this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
+    this.turnTimerText.alpha = 0;
     this.phase = GraveFallGame.scene.Game.PHASE_ACTION;
     this.actionPhaseTimer = enemy.actionPhaseDuration;
     this.nextPatternIn = 0;
@@ -489,6 +492,12 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     this.nextPatternIn = 0;
     this.clearProjectiles();
     this.setBattleArenaVisible(false);
+    this.clearArenaItem();
+
+    this.turnTimerMs = 10000;
+    this.turnTimerText.alpha = 1;
+    this.turnTimerText.text = "10";
+    
 
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
@@ -832,6 +841,31 @@ GraveFallGame.scene.Game.prototype.rectsOverlap = function (a, b) {
     );
 };
 
+GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMenu, testX, testY) {
+    var i;
+    var otherMenu;
+    var testAvatar = {
+        x: testX,
+        y: testY,
+        width: playerMenu.battleAvatar.width,
+        height: playerMenu.battleAvatar.height
+    };
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        otherMenu = this.playerMenus[i];
+
+        if (otherMenu === playerMenu || otherMenu.healthCurrent <= 0) {
+            continue;
+        }
+
+        if (this.rectsOverlap(testAvatar, otherMenu.battleAvatar)) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu) {
     if (playerMenu.hitCooldown > 0) {
         playerMenu.hitCooldown--;
@@ -947,37 +981,120 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
     var inner = this.getArenaInnerBounds();
     var maxX = inner.x + inner.width - avatar.width;
     var maxY = inner.y + inner.height - avatar.height;
+    var oldX = avatar.x;
+    var oldY = avatar.y;
+    var nextX = avatar.x;
+    var nextY = avatar.y;
 
     if (playerMenu.healthCurrent <= 0) {
         return;
     }
 
     if (this.keyboard.pressed(playerMenu.moveControls.left)) {
-        avatar.x -= speed;
+        nextX -= speed;
     }
 
     if (this.keyboard.pressed(playerMenu.moveControls.right)) {
-        avatar.x += speed;
+        nextX += speed;
     }
 
     if (this.keyboard.pressed(playerMenu.moveControls.up)) {
-        avatar.y -= speed;
+        nextY -= speed;
     }
 
     if (this.keyboard.pressed(playerMenu.moveControls.down)) {
-        avatar.y += speed;
+        nextY += speed;
     }
 
-    avatar.x = this.clampValue(avatar.x, inner.x, maxX);
-    avatar.y = this.clampValue(avatar.y, inner.y, maxY);
+    nextX = this.clampValue(nextX, inner.x, maxX);
+    nextY = this.clampValue(nextY, inner.y, maxY);
+
+    if (this.isBattleAvatarColliding(playerMenu, nextX, nextY)) {
+        avatar.x = oldX;
+        avatar.y = oldY;
+        return;
+    }
+
+    avatar.x = nextX;
+    avatar.y = nextY;
 };
 
+GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
+    if (this.arenaItem && this.arenaItem.parent) {
+        this.arenaItem.parent.removeChild(this.arenaItem, true);
+    }
+
+    this.arenaItem = null;
+};
+
+GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
+    var inner = this.getArenaInnerBounds();
+    var itemScale = 0.45;
+    var item = new rune.display.Sprite(0, 0, 100, 100, "Item_Icon_T");
+    var maxX;
+    var maxY;
+
+    item.scaleX = itemScale;
+    item.scaleY = itemScale;
+    this.applyMonochromeIconColor(item, "#FFFFFF");
+
+    maxX = inner.x + inner.width - (item.width * item.scaleX);
+    maxY = inner.y + inner.height - (item.height * item.scaleY);
+
+    item.x = this.randomRange(inner.x, maxX);
+    item.y = this.randomRange(inner.y, maxY);
+
+    this.arenaAvatarLayer.addChild(item);
+    this.arenaItem = item;
+};
+
+GraveFallGame.scene.Game.prototype.updateArenaItem = function () {
+    if (this.arenaItem) {
+        return;
+    }
+
+    if (this.itemSpawnTimer > 0) {
+        this.itemSpawnTimer--;
+        return;
+    }
+
+    this.spawnArenaItem();
+};
+
+GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
+    var i;
+    var playerMenu;
+
+    if (!this.arenaItem) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        playerMenu = this.playerMenus[i];
+
+        if (playerMenu.healthCurrent <= 0) {
+            continue;
+        }
+
+        if (this.rectsOverlap(playerMenu.battleAvatar, this.arenaItem)) {
+            this.clearArenaItem();
+
+            // 🔥 ADD THIS: reset random spawn delay
+            this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
+
+            break;
+        }
+    }
+};
 GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
 
     this.actionPhaseTimer--;
     this.nextPatternIn--;
+
+    this.updateArenaItem();
+    this.checkItemCollisions();
 
     if (this.nextPatternIn <= 0) {
         this.spawnEnemyPattern();
@@ -1011,6 +1128,21 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.projectiles = [];
     this.playerMenus = [];
 
+    this.arenaItem = null;
+    this.itemSpawnTimer = 0;
+
+    // NEW: turn timer (10 seconds ≈ 600 frames)
+    this.turnTimer = 600;
+
+    this.turnTimerMs = 10000;
+
+    this.turnTimerText = new rune.text.BitmapField("10");
+    this.turnTimerText.scaleX = 2;
+    this.turnTimerText.scaleY = 2;
+    this.turnTimerText.x = this.application.screen.width - 28;
+    this.turnTimerText.y = 8;
+
+
     this.backgroundBackdrop = new rune.display.Sprite(0, 0, this.application.screen.width, this.application.screen.height, "Background_Test");
     this.applyPaletteSwaps(
         this.backgroundBackdrop,
@@ -1026,6 +1158,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.stage.addChild(this.bossPlaceholder);
 
     this.createBattleArena();
+    this.stage.addChild(this.turnTimerText);
 
     this.playerMenus.push(this.createCharacterMenu({
         x: 0,
@@ -1347,14 +1480,42 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
 // Update / dispose
 //------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// update
+//------------------------------------------------------------------------------
+
 GraveFallGame.scene.Game.prototype.update = function (step) {
     var i;
+    var secondsLeft;
 
     rune.scene.Scene.prototype.update.call(this, step);
 
     if (this.phase === GraveFallGame.scene.Game.PHASE_COMMAND) {
+        this.turnTimerMs -= step;
+
+        if (this.turnTimerMs < 0) {
+            this.turnTimerMs = 0;
+        }
+
+        secondsLeft = Math.ceil(this.turnTimerMs / 1000);
+        this.turnTimerText.text = String(secondsLeft);
+
         for (i = 0; i < this.playerMenus.length; i++) {
             this.updateCharacterMenuInput(this.playerMenus[i]);
+        }
+
+        if (this.turnTimerMs <= 0) {
+            for (i = 0; i < this.playerMenus.length; i++) {
+                if (!this.playerMenus[i].confirmed) {
+                    this.playerMenus[i].selectedIndex = 0;
+                    this.playerMenus[i].selectedAction = 0;
+                    this.playerMenus[i].confirmed = true;
+                    this.playerMenus[i].container.y = this.playerMenus[i].confirmedY;
+                }
+            }
+
+            this.startActionPhase();
+            return;
         }
 
         if (this.areAllPlayersConfirmed()) {
@@ -1373,6 +1534,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
 GraveFallGame.scene.Game.prototype.dispose = function () {
     this.clearProjectiles();
+    this.clearArenaItem();
     this.projectiles = null;
     this.playerMenus = null;
     this.backgroundBackdrop = null;
@@ -1382,5 +1544,9 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.arenaAvatarLayer = null;
     this.arenaFrame = null;
     this.arena = null;
+    this.turnTimerText = null;
+    this.turnTimerMs = null;
+    this.arenaItem = null;
+    this.itemSpawnTimer = null;
     rune.scene.Scene.prototype.dispose.call(this);
 };
