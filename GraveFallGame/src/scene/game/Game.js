@@ -1299,10 +1299,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 
     playerMenu.selectionBar.x = playerMenu.actionPositions[playerMenu.selectedIndex];
 
+    //keep same for now, maybe useful later
     for (i = 0; i < playerMenu.actions.length; i++) {
         if (i === playerMenu.selectedIndex) {
-            playerMenu.actions[i].scaleX = 0.7;
-            playerMenu.actions[i].scaleY = 0.7;
+            playerMenu.actions[i].scaleX = 0.6;
+            playerMenu.actions[i].scaleY = 0.6;
         } else {
             playerMenu.actions[i].scaleX = 0.6;
             playerMenu.actions[i].scaleY = 0.6;
