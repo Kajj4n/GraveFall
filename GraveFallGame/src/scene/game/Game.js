@@ -38,6 +38,7 @@ GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 
 GraveFallGame.scene.Game.PHASE_COMMAND = "command";
 GraveFallGame.scene.Game.PHASE_ACTION = "action";
+GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
 
 GraveFallGame.scene.Game.PLAYER_THEMES = [
     {
@@ -83,6 +84,32 @@ GraveFallGame.scene.Game.PLAYER_THEMES = [
 ];
 
 GraveFallGame.scene.Game.MONO_ICON_SOURCE = "#C4C4C3";
+
+
+GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE = {
+    light: "#BDBDBD",
+    mid: "#777777",
+    dark: "#2F2F2F"
+};
+
+GraveFallGame.scene.Game.PLAYER_DAMAGE_STATE_KEYS = [
+    "hp100",
+    "hp75",
+    "hp50",
+    "hp25",
+    "knockedOut",
+    "dead"
+];
+
+GraveFallGame.scene.Game.ENEMY_DAMAGE_STATE_KEYS = [
+    "hp100",
+    "hp75",
+    "hp50",
+    "hp25",
+    "killed"
+];
+
+
 
 GraveFallGame.scene.Game.CLOTHING_SOURCE = {
     mid: "#b654b7",
@@ -138,6 +165,18 @@ GraveFallGame.scene.Game.UI_SKINS = {
 GraveFallGame.scene.Game.ENEMIES = {
     boss: {
         name: "Boss",
+        resource: "Goblin_Idle_T",
+        // Replace these resources later with Boss_Bruised_T, Boss_Hurt_T,
+        // Boss_Dying_T, Boss_Killed_T, etc. when those sprites exist.
+        // The last visible damage state is reused as the killed placeholder.
+        damageStateResources: {
+            hp100: "Goblin_Idle_T",
+            hp75: "Goblin_Idle_T",
+            hp50: "Goblin_Idle_T",
+            hp25: "Goblin_Idle_T",
+            killed: "Goblin_Idle_T"
+        },
+        hpMax: 220,
         actionPhaseDuration: 300,
         patternInterval: 55,
         patterns: [
@@ -149,6 +188,17 @@ GraveFallGame.scene.Game.ENEMIES = {
     },
     goblin: {
         name: "Goblin",
+        resource: "Goblin_Idle_T",
+        // Swap these placeholders for Goblin_Bruised_T, Goblin_Hurt_T,
+        // Goblin_Dying_T, Goblin_Killed_T, etc. after adding those resources.
+        damageStateResources: {
+            hp100: "Goblin_Idle_T",
+            hp75: "Goblin_Idle_T",
+            hp50: "Goblin_Idle_T",
+            hp25: "Goblin_Idle_T",
+            killed: "Goblin_Idle_T"
+        },
+        hpMax: 100,
         actionPhaseDuration: 240,
         patternInterval: 45,
         patterns: [
@@ -162,6 +212,168 @@ GraveFallGame.scene.Game.ENEMIES = {
 //------------------------------------------------------------------------------
 // Helper
 //------------------------------------------------------------------------------
+
+
+GraveFallGame.scene.Game.prototype.resourceExists = function (resourceName) {
+    return !!(resourceName && this.application && this.application.resources && this.application.resources.get(resourceName));
+};
+
+GraveFallGame.scene.Game.prototype.resolveExistingResource = function (candidates, fallbackResource) {
+    var i;
+
+    for (i = 0; i < candidates.length; i++) {
+        if (this.resourceExists(candidates[i])) {
+            return candidates[i];
+        }
+    }
+
+    return fallbackResource;
+};
+
+GraveFallGame.scene.Game.prototype.createDamageStateGroup = function (x, y, width, height, stateConfigs, options) {
+    var group = new rune.display.DisplayObjectContainer(x, y, width, height);
+    var i;
+    var sprite;
+
+    options = options || {};
+    group.stateSprites = [];
+    group.currentDamageState = null;
+
+    for (i = 0; i < stateConfigs.length; i++) {
+        sprite = new rune.display.Sprite(0, 0, width, height, this.resolveExistingResource([stateConfigs[i].resource], stateConfigs[0].resource));
+        sprite.damageState = stateConfigs[i].state;
+        sprite.visible = false;
+
+        if (options.flippedX === true) {
+            sprite.flippedX = true;
+        }
+
+        group.addChild(sprite);
+        group.stateSprites.push(sprite);
+    }
+
+    return group;
+};
+
+GraveFallGame.scene.Game.prototype.setDamageStateGroupState = function (group, state) {
+    var i;
+    var fallbackIndex = 0;
+
+    if (!group || !group.stateSprites) {
+        return;
+    }
+
+    group.currentDamageState = state;
+
+    for (i = 0; i < group.stateSprites.length; i++) {
+        if (group.stateSprites[i].damageState === state) {
+            fallbackIndex = i;
+            break;
+        }
+    }
+
+    for (i = 0; i < group.stateSprites.length; i++) {
+        group.stateSprites[i].visible = i === fallbackIndex;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.applyPaletteSwapsToDamageStateGroup = function (group, normalPaletteSwaps, downedPaletteSwaps) {
+    var i;
+    var sprite;
+    var paletteSwaps;
+
+    if (!group || !group.stateSprites) {
+        this.applyPaletteSwaps(group, normalPaletteSwaps);
+        return;
+    }
+
+    for (i = 0; i < group.stateSprites.length; i++) {
+        sprite = group.stateSprites[i];
+        paletteSwaps = normalPaletteSwaps;
+
+        if (sprite.damageState === "knockedOut" || sprite.damageState === "dead" || sprite.damageState === "killed") {
+            paletteSwaps = downedPaletteSwaps || normalPaletteSwaps;
+        }
+
+        this.applyPaletteSwaps(sprite, paletteSwaps);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseResource) {
+    var prefix = baseResource.replace("_Idle_Stance", "");
+    var downedPrefix = prefix === "Assassin" ? "Assasin" : prefix;
+
+    return [
+        { state: "hp100", resource: this.resolveExistingResource([prefix + "_Idle_Stance", baseResource], baseResource) },
+        { state: "hp75", resource: this.resolveExistingResource([prefix + "_Bruised_Stance", prefix + "_Idle_Stance"], baseResource) },
+        { state: "hp50", resource: this.resolveExistingResource([prefix + "_Hurt_Stance", prefix + "_Bruised_Stance", prefix + "_Idle_Stance"], baseResource) },
+        { state: "hp25", resource: this.resolveExistingResource([prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Bruised_Stance", prefix + "_Idle_Stance"], baseResource) },
+        { state: "knockedOut", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) },
+        { state: "dead", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getPortraitDamageStates = function (portraitResource) {
+    return [
+        { state: "hp100", resource: portraitResource },
+        { state: "hp75", resource: portraitResource },
+        { state: "hp50", resource: portraitResource },
+        { state: "hp25", resource: portraitResource },
+        { state: "knockedOut", resource: portraitResource },
+        { state: "dead", resource: portraitResource }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getEnemyDamageStates = function (enemyConfig) {
+    var resources = enemyConfig.damageStateResources || {};
+    var idleResource = enemyConfig.resource;
+
+    return [
+        { state: "hp100", resource: resources.hp100 || idleResource },
+        { state: "hp75", resource: resources.hp75 || resources.hp100 || idleResource },
+        { state: "hp50", resource: resources.hp50 || resources.hp75 || resources.hp100 || idleResource },
+        { state: "hp25", resource: resources.hp25 || resources.hp50 || resources.hp75 || resources.hp100 || idleResource },
+        { state: "killed", resource: resources.killed || resources.hp25 || resources.hp50 || resources.hp75 || resources.hp100 || idleResource }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getHealthDamageState = function (currentHealth, maxHealth, isPlayer, allPlayersDead) {
+    var healthRatio = maxHealth > 0 ? currentHealth / maxHealth : 0;
+
+    if (isPlayer === true && currentHealth <= 0) {
+        return allPlayersDead === true ? "dead" : "knockedOut";
+    }
+
+    if (isPlayer !== true && currentHealth <= 0) {
+        return "killed";
+    }
+
+    if (healthRatio > 0.75) {
+        return "hp100";
+    }
+
+    if (healthRatio > 0.5) {
+        return "hp75";
+    }
+
+    if (healthRatio > 0.25) {
+        return "hp50";
+    }
+
+    return "hp25";
+};
+
+GraveFallGame.scene.Game.prototype.areAllPlayersDown = function () {
+    var i;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        if (this.playerMenus[i].healthCurrent > 0) {
+            return false;
+        }
+    }
+
+    return this.playerMenus.length > 0;
+};
 
 GraveFallGame.scene.Game.prototype.getPlayerTheme = function (index) {
     return GraveFallGame.scene.Game.PLAYER_THEMES[index % GraveFallGame.scene.Game.PLAYER_THEMES.length];
@@ -244,10 +456,12 @@ GraveFallGame.scene.Game.prototype.applyPaletteSwaps = function (graphic, palett
 
 GraveFallGame.scene.Game.prototype.applyMonochromeIconColor = function (graphic, targetColor) {
     this.applyPaletteSwaps(graphic, [
-        {
-            from: GraveFallGame.scene.Game.MONO_ICON_SOURCE,
-            to: targetColor
-        }
+        { from: GraveFallGame.scene.Game.MONO_ICON_SOURCE, to: targetColor },
+        { from: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid, to: targetColor },
+        { from: "#E53935", to: targetColor },
+        { from: "#1E88E5", to: targetColor },
+        { from: "#FDD835", to: targetColor },
+        { from: "#43A047", to: targetColor }
     ]);
 };
 
@@ -313,18 +527,24 @@ GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, op
 
     this.applyMonochromeIconColor(parts.classIcon, theme.accent);
     this.applyMonochromeIconColor(parts.battleAvatar, theme.accent);
+    parts.battleAvatar.normalColor = theme.accent;
+    parts.battleAvatar.downedColor = GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid;
 
     for (i = 0; i < parts.actions.length; i++) {
         this.applyMonochromeIconColor(parts.actions[i], theme.accentLight);
     }
 
-    this.applyPaletteSwaps(
+    // Standing sprites and portraits always keep their player-assigned palette,
+    // including knocked-out/dead damage states. Only the class icons grey out.
+    this.applyPaletteSwapsToDamageStateGroup(
         parts.stand,
+        options.standPaletteSwaps || defaultClothingPalette,
         options.standPaletteSwaps || defaultClothingPalette
     );
 
-    this.applyPaletteSwaps(
+    this.applyPaletteSwapsToDamageStateGroup(
         parts.portrait,
+        options.portraitPaletteSwaps || defaultClothingPalette,
         options.portraitPaletteSwaps || defaultClothingPalette
     );
 };
@@ -337,7 +557,7 @@ GraveFallGame.scene.Game.prototype.areAllPlayersConfirmed = function () {
     }
 
     for (i = 0; i < this.playerMenus.length; i++) {
-        if (this.playerMenus[i].confirmed !== true) {
+        if (this.playerMenus[i].healthCurrent > 0 && this.playerMenus[i].confirmed !== true) {
             return false;
         }
     }
@@ -437,36 +657,82 @@ GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
     targetY = inner.y + inner.height - 90;
 
     for (i = 0; i < this.playerMenus.length; i++) {
+        if (this.playerMenus[i].healthCurrent <= 0) {
+            this.playerMenus[i].battleAvatar.visible = false;
+            continue;
+        }
+
         avatar = this.playerMenus[i].battleAvatar;
         avatar.visible = true;
-        avatar.alpha = this.playerMenus[i].healthCurrent > 0 ? 1 : 0.25;
+        avatar.alpha = 1;
 
         targetX = inner.x + (spacing * (slotIndex + 1)) - (avatar.width / 2);
         avatar.x = targetX;
         avatar.y = targetY;
-
-        if (this.playerMenus[i].healthCurrent > 0) {
-            slotIndex++;
-        }
+        slotIndex++;
     }
 };
 
 GraveFallGame.scene.Game.prototype.activateBattleAvatar = function (playerMenu) {
-    playerMenu.stand.alpha = 0;
-    playerMenu.battleAvatar.visible = true;
-    playerMenu.battleAvatar.alpha = playerMenu.healthCurrent > 0 ? 1 : 0.25;
+    playerMenu.stand.visible = false;
+    playerMenu.battleAvatar.visible = playerMenu.healthCurrent > 0;
+    playerMenu.battleAvatar.alpha = 1;
 };
 
 GraveFallGame.scene.Game.prototype.deactivateBattleAvatar = function (playerMenu) {
+    playerMenu.stand.visible = true;
     playerMenu.stand.alpha = 1;
     playerMenu.battleAvatar.visible = false;
-    playerMenu.battleAvatar.alpha = 0;
+    playerMenu.battleAvatar.alpha = 1;
+};
+
+GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
+    if (this.phase === GraveFallGame.scene.Game.PHASE_GAME_OVER) {
+        return;
+    }
+
+    this.phase = GraveFallGame.scene.Game.PHASE_GAME_OVER;
+    this.gameOverTimer = 180;
+    this.clearProjectiles();
+    this.clearArenaItem();
+    this.setBattleArenaVisible(false);
+    this.turnTimerText.alpha = 0;
+    this.updateAllPlayerDamageStates();
+
+    if (!this.gameOverText) {
+        this.gameOverText = new rune.text.BitmapField("GAME OVER");
+        this.gameOverText.scaleX = 3;
+        this.gameOverText.scaleY = 3;
+        this.gameOverText.x = Math.floor((this.application.screen.width - (9 * 16 * this.gameOverText.scaleX)) / 2);
+        this.gameOverText.y = 24;
+        this.stage.addChild(this.gameOverText);
+    }
+
+    this.gameOverText.visible = true;
+    this.gameOverText.alpha = 1;
+};
+
+GraveFallGame.scene.Game.prototype.updateGameOver = function () {
+    if (this.gameOverTimer > 0) {
+        this.gameOverTimer--;
+    }
+
+    if (this.gameOverText) {
+        this.gameOverText.alpha = this.gameOverTimer % 20 < 12 ? 1 : 0.35;
+    }
+
+    if (this.gameOverTimer <= 0) {
+        this.application.scenes.load([
+            new GraveFallGame.scene.Menu()
+        ]);
+    }
 };
 
 GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
 
+    this.resolveCommandPhaseActions();
     this.clearArenaItem();
     this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
     this.turnTimerText.alpha = 0;
@@ -505,6 +771,12 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
         this.deactivateBattleAvatar(this.playerMenus[i]);
+    }
+
+    this.updateAllPlayerDamageStates();
+
+    if (this.areAllPlayersDown()) {
+        this.showGameOverAndReturnToMenu();
     }
 };
 
@@ -867,14 +1139,22 @@ GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMen
 };
 
 GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu) {
+    var flashAlpha = 1;
+
     if (playerMenu.hitCooldown > 0) {
+        flashAlpha = playerMenu.hitCooldown % 2 === 0 ? 0.15 : 1;
         playerMenu.hitCooldown--;
-        playerMenu.battleAvatar.alpha = playerMenu.hitCooldown % 4 < 2 ? 0.35 : 1;
-    } else if (playerMenu.healthCurrent > 0) {
-        playerMenu.battleAvatar.alpha = 1;
-    } else {
-        playerMenu.battleAvatar.alpha = 0.25;
     }
+
+    if (playerMenu.healthCurrent > 0) {
+        playerMenu.battleAvatar.visible = true;
+        playerMenu.battleAvatar.alpha = flashAlpha;
+    } else {
+        playerMenu.battleAvatar.visible = false;
+        playerMenu.battleAvatar.alpha = 1;
+    }
+
+    playerMenu.classIcon.alpha = flashAlpha;
 };
 
 GraveFallGame.scene.Game.prototype.playPlaceholderHitSound = function () {
@@ -898,8 +1178,14 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     playerMenu.healthCurrentText.text = String(playerMenu.healthCurrent);
     playerMenu.hitCooldown = 12;
 
+    if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION) {
+        this.updateAllPlayerDamageStates();
+    }
+
     if (playerMenu.healthCurrent <= 0) {
-        playerMenu.battleAvatar.alpha = 0.25;
+        playerMenu.battleAvatar.visible = false;
+        playerMenu.battleAvatar.alpha = 1;
+        playerMenu.confirmed = true;
     }
 };
 
@@ -1109,6 +1395,11 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
     this.updateProjectiles();
     this.checkProjectileCollisions();
 
+    if (this.areAllPlayersDown()) {
+        this.endActionPhase();
+        return;
+    }
+
     if (this.actionPhaseTimer <= 0) {
         this.endActionPhase();
     }
@@ -1130,6 +1421,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
 
     this.arenaItem = null;
     this.itemSpawnTimer = 0;
+    this.gameOverText = null;
+    this.gameOverTimer = 0;
 
     // NEW: turn timer (10 seconds ≈ 600 frames)
     this.turnTimer = 600;
@@ -1150,12 +1443,22 @@ GraveFallGame.scene.Game.prototype.init = function () {
     );
     this.stage.addChild(this.backgroundBackdrop);
 
-    this.bossPlaceholder = new rune.display.Sprite(0, 0, 100, 100, "Goblin_Idle_T");
-    this.bossPlaceholder.scaleX = 3.2;
-    this.bossPlaceholder.scaleY = 3.2;
-    this.bossPlaceholder.x = (this.application.screen.width / 1) - ((this.bossPlaceholder.width * this.bossPlaceholder.scaleX) / 1.28);
-    this.bossPlaceholder.y = 180;
-    this.stage.addChild(this.bossPlaceholder);
+    this.enemyHealthMax = this.getCurrentEnemyConfig().hpMax;
+    this.enemyHealthCurrent = this.enemyHealthMax;
+    this.enemySprite = this.createDamageStateGroup(
+        0,
+        0,
+        100,
+        100,
+        this.getEnemyDamageStates(this.getCurrentEnemyConfig())
+    );
+    this.enemySprite.scaleX = 3.2;
+    this.enemySprite.scaleY = 3.2;
+    this.enemySprite.x = (this.application.screen.width / 1) - ((this.enemySprite.width * this.enemySprite.scaleX) / 1.28);
+    this.enemySprite.y = 180;
+    this.setDamageStateGroupState(this.enemySprite, "hp100");
+    this.stage.addChild(this.enemySprite);
+    this.bossPlaceholder = this.enemySprite;
 
     this.createBattleArena();
     this.stage.addChild(this.turnTimerText);
@@ -1249,6 +1552,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
             down: "g"
         }
     }));
+
+    this.updateAllPlayerDamageStates();
+    this.updateEnemyDamageState();
 };
 
 //------------------------------------------------------------------------------
@@ -1296,10 +1602,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var actionAccent = new rune.display.Graphic(0, 0, menuWidth, 2);
     var actionSelectionBar = new rune.display.Graphic(actionPositions[0], 57, 60, 3);
 
-    var characterStand = new rune.display.Sprite(standX, 400, 100, 100, options.stand);
+    var characterStand = this.createDamageStateGroup(standX, 400, 100, 100, this.getPlayerStandDamageStates(options.stand), { flippedX: options.flipStandX });
     var battleAvatar = new rune.display.Sprite(0, 0, 100, 100, options.classIcon);
 
-    var characterIcon = new rune.display.Sprite(10, 5, 50, 50, options.portrait);
+    var characterIcon = this.createDamageStateGroup(10, 5, 50, 50, this.getPortraitDamageStates(options.portrait));
     var characterClassIcon = new rune.display.Sprite(55, 30, 100, 100, options.classIcon);
 
     var fightIcon = new rune.display.Sprite(10, 10, 100, 100, "Fight_Icon_T");
@@ -1353,10 +1659,6 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     characterStand.scaleX = standScale;
     characterStand.scaleY = standScale;
 
-    if (options.flipStandX === true) {
-        characterStand.flippedX = true;
-        battleAvatar.flippedX = true;
-    }
 
     characterMenu.addChild(characterMenuCharacter);
     characterMenu.addChild(characterMenuActions);
@@ -1402,6 +1704,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var playerMenu = {
         container: characterMenu,
         stand: characterStand,
+        portrait: characterIcon,
+        classIcon: characterClassIcon,
         battleAvatar: battleAvatar,
         actions: [fightIcon, defendIcon, buffIcon, itemIcon],
         actionPositions: actionPositions,
@@ -1411,6 +1715,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         healthCurrentText: characterHealthCurrent,
         healthCurrent: options.hpCurrent,
         healthMax: options.hpMax,
+        theme: options.playerTheme,
         selectedIndex: 0,
         selectedAction: null,
         confirmed: false,
@@ -1419,6 +1724,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         controls: options.controls,
         moveControls: options.moveControls,
         moveSpeed: 4,
+        attackDamage: options.attackDamage || 20,
         hitCooldown: 0
     };
 
@@ -1427,10 +1733,77 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     return playerMenu;
 };
 
+
+GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMenu, allPlayersDead) {
+    var state = this.getHealthDamageState(playerMenu.healthCurrent, playerMenu.healthMax, true, allPlayersDead);
+    var downed = state === "knockedOut" || state === "dead";
+    var iconColor = downed ? GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid : playerMenu.theme.accent;
+
+    this.setDamageStateGroupState(playerMenu.stand, state);
+    this.setDamageStateGroupState(playerMenu.portrait, state);
+
+    this.applyMonochromeIconColor(playerMenu.classIcon, iconColor);
+    this.applyMonochromeIconColor(playerMenu.battleAvatar, iconColor);
+
+    playerMenu.stand.alpha = 1;
+    playerMenu.classIcon.alpha = 1;
+    playerMenu.container.alpha = 1;
+    playerMenu.selectionBar.visible = !downed;
+
+    for (var i = 0; i < playerMenu.actions.length; i++) {
+        playerMenu.actions[i].alpha = downed ? 0.45 : 1;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.updateAllPlayerDamageStates = function () {
+    var allPlayersDead = this.areAllPlayersDown();
+    var i;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        this.updatePlayerDamageState(this.playerMenus[i], allPlayersDead);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
+    this.setDamageStateGroupState(
+        this.enemySprite,
+        this.getHealthDamageState(this.enemyHealthCurrent, this.enemyHealthMax, false, false)
+    );
+};
+
+GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount) {
+    this.enemyHealthCurrent = Math.max(0, this.enemyHealthCurrent - amount);
+    this.updateEnemyDamageState();
+};
+
+GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
+    var i;
+    var playerMenu;
+
+    if (this.enemyHealthCurrent <= 0) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        playerMenu = this.playerMenus[i];
+
+        if (playerMenu.healthCurrent <= 0) {
+            continue;
+        }
+
+        // Action index 0 is the fight action. This gives the enemy real HP and
+        // immediately lets its five visual damage states react to player attacks.
+        if (playerMenu.selectedAction === 0) {
+            this.applyDamageToEnemy(playerMenu.attackDamage || 20);
+        }
+    }
+};
+
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
     var i;
 
     playerMenu.selectionBar.x = playerMenu.actionPositions[playerMenu.selectedIndex];
+    playerMenu.selectionBar.visible = playerMenu.healthCurrent > 0;
 
     //keep same for now, maybe useful later
     for (i = 0; i < playerMenu.actions.length; i++) {
@@ -1445,6 +1818,14 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 };
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMenu) {
+    if (playerMenu.healthCurrent <= 0) {
+        playerMenu.confirmed = true;
+        playerMenu.selectedAction = null;
+        playerMenu.container.y = playerMenu.confirmedY;
+        this.updateCharacterMenuVisuals(playerMenu);
+        return;
+    }
+
     if (playerMenu.confirmed) {
         playerMenu.container.y = playerMenu.confirmedY;
         this.updateCharacterMenuVisuals(playerMenu);
@@ -1490,6 +1871,11 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     rune.scene.Scene.prototype.update.call(this, step);
 
+    if (this.phase === GraveFallGame.scene.Game.PHASE_GAME_OVER) {
+        this.updateGameOver();
+        return;
+    }
+
     if (this.phase === GraveFallGame.scene.Game.PHASE_COMMAND) {
         this.turnTimerMs -= step;
 
@@ -1506,7 +1892,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
         if (this.turnTimerMs <= 0) {
             for (i = 0; i < this.playerMenus.length; i++) {
-                if (!this.playerMenus[i].confirmed) {
+                if (!this.playerMenus[i].confirmed && this.playerMenus[i].healthCurrent > 0) {
                     this.playerMenus[i].selectedIndex = 0;
                     this.playerMenus[i].selectedAction = 0;
                     this.playerMenus[i].confirmed = true;
@@ -1539,6 +1925,9 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.playerMenus = null;
     this.backgroundBackdrop = null;
     this.bossPlaceholder = null;
+    this.enemySprite = null;
+    this.enemyHealthCurrent = null;
+    this.enemyHealthMax = null;
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;
     this.arenaAvatarLayer = null;
@@ -1548,5 +1937,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.turnTimerMs = null;
     this.arenaItem = null;
     this.itemSpawnTimer = null;
+    this.gameOverText = null;
+    this.gameOverTimer = null;
     rune.scene.Scene.prototype.dispose.call(this);
 };
