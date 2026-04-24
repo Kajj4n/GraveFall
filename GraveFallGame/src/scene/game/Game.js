@@ -549,6 +549,70 @@ GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, op
     );
 };
 
+GraveFallGame.scene.Game.prototype.getBitmapTextWidth = function (field, fallbackCharacterWidth) {
+    var text = field && field.text !== undefined && field.text !== null ? String(field.text) : "";
+    var scaleX = field && typeof field.scaleX === "number" ? field.scaleX : 1;
+
+    fallbackCharacterWidth = fallbackCharacterWidth || 6;
+
+    return text.length * fallbackCharacterWidth * scaleX;
+};
+
+GraveFallGame.scene.Game.prototype.layoutPlayerHealthText = function (playerMenu) {
+    var currentWidth;
+    var maxWidth;
+    var rightX;
+    var gap;
+    var characterWidth;
+    var y;
+
+    if (!playerMenu || !playerMenu.healthCurrentText || !playerMenu.healthMaxText) {
+        return;
+    }
+
+    rightX = typeof playerMenu.healthTextRightX === "number" ? playerMenu.healthTextRightX : 300;
+    gap = typeof playerMenu.healthTextGap === "number" ? playerMenu.healthTextGap : 4;
+    characterWidth = typeof playerMenu.healthTextCharacterWidth === "number" ? playerMenu.healthTextCharacterWidth : 6;
+    y = typeof playerMenu.healthTextY === "number" ? playerMenu.healthTextY : 13;
+
+    currentWidth = this.getBitmapTextWidth(playerMenu.healthCurrentText, characterWidth);
+    maxWidth = this.getBitmapTextWidth(playerMenu.healthMaxText, characterWidth);
+
+    // Anchor the full "current/max" string to the right side of this player's
+    // own menu. This lets 3+ digit health values shift only that player's text
+    // left, and lets it shift back automatically when the value drops below 100.
+    playerMenu.healthMaxText.x = rightX - maxWidth;
+    playerMenu.healthCurrentText.x = playerMenu.healthMaxText.x - gap - currentWidth;
+    playerMenu.healthMaxText.y = y;
+    playerMenu.healthCurrentText.y = y;
+};
+
+GraveFallGame.scene.Game.prototype.updatePlayerHealthUi = function (playerMenu) {
+    var maxHealth;
+
+    if (!playerMenu) {
+        return;
+    }
+
+    maxHealth = Math.max(1, playerMenu.healthMax || 1);
+    playerMenu.healthMax = maxHealth;
+    playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent || 0);
+
+    if (playerMenu.healthBarFill) {
+        playerMenu.healthBarFill.scaleX = Math.max(0, Math.min(1, playerMenu.healthCurrent / maxHealth));
+    }
+
+    if (playerMenu.healthCurrentText) {
+        playerMenu.healthCurrentText.text = String(playerMenu.healthCurrent);
+    }
+
+    if (playerMenu.healthMaxText) {
+        playerMenu.healthMaxText.text = "/" + String(playerMenu.healthMax);
+    }
+
+    this.layoutPlayerHealthText(playerMenu);
+};
+
 GraveFallGame.scene.Game.prototype.areAllPlayersConfirmed = function () {
     var i;
 
@@ -763,7 +827,6 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     this.turnTimerMs = 10000;
     this.turnTimerText.alpha = 1;
     this.turnTimerText.text = "10";
-    
 
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
@@ -1174,8 +1237,7 @@ GraveFallGame.scene.Game.prototype.playPlaceholderHitSound = function () {
 
 GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
     playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent - amount);
-    playerMenu.healthBarFill.scaleX = Math.max(0, Math.min(1, playerMenu.healthCurrent / playerMenu.healthMax));
-    playerMenu.healthCurrentText.text = String(playerMenu.healthCurrent);
+    this.updatePlayerHealthUi(playerMenu);
     playerMenu.hitCooldown = 12;
 
     if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION) {
@@ -1713,8 +1775,13 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         healthBarBackground: characterHealthBarBackground,
         healthBarFill: characterHealthBar,
         healthCurrentText: characterHealthCurrent,
+        healthMaxText: characterHealthMax,
         healthCurrent: options.hpCurrent,
         healthMax: options.hpMax,
+        healthTextRightX: 300,
+        healthTextGap: 4,
+        healthTextCharacterWidth: 6,
+        healthTextY: 13,
         theme: options.playerTheme,
         selectedIndex: 0,
         selectedAction: null,
@@ -1728,6 +1795,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         hitCooldown: 0
     };
 
+    this.updatePlayerHealthUi(playerMenu);
     this.updateCharacterMenuVisuals(playerMenu);
 
     return playerMenu;
