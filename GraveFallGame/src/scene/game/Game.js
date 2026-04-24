@@ -1469,7 +1469,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
         portrait: "Fighter_Portrait",
         classIcon: "Fighter_Icon_T",
         stand: "Fighter_Idle_Stance",
-        hpCurrent: 75,
+        hpCurrent: 100,
         hpMax: 160,
         playerTheme: this.getPlayerTheme(0),
         controls: {
@@ -1605,7 +1605,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var characterStand = this.createDamageStateGroup(standX, 400, 100, 100, this.getPlayerStandDamageStates(options.stand), { flippedX: options.flipStandX });
     var battleAvatar = new rune.display.Sprite(0, 0, 100, 100, options.classIcon);
 
-    var characterIcon = this.createDamageStateGroup(10, 5, 50, 50, this.getPortraitDamageStates(options.portrait));
+    var characterIcon = this.createDamageStateGroup(10, 5, 80, 80, this.getPortraitDamageStates(options.portrait));
     var characterClassIcon = new rune.display.Sprite(55, 30, 100, 100, options.classIcon);
 
     var fightIcon = new rune.display.Sprite(10, 10, 100, 100, "Fight_Icon_T");
@@ -1760,6 +1760,7 @@ GraveFallGame.scene.Game.prototype.updateAllPlayerDamageStates = function () {
     var i;
 
     for (i = 0; i < this.playerMenus.length; i++) {
+        this.updateCharacterMenuInput(this.playerMenus[i]);
         this.updatePlayerDamageState(this.playerMenus[i], allPlayersDead);
     }
 };
