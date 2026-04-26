@@ -211,13 +211,17 @@ GraveFallGame.scene.Game.ENEMIES = {
 
 
 //------------------------------------------------------------------------------
-// Sound effect IDs and helpers
+// Audio IDs and helpers
 //------------------------------------------------------------------------------
 
 // Keep these IDs identical to the names in src/data/resource/Requests.js.
 // To replace the placeholder sounds, export WAVs from ChipTone, bake/convert them
 // into data:audio/wav;base64 strings, then paste them into the matching this.add()
 // lines in Requests.js.
+GraveFallGame.MUSIC = {
+    DUNGEON_LOOP: "BGM_Dungeon_Loop"
+};
+
 GraveFallGame.SOUNDS = {
     UI_MOVE: "SFX_UI_Move",
     UI_CONFIRM: "SFX_UI_Confirm",
@@ -267,8 +271,56 @@ GraveFallGame.playSound = function (application, soundName, volume, pan, unique)
     }
 };
 
+GraveFallGame.playMusic = function (application, musicName, volume, pan) {
+    var music;
+
+    try {
+        if (!application || !application.sounds || !application.sounds.music) {
+            return null;
+        }
+
+        // Rune has a dedicated music channel. Use a shared object here so this
+        // looping placeholder is treated as one background track, not as stacked SFX.
+        music = application.sounds.music.get(musicName, false);
+
+        if (music) {
+            music.loop = true;
+            music.volume = typeof volume === "number" ? volume : 0.35;
+            music.pan = typeof pan === "number" ? pan : 0;
+            music.play(true);
+        }
+
+        return music;
+    } catch (e) {
+        return null;
+    }
+};
+
+GraveFallGame.stopMusic = function (music) {
+    try {
+        if (music && typeof music.stop === "function") {
+            music.stop();
+        }
+    } catch (e) {
+        // Audio teardown should never block scene cleanup.
+    }
+};
+
 GraveFallGame.scene.Game.prototype.playSfx = function (soundName, volume, pan, unique) {
     return GraveFallGame.playSound(this.application, soundName, volume, pan, unique);
+};
+
+GraveFallGame.scene.Game.prototype.startDungeonMusic = function () {
+    if (!this.dungeonMusic) {
+        this.dungeonMusic = GraveFallGame.playMusic(this.application, GraveFallGame.MUSIC.DUNGEON_LOOP, 0.32);
+    }
+
+    return this.dungeonMusic;
+};
+
+GraveFallGame.scene.Game.prototype.stopDungeonMusic = function () {
+    GraveFallGame.stopMusic(this.dungeonMusic);
+    this.dungeonMusic = null;
 };
 
 GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
@@ -295,6 +347,35 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
             break;
     }
+};
+
+GraveFallGame.scene.Game.prototype.shakeCamera = function (duration, amountX, amountY, easing) {
+    var camera;
+
+    try {
+        if (!this.cameras || typeof this.cameras.getCameraAt !== "function") {
+            return;
+        }
+
+        camera = this.cameras.getCameraAt(0);
+
+        if (camera && camera.shake && typeof camera.shake.start === "function") {
+            camera.shake.start(
+                duration || 180,
+                amountX || 6,
+                amountY || 6,
+                easing !== false
+            );
+        }
+    } catch (e) {
+        // Camera shake is juice only; gameplay should continue if the camera
+        // subsystem is missing during early boot or tests.
+    }
+};
+
+GraveFallGame.scene.Game.prototype.shakeOnPlayerDamage = function (damageAmount) {
+    var strength = Math.min(14, Math.max(6, Math.round((damageAmount || 0) * 0.65)));
+    this.shakeCamera(220, strength, Math.max(5, Math.round(strength * 0.75)), true);
 };
 
 //------------------------------------------------------------------------------

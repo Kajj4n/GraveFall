@@ -18,6 +18,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.gameOverTimer = 0;
     this.lastTurnWarningSecond = null;
     this.enemyDefeatedSoundPlayed = false;
+    this.dungeonMusic = null;
+
+    this.startDungeonMusic();
 
     // NEW: turn timer (10 seconds ≈ 600 frames)
     this.turnTimer = 600;
@@ -220,6 +223,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 };
 
 GraveFallGame.scene.Game.prototype.dispose = function () {
+    this.stopDungeonMusic();
     this.clearProjectiles();
     this.clearArenaItem();
     this.projectiles = null;
@@ -240,5 +244,6 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.itemSpawnTimer = null;
     this.gameOverText = null;
     this.gameOverTimer = null;
+    this.dungeonMusic = null;
     rune.scene.Scene.prototype.dispose.call(this);
 };

@@ -249,6 +249,8 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     this.updatePlayerHealthUi(playerMenu);
     playerMenu.hitCooldown = 12;
 
+    this.shakeOnPlayerDamage(amount);
+
     if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION) {
         this.updateAllPlayerDamageStates();
     }
