@@ -138,15 +138,19 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
 
     if (this.keyboard.justPressed("down") && this.index < this.options.length - 1) {
         this.index++;
+        GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_MOVE, 0.45);
         this.updateVisuals();
     }
 
     if (this.keyboard.justPressed("up") && this.index > 0) {
         this.index--;
+        GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_MOVE, 0.45);
         this.updateVisuals();
     }
 
     if (this.keyboard.justPressed("space")) {
+        GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.6);
+
         if (this.index === 0) {
             this.application.scenes.load([
                 new GraveFallGame.scene.Game()

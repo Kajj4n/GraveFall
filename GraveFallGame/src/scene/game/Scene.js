@@ -16,6 +16,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.itemSpawnTimer = 0;
     this.gameOverText = null;
     this.gameOverTimer = 0;
+    this.lastTurnWarningSecond = null;
+    this.enemyDefeatedSoundPlayed = false;
 
     // NEW: turn timer (10 seconds ≈ 600 frames)
     this.turnTimer = 600;
@@ -153,6 +155,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
 GraveFallGame.scene.Game.prototype.update = function (step) {
     var i;
     var secondsLeft;
+    var autoSelected;
 
     rune.scene.Scene.prototype.update.call(this, step);
 
@@ -171,18 +174,30 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
         secondsLeft = Math.ceil(this.turnTimerMs / 1000);
         this.turnTimerText.text = String(secondsLeft);
 
+        if (secondsLeft > 0 && secondsLeft <= 3 && this.lastTurnWarningSecond !== secondsLeft) {
+            this.lastTurnWarningSecond = secondsLeft;
+            this.playSfx(GraveFallGame.SOUNDS.TURN_WARNING, 0.45);
+        }
+
         for (i = 0; i < this.playerMenus.length; i++) {
             this.updateCharacterMenuInput(this.playerMenus[i]);
         }
 
         if (this.turnTimerMs <= 0) {
+            autoSelected = false;
+
             for (i = 0; i < this.playerMenus.length; i++) {
                 if (!this.playerMenus[i].confirmed && this.playerMenus[i].healthCurrent > 0) {
                     this.playerMenus[i].selectedIndex = 0;
                     this.playerMenus[i].selectedAction = 0;
                     this.playerMenus[i].confirmed = true;
                     this.playerMenus[i].container.y = this.playerMenus[i].confirmedY;
+                    autoSelected = true;
                 }
+            }
+
+            if (autoSelected) {
+                this.playSfx(GraveFallGame.SOUNDS.TURN_TIMEOUT, 0.7);
             }
 
             this.startActionPhase();
@@ -197,6 +212,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     }
 
     if (this.keyboard.justPressed("escape")) {
+        this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
         this.application.scenes.load([
             new GraveFallGame.scene.Menu()
         ]);

@@ -75,6 +75,7 @@ GraveFallGame.scene.Rule.prototype.update = function(step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
     if (this.keyboard.justPressed("escape")) {
+        GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_BACK, 0.55);
         this.application.scenes.load([
             new GraveFallGame.scene.Menu()
         ]);

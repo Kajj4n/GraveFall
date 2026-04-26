@@ -9,6 +9,8 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPattern = function () {
 };
 
 GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) {
+    this.playEnemyPatternSfx(patternId);
+
     switch (patternId) {
         case "boss_sword_rain": this.spawnBossSwordRain(); break;
         case "boss_vertical_sweep": this.spawnBossVerticalSweep(); break;
@@ -237,21 +239,12 @@ GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu
 };
 
 GraveFallGame.scene.Game.prototype.playPlaceholderHitSound = function () {
-    // Placeholder hook.
-    // Add a sound resource named Projectile_Hit_SFX in Requests.js and the
-    // call below will start working immediately.
-    try {
-        var hitSound = this.application.sounds.sound.get("Projectile_Hit_SFX");
-
-        if (hitSound) {
-            hitSound.play(true);
-        }
-    } catch (e) {
-        // No placeholder sound resource added yet.
-    }
+    this.playSfx(GraveFallGame.SOUNDS.PLAYER_HIT, 0.55);
 };
 
 GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
+    var wasAlive = playerMenu.healthCurrent > 0;
+
     playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent - amount);
     this.updatePlayerHealthUi(playerMenu);
     playerMenu.hitCooldown = 12;
@@ -261,9 +254,15 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     }
 
     if (playerMenu.healthCurrent <= 0) {
+        if (wasAlive) {
+            this.playSfx(GraveFallGame.SOUNDS.PLAYER_DOWNED, 0.8);
+        }
+
         playerMenu.battleAvatar.visible = false;
         playerMenu.battleAvatar.alpha = 1;
         playerMenu.confirmed = true;
+    } else if (wasAlive) {
+        this.playSfx(GraveFallGame.SOUNDS.PLAYER_HIT, 0.6);
     }
 };
 
@@ -289,7 +288,6 @@ GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
 
             if (this.rectsOverlap(projectile, playerMenu.battleAvatar)) {
                 this.applyDamageToPlayer(playerMenu, projectile.damage);
-                this.playPlaceholderHitSound();
                 projectile.hit = true;
                 projectile.hitFlashFrames = 6;
                 projectile.vx = 0;
@@ -410,6 +408,7 @@ GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
 
     this.arenaAvatarLayer.addChild(item);
     this.arenaItem = item;
+    this.playSfx(GraveFallGame.SOUNDS.ITEM_SPAWN, 0.45);
 };
 
 GraveFallGame.scene.Game.prototype.updateArenaItem = function () {
@@ -435,6 +434,7 @@ GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
         }
 
         if (this.rectsOverlap(playerMenu.battleAvatar, this.arenaItem)) {
+            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.65);
             this.clearArenaItem();
 
             // 🔥 ADD THIS: reset random spawn delay

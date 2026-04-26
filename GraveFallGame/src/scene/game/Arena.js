@@ -103,6 +103,7 @@ GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
 
     this.phase = GraveFallGame.scene.Game.PHASE_GAME_OVER;
     this.gameOverTimer = 180;
+    this.playSfx(GraveFallGame.SOUNDS.GAME_OVER, 0.85);
     this.clearProjectiles();
     this.clearArenaItem();
     this.setBattleArenaVisible(false);
@@ -147,6 +148,7 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
     this.turnTimerText.alpha = 0;
     this.phase = GraveFallGame.scene.Game.PHASE_ACTION;
+    this.playSfx(GraveFallGame.SOUNDS.PHASE_START, 0.65);
     this.actionPhaseTimer = enemy.actionPhaseDuration;
     this.nextPatternIn = 0;
     this.clearProjectiles();
@@ -164,6 +166,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     var i;
 
     this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
+    this.playSfx(GraveFallGame.SOUNDS.PHASE_END, 0.5);
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
     this.clearProjectiles();
@@ -171,6 +174,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     this.clearArenaItem();
 
     this.turnTimerMs = 10000;
+    this.lastTurnWarningSecond = null;
     this.turnTimerText.alpha = 1;
     this.turnTimerText.text = "10";
 

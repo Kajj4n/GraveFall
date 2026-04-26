@@ -209,6 +209,94 @@ GraveFallGame.scene.Game.ENEMIES = {
     }
 };
 
+
+//------------------------------------------------------------------------------
+// Sound effect IDs and helpers
+//------------------------------------------------------------------------------
+
+// Keep these IDs identical to the names in src/data/resource/Requests.js.
+// To replace the placeholder sounds, export WAVs from ChipTone, bake/convert them
+// into data:audio/wav;base64 strings, then paste them into the matching this.add()
+// lines in Requests.js.
+GraveFallGame.SOUNDS = {
+    UI_MOVE: "SFX_UI_Move",
+    UI_CONFIRM: "SFX_UI_Confirm",
+    UI_BACK: "SFX_UI_Back",
+    TURN_WARNING: "SFX_Turn_Warning",
+    TURN_TIMEOUT: "SFX_Turn_Timeout",
+    PHASE_START: "SFX_Phase_Start",
+    PHASE_END: "SFX_Phase_End",
+    PLAYER_ATTACK: "SFX_Player_Attack",
+    ENEMY_HIT: "SFX_Enemy_Hit",
+    ENEMY_DEFEATED: "SFX_Enemy_Defeated",
+    PLAYER_HIT: "SFX_Player_Hit",
+    PLAYER_DOWNED: "SFX_Player_Downed",
+    ITEM_SPAWN: "SFX_Item_Spawn",
+    ITEM_PICKUP: "SFX_Item_Pickup",
+    ATTACK_SWORD_RAIN: "SFX_Attack_Sword_Rain",
+    ATTACK_SWEEP: "SFX_Attack_Sweep",
+    ATTACK_ORB: "SFX_Attack_Orb",
+    ATTACK_DAGGER: "SFX_Attack_Dagger",
+    ATTACK_PEBBLE: "SFX_Attack_Pebble",
+    ATTACK_DART: "SFX_Attack_Dart",
+    ATTACK_STOMP: "SFX_Attack_Stomp",
+    GAME_OVER: "SFX_Game_Over"
+};
+
+GraveFallGame.playSound = function (application, soundName, volume, pan, unique) {
+    var sound;
+
+    try {
+        if (!application || !application.sounds || !application.sounds.sound) {
+            return null;
+        }
+
+        sound = application.sounds.sound.get(soundName, unique !== false);
+
+        if (sound) {
+            sound.volume = typeof volume === "number" ? volume : 1;
+            sound.pan = typeof pan === "number" ? pan : 0;
+            sound.play(true);
+        }
+
+        return sound;
+    } catch (e) {
+        // This keeps development safe while sound resources are still being
+        // replaced. Missing or badly pasted audio data should not crash gameplay.
+        return null;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.playSfx = function (soundName, volume, pan, unique) {
+    return GraveFallGame.playSound(this.application, soundName, volume, pan, unique);
+};
+
+GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
+    switch (patternId) {
+        case "boss_sword_rain":
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWORD_RAIN, 0.65);
+            break;
+        case "boss_vertical_sweep":
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWEEP, 0.65);
+            break;
+        case "boss_orb_burst":
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_ORB, 0.65);
+            break;
+        case "boss_diagonal_drop":
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_DAGGER, 0.65);
+            break;
+        case "goblin_pebble_rain":
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_PEBBLE, 0.55);
+            break;
+        case "goblin_dart_fan":
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_DART, 0.6);
+            break;
+        case "goblin_stomp_wave":
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
+            break;
+    }
+};
+
 //------------------------------------------------------------------------------
 // Helper
 //------------------------------------------------------------------------------

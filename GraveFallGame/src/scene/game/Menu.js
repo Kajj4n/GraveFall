@@ -221,8 +221,20 @@ GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
 };
 
 GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount) {
+    var wasAlive = this.enemyHealthCurrent > 0;
+
     this.enemyHealthCurrent = Math.max(0, this.enemyHealthCurrent - amount);
     this.updateEnemyDamageState();
+
+    if (amount > 0 && wasAlive) {
+        this.playSfx(GraveFallGame.SOUNDS.PLAYER_ATTACK, 0.65);
+        this.playSfx(GraveFallGame.SOUNDS.ENEMY_HIT, 0.55);
+    }
+
+    if (wasAlive && this.enemyHealthCurrent <= 0 && this.enemyDefeatedSoundPlayed !== true) {
+        this.enemyDefeatedSoundPlayed = true;
+        this.playSfx(GraveFallGame.SOUNDS.ENEMY_DEFEATED, 0.8);
+    }
 };
 
 GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
@@ -287,6 +299,8 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         if (playerMenu.selectedIndex < 0) {
             playerMenu.selectedIndex = playerMenu.actions.length - 1;
         }
+
+        this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.4);
     }
 
     if (this.keyboard.justPressed(playerMenu.controls.right)) {
@@ -295,12 +309,15 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         if (playerMenu.selectedIndex >= playerMenu.actions.length) {
             playerMenu.selectedIndex = 0;
         }
+
+        this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.4);
     }
 
     if (this.keyboard.justPressed(playerMenu.controls.confirm)) {
         playerMenu.selectedAction = playerMenu.selectedIndex;
         playerMenu.confirmed = true;
         playerMenu.container.y = playerMenu.confirmedY;
+        this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
     }
 
     this.updateCharacterMenuVisuals(playerMenu);
