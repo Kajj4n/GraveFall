@@ -37,6 +37,7 @@ GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.Game.PHASE_COMMAND = "command";
+GraveFallGame.scene.Game.PHASE_MINIGAME = "minigame";
 GraveFallGame.scene.Game.PHASE_ACTION = "action";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
 
@@ -814,6 +815,7 @@ GraveFallGame.scene.Game.prototype.areAllPlayersConfirmed = function () {
 
     return true;
 };
+
 
 GraveFallGame.scene.Game.prototype.clampValue = function (value, min, max) {
     if (value < min) {

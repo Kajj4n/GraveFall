@@ -9,6 +9,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.currentEnemyType = "boss";
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
+    this.minigameTimer = 0;
     this.projectiles = [];
     this.playerMenus = [];
 
@@ -24,7 +25,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
 
     // NEW: turn timer (10 seconds ≈ 600 frames)
     this.turnTimer = 600;
-
     this.turnTimerMs = 10000;
 
     this.turnTimerText = new rune.text.BitmapField("10");
@@ -33,8 +33,13 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.turnTimerText.x = this.application.screen.width - 28;
     this.turnTimerText.y = 8;
 
-
-    this.backgroundBackdrop = new rune.display.Sprite(0, 0, this.application.screen.width, this.application.screen.height, "Background_Test");
+    this.backgroundBackdrop = new rune.display.Sprite(
+        0,
+        0,
+        this.application.screen.width,
+        this.application.screen.height,
+        "Background_Test"
+    );
     this.applyPaletteSwaps(
         this.backgroundBackdrop,
         this.getFramePaletteSwaps(GraveFallGame.scene.Game.UI_SKINS.dullBrown)
@@ -159,6 +164,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     var i;
     var secondsLeft;
     var autoSelected;
+    var requiresMinigame;
 
     rune.scene.Scene.prototype.update.call(this, step);
 
@@ -186,30 +192,44 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
             this.updateCharacterMenuInput(this.playerMenus[i]);
         }
 
-        if (this.turnTimerMs <= 0) {
-            autoSelected = false;
+        if (this.turnTimerMs <= 0 || this.areAllPlayersConfirmed()) {
+            if (this.turnTimerMs <= 0) {
+                autoSelected = false;
 
-            for (i = 0; i < this.playerMenus.length; i++) {
-                if (!this.playerMenus[i].confirmed && this.playerMenus[i].healthCurrent > 0) {
-                    this.playerMenus[i].selectedIndex = 0;
-                    this.playerMenus[i].selectedAction = 0;
-                    this.playerMenus[i].confirmed = true;
-                    this.playerMenus[i].container.y = this.playerMenus[i].confirmedY;
-                    autoSelected = true;
+                for (i = 0; i < this.playerMenus.length; i++) {
+                    if (!this.playerMenus[i].confirmed && this.playerMenus[i].healthCurrent > 0) {
+                        this.playerMenus[i].selectedIndex = 0;
+                        this.playerMenus[i].selectedAction = 0;
+                        this.playerMenus[i].confirmed = true;
+                        this.playerMenus[i].container.y = this.playerMenus[i].confirmedY;
+                        autoSelected = true;
+                    }
+                }
+
+                if (autoSelected) {
+                    this.playSfx(GraveFallGame.SOUNDS.TURN_TIMEOUT, 0.7);
                 }
             }
 
-            if (autoSelected) {
-                this.playSfx(GraveFallGame.SOUNDS.TURN_TIMEOUT, 0.7);
+            requiresMinigame = false;
+
+            for (i = 0; i < this.playerMenus.length; i++) {
+                if (this.playerMenus[i].healthCurrent > 0 && this.playerMenus[i].selectedAction === 0) {
+                    requiresMinigame = true;
+                    break;
+                }
             }
 
-            this.startActionPhase();
+            if (requiresMinigame && typeof this.startMinigamePhase === "function") {
+                this.startMinigamePhase();
+            } else {
+                this.startActionPhase();
+            }
+
             return;
         }
-
-        if (this.areAllPlayersConfirmed()) {
-            this.startActionPhase();
-        }
+    } else if (this.phase === GraveFallGame.scene.Game.PHASE_MINIGAME) {
+        this.updateMinigamePhase(step);
     } else if (this.phase === GraveFallGame.scene.Game.PHASE_ACTION) {
         this.updateActionPhase();
     }
@@ -226,6 +246,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.stopDungeonMusic();
     this.clearProjectiles();
     this.clearArenaItem();
+
     this.projectiles = null;
     this.playerMenus = null;
     this.backgroundBackdrop = null;
@@ -245,5 +266,6 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.gameOverText = null;
     this.gameOverTimer = null;
     this.dungeonMusic = null;
+
     rune.scene.Scene.prototype.dispose.call(this);
 };
