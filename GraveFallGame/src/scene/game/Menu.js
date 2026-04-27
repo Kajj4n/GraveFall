@@ -172,6 +172,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         moveControls: options.moveControls,
         moveSpeed: 4,
         attackDamage: options.attackDamage || 20,
+        attackDamageBonus: 0,
         hitCooldown: 0
     };
 
@@ -226,6 +227,18 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount) {
     this.enemyHealthCurrent = Math.max(0, this.enemyHealthCurrent - amount);
     this.updateEnemyDamageState();
 
+    if (this.enemyHealthFill && this.enemyHealthMax > 0) {
+        this.enemyHealthFill.scaleX = Math.max(0, Math.min(1, this.enemyHealthCurrent / this.enemyHealthMax));
+    }
+
+    if (this.enemyHealthText) {
+        this.enemyHealthText.text = Math.ceil(this.enemyHealthCurrent) + "/" + this.enemyHealthMax;
+        
+        var eBarWidth = 400;
+        var eBarX = (this.application.screen.width / 2) - (eBarWidth / 2);
+        this.enemyHealthText.x = eBarX + (eBarWidth / 2) - ((this.enemyHealthText.text.length * 6 * 2) / 2);
+    }
+
     if (amount > 0 && wasAlive) {
         this.playSfx(GraveFallGame.SOUNDS.PLAYER_ATTACK, 0.65);
         this.playSfx(GraveFallGame.SOUNDS.ENEMY_HIT, 0.55);
@@ -240,6 +253,8 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount) {
 GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
     var i;
     var playerMenu;
+    var baseDmg;
+    var bonusDmg;
 
     if (this.enemyHealthCurrent <= 0) {
         return;
@@ -252,10 +267,18 @@ GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
             continue;
         }
 
-        // Action index 0 is the fight action. This gives the enemy real HP and
-        // immediately lets its five visual damage states react to player attacks.
+        // Action index 0 is the fight action.
         if (playerMenu.selectedAction === 0) {
-            this.applyDamageToEnemy(playerMenu.attackDamage || 20);
+            
+            baseDmg = 5;
+            
+            // --- NEW: Multiplied by 5 for bigger minigame impact! ---
+            bonusDmg = (playerMenu.attackDamageBonus || 0) * 1; 
+            
+            this.applyDamageToEnemy(baseDmg + bonusDmg);
+
+            // Important: Clear the bonus so it doesn't accidentally carry over to the next round
+            playerMenu.attackDamageBonus = 0; 
         }
     }
 };
@@ -266,7 +289,6 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
     playerMenu.selectionBar.x = playerMenu.actionPositions[playerMenu.selectedIndex];
     playerMenu.selectionBar.visible = playerMenu.healthCurrent > 0;
 
-    //keep same for now, maybe useful later
     for (i = 0; i < playerMenu.actions.length; i++) {
         if (i === playerMenu.selectedIndex) {
             playerMenu.actions[i].scaleX = 0.6;

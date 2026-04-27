@@ -20,10 +20,14 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.lastTurnWarningSecond = null;
     this.enemyDefeatedSoundPlayed = false;
     this.dungeonMusic = null;
+    
+    // Fade-in timer for the boss and healthbar
+    this.bossFadeTimerMs = 0;
+    this.bossFadeDurationMs = 1500;
 
     this.startDungeonMusic();
 
-    // NEW: turn timer (10 seconds ≈ 600 frames)
+    // turn timer (10 seconds ≈ 600 frames)
     this.turnTimer = 600;
     this.turnTimerMs = 10000;
 
@@ -62,6 +66,38 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.setDamageStateGroupState(this.enemySprite, "hp100");
     this.stage.addChild(this.enemySprite);
     this.bossPlaceholder = this.enemySprite;
+
+    // --- ENEMY HEALTH BAR UI ---
+    var eBarWidth = 300;
+    var eBarHeight = 32;
+    var eBarX = (this.application.screen.width / 2) - (eBarWidth / 2);
+    var eBarY = 200; 
+
+    this.enemyHealthBg = new rune.display.Graphic(eBarX, eBarY, eBarWidth, eBarHeight);
+    this.enemyHealthBg.backgroundColor = "#111111";
+    this.stage.addChild(this.enemyHealthBg);
+
+    this.enemyHealthFill = new rune.display.Graphic(eBarX + 4, eBarY + 4, eBarWidth - 8, eBarHeight - 8);
+    this.enemyHealthFill.backgroundColor = "#E53935"; 
+    this.stage.addChild(this.enemyHealthFill);
+
+    this.enemyHealthFrame = this.createBoxFrame(eBarX, eBarY, eBarWidth, eBarHeight, this.getFramePaletteSwaps(GraveFallGame.scene.Game.UI_SKINS.dullBrown));
+    this.stage.addChild(this.enemyHealthFrame);
+
+    this.enemyHealthText = new rune.text.BitmapField(this.enemyHealthCurrent + "/" + this.enemyHealthMax);
+    this.enemyHealthText.scaleX = 2;
+    this.enemyHealthText.scaleY = 2;
+    this.enemyHealthText.x = eBarX + (eBarWidth / 2) - ((this.enemyHealthText.text.length * 6 * 2) / 2);
+    this.enemyHealthText.y = eBarY + 8;
+    this.stage.addChild(this.enemyHealthText);
+
+    // Initial opacity set to 0 to prepare for the fade-in
+    this.enemySprite.alpha = 0;
+    this.enemyHealthBg.alpha = 0;
+    this.enemyHealthFill.alpha = 0;
+    this.enemyHealthFrame.alpha = 0;
+    this.enemyHealthText.alpha = 0;
+    // --------------------------------
 
     this.createBattleArena();
     this.stage.addChild(this.turnTimerText);
@@ -168,6 +204,20 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     rune.scene.Scene.prototype.update.call(this, step);
 
+    // --- NEW: BOSS & HEALTH BAR FADE IN LOGIC ---
+    if (this.bossFadeTimerMs < this.bossFadeDurationMs) {
+        this.bossFadeTimerMs += step;
+        
+        var fadeAlpha = Math.min(1, this.bossFadeTimerMs / this.bossFadeDurationMs);
+        
+        if (this.enemySprite) this.enemySprite.alpha = fadeAlpha;
+        if (this.enemyHealthBg) this.enemyHealthBg.alpha = fadeAlpha;
+        if (this.enemyHealthFill) this.enemyHealthFill.alpha = fadeAlpha;
+        if (this.enemyHealthFrame) this.enemyHealthFrame.alpha = fadeAlpha;
+        if (this.enemyHealthText) this.enemyHealthText.alpha = fadeAlpha;
+    }
+    // --------------------------------------------
+
     if (this.phase === GraveFallGame.scene.Game.PHASE_GAME_OVER) {
         this.updateGameOver();
         return;
@@ -254,6 +304,13 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemySprite = null;
     this.enemyHealthCurrent = null;
     this.enemyHealthMax = null;
+    
+    // Cleanup new UI
+    this.enemyHealthBg = null;
+    this.enemyHealthFill = null;
+    this.enemyHealthFrame = null;
+    this.enemyHealthText = null;
+
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;
     this.arenaAvatarLayer = null;
