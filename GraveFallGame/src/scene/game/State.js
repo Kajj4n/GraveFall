@@ -10,8 +10,7 @@
  *
  * @class
  * @classdesc
- * 
- * Game scene.
+ * * Game scene.
  */
 GraveFallGame.scene.Game = function () {
 
@@ -836,9 +835,12 @@ GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {
 GraveFallGame.scene.Game.prototype.getArenaInnerBounds = function () {
     var borderPadding = 20;
 
+    // CHANGED: This now returns local coordinates relative to the arena itself.
+    // So inner.y starts at 20. If you spawn a projectile at inner.y - 100, 
+    // it will be at -80 (above the arena's local space) and will be cleanly masked out!
     return {
-        x: this.arena.x + borderPadding,
-        y: this.arena.y + borderPadding,
+        x: borderPadding,
+        y: borderPadding,
         width: this.arena.width - (borderPadding * 2),
         height: this.arena.height - (borderPadding * 2)
     };

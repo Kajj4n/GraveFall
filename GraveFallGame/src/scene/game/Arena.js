@@ -23,11 +23,14 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     this.arenaBackground.visible = false;
     this.stage.addChild(this.arenaBackground);
 
-    this.arenaProjectileLayer = new rune.display.DisplayObjectContainer(0, 0, screenWidth, this.application.screen.height);
+    // CHANGED: The projectile layer is now physically bound to the arena's dimensions.
+    // This allows negative coordinates to be clipped/hidden!
+    this.arenaProjectileLayer = new rune.display.DisplayObjectContainer(arenaX, arenaY, arenaWidth, arenaHeight);
     this.arenaProjectileLayer.visible = false;
     this.stage.addChild(this.arenaProjectileLayer);
 
-    this.arenaAvatarLayer = new rune.display.DisplayObjectContainer(0, 0, screenWidth, this.application.screen.height);
+    // CHANGED: Same for the avatar layer
+    this.arenaAvatarLayer = new rune.display.DisplayObjectContainer(arenaX, arenaY, arenaWidth, arenaHeight);
     this.arenaAvatarLayer.visible = false;
     this.stage.addChild(this.arenaAvatarLayer);
 
