@@ -171,10 +171,10 @@ GraveFallGame.scene.Game.ENEMIES = {
         // The last visible damage state is reused as the killed placeholder.
         damageStateResources: {
             hp100: "Goblin_Idle_T",
-            hp75: "Goblin_Idle_T",
-            hp50: "Goblin_Idle_T",
-            hp25: "Goblin_Idle_T",
-            killed: "Goblin_Idle_T"
+            hp75: "Goblin_Bruised_T",
+            hp50: "Goblin_Hurt_T",
+            hp25: "Goblin_Dying_T",
+            killed: "Goblin_Killed_T"
         },
         hpMax: 220,
         actionPhaseDuration: 300,
@@ -193,10 +193,10 @@ GraveFallGame.scene.Game.ENEMIES = {
         // Goblin_Dying_T, Goblin_Killed_T, etc. after adding those resources.
         damageStateResources: {
             hp100: "Goblin_Idle_T",
-            hp75: "Goblin_Idle_T",
-            hp50: "Goblin_Idle_T",
-            hp25: "Goblin_Idle_T",
-            killed: "Goblin_Idle_T"
+            hp75: "Goblin_Bruised_T",
+            hp50: "Goblin_Hurt_T",
+            hp25: "Goblin_Dying_T",
+            killed: "Goblin_Killed_T"
         },
         hpMax: 100,
         actionPhaseDuration: 240,
