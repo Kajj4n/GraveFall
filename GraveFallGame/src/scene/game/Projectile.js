@@ -19,6 +19,13 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "goblin_pebble_rain": this.spawnGoblinPebbleRain(); break;
         case "goblin_dart_fan": this.spawnGoblinDartFan(); break;
         case "goblin_stomp_wave": this.spawnGoblinStompWave(); break;
+        case "ghoul_orb_crawl": this.spawnGhoulOrbCrawl(); break;
+        case "ghoul_dart_ambush": this.spawnGhoulDartAmbush(); break;
+        case "ghoul_stomp_pulse": this.spawnGhoulStompPulse(); break;
+        case "hydragon_orb_breath": this.spawnHyDragonOrbBreath(); break;
+        case "hydragon_sword_storm": this.spawnHyDragonSwordStorm(); break;
+        case "hydragon_cross_sweep": this.spawnHyDragonCrossSweep(); break;
+        case "hydragon_fang_fan": this.spawnHyDragonFangFan(); break;
     }
 };
 
@@ -185,6 +192,184 @@ GraveFallGame.scene.Game.prototype.spawnGoblinStompWave = function () {
             damage: 7,
             life: 70,
             type: "stomp_wave"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGhoulOrbCrawl = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 6 + Math.floor(Math.random() * 3);
+    var i;
+    var fromLeft;
+
+    for (i = 0; i < count; i++) {
+        fromLeft = i % 2 === 0;
+        this.spawnProjectile({
+            x: fromLeft ? inner.x - 24 : inner.x + inner.width + 24,
+            y: inner.y + this.randomRange(40, inner.height - 56),
+            width: 16,
+            height: 16,
+            resource: "Orb_Attack_T",
+            vx: fromLeft ? this.randomRange(2.4, 3.7) : this.randomRange(-3.7, -2.4),
+            vy: this.randomRange(-0.9, 0.9),
+            damage: 5,
+            life: 180,
+            type: "ghoul_orb"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGhoulDartAmbush = function () {
+    var inner = this.getArenaInnerBounds();
+    var side = Math.random() > 0.5 ? -1 : 1;
+    var originX = side < 0 ? inner.x - 36 : inner.x + inner.width + 36;
+    var i;
+
+    for (i = 0; i < 4; i++) {
+        this.spawnProjectile({
+            x: originX,
+            y: inner.y + 42 + (i * ((inner.height - 84) / 3)),
+            width: 32,
+            height: 16,
+            resource: "Knife_Attack_T",
+            flippedX: side < 0 ? false : true,
+            vx: side < 0 ? this.randomRange(5.3, 6.7) : this.randomRange(-6.7, -5.3),
+            vy: this.randomRange(-0.35, 0.35),
+            damage: 6,
+            life: 125,
+            type: "ghoul_dart"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGhoulStompPulse = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 5;
+    var startX = inner.x + this.randomRange(35, 90);
+    var i;
+
+    for (i = 0; i < count; i++) {
+        this.spawnProjectile({
+            x: startX + (i * ((inner.width - 180) / (count - 1))),
+            y: inner.y + inner.height - 16,
+            width: 16,
+            height: 16,
+            resource: "StompWave_Attack_T",
+            vx: this.randomRange(-0.5, 0.5),
+            vy: this.randomRange(-5.5, -3.8),
+            damage: 6,
+            life: 72,
+            type: "ghoul_stomp"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnHyDragonOrbBreath = function () {
+    var inner = this.getArenaInnerBounds();
+    var fromLeft = Math.random() > 0.5;
+    var originX = fromLeft ? inner.x - 26 : inner.x + inner.width + 26;
+    var originY = inner.y + this.randomRange(44, 100);
+    var count = 9;
+    var i;
+    var angle;
+    var speed;
+
+    for (i = 0; i < count; i++) {
+        angle = fromLeft ? this.randomRange(-0.45, 0.85) : this.randomRange(2.3, 3.6);
+        speed = this.randomRange(3.5, 5.2);
+        this.spawnProjectile({
+            x: originX,
+            y: originY,
+            width: 16,
+            height: 16,
+            resource: "Orb_Attack_T",
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            damage: 9,
+            life: 150,
+            type: "hydragon_orb"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnHyDragonSwordStorm = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 7 + Math.floor(Math.random() * 4);
+    var i;
+
+    for (i = 0; i < count; i++) {
+        this.spawnProjectile({
+            x: this.randomRange(inner.x, inner.x + inner.width - 16),
+            y: inner.y - this.randomRange(30, 190),
+            width: 16,
+            height: 48,
+            resource: "Falling_Sword_Attack_T",
+            vx: this.randomRange(-1.1, 1.1),
+            vy: this.randomRange(7.3, 10.2),
+            damage: 13,
+            life: 160,
+            type: "hydragon_sword"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnHyDragonCrossSweep = function () {
+    var inner = this.getArenaInnerBounds();
+    var horizontalY = inner.y + this.randomRange(62, inner.height - 80);
+    var verticalX = inner.x + this.randomRange(90, inner.width - 110);
+
+    this.spawnProjectile({
+        x: inner.x - 170,
+        y: horizontalY,
+        width: 160,
+        height: 12,
+        resource: "Horizontal_Sweep_Attack_T",
+        vx: this.randomRange(6.0, 7.2),
+        vy: 0,
+        damage: 12,
+        life: 150,
+        type: "hydragon_horizontal_sweep"
+    });
+
+    this.spawnVerticalSweepProjectile({
+        x: verticalX,
+        y: inner.y - 180,
+        collisionWidth: 16,
+        collisionHeight: 160,
+        spriteWidth: 160,
+        spriteHeight: 12,
+        resource: "Horizontal_Sweep_Attack_T",
+        rotation: 90,
+        vx: 0,
+        vy: this.randomRange(4.4, 5.4),
+        damage: 12,
+        life: 130,
+        type: "hydragon_vertical_sweep"
+    });
+};
+
+GraveFallGame.scene.Game.prototype.spawnHyDragonFangFan = function () {
+    var inner = this.getArenaInnerBounds();
+    var originX = inner.x + (inner.width / 2);
+    var originY = inner.y - 24;
+    var count = 7;
+    var i;
+    var spread;
+
+    for (i = 0; i < count; i++) {
+        spread = i - Math.floor(count / 2);
+        this.spawnProjectile({
+            x: originX,
+            y: originY,
+            width: 32,
+            height: 16,
+            resource: "Knife_Attack_T",
+            vx: spread * 1.15,
+            vy: this.randomRange(5.3, 7.1),
+            rotation: spread * 9,
+            damage: 10,
+            life: 120,
+            type: "hydragon_fang"
         });
     }
 };

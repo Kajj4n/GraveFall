@@ -6,7 +6,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
     rune.scene.Scene.prototype.init.call(this);
 
     this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
-    this.currentEnemyType = "boss";
+    this.encounterIndex = 0;
+    this.currentEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
     this.minigameTimer = 0;
@@ -21,9 +22,10 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyDefeatedSoundPlayed = false;
     this.dungeonMusic = null;
     
-    // Fade-in timer for the boss and healthbar
-    this.bossFadeTimerMs = 0;
-    this.bossFadeDurationMs = 1500;
+    // Fade-in timer for every new enemy and its healthbar.
+    this.enemyFadeTimerMs = 0;
+    this.enemyFadeDurationMs = 1500;
+    this.enemyDefeatedTimerMs = 0;
 
     this.startDungeonMusic();
 
@@ -71,7 +73,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
     var eBarWidth = 300;
     var eBarHeight = 32;
     var eBarX = (this.application.screen.width / 2) - (eBarWidth / 2);
-    var eBarY = 200; 
+    var eBarY = 200;
+    this.enemyHealthBarWidth = eBarWidth;
+    this.enemyHealthBarX = eBarX; 
 
     this.enemyHealthBg = new rune.display.Graphic(eBarX, eBarY, eBarWidth, eBarHeight);
     this.enemyHealthBg.backgroundColor = "#111111";
@@ -204,22 +208,21 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     rune.scene.Scene.prototype.update.call(this, step);
 
-    // --- NEW: BOSS & HEALTH BAR FADE IN LOGIC ---
-    if (this.bossFadeTimerMs < this.bossFadeDurationMs) {
-        this.bossFadeTimerMs += step;
+    // Enemy and health bar fade-in logic.
+    if (this.enemyFadeTimerMs < this.enemyFadeDurationMs) {
+        this.enemyFadeTimerMs += step;
         
-        var fadeAlpha = Math.min(1, this.bossFadeTimerMs / this.bossFadeDurationMs);
-        
-        if (this.enemySprite) this.enemySprite.alpha = fadeAlpha;
-        if (this.enemyHealthBg) this.enemyHealthBg.alpha = fadeAlpha;
-        if (this.enemyHealthFill) this.enemyHealthFill.alpha = fadeAlpha;
-        if (this.enemyHealthFrame) this.enemyHealthFrame.alpha = fadeAlpha;
-        if (this.enemyHealthText) this.enemyHealthText.alpha = fadeAlpha;
+        var fadeAlpha = Math.min(1, this.enemyFadeTimerMs / this.enemyFadeDurationMs);
+        this.setEnemyUiAlpha(fadeAlpha);
     }
-    // --------------------------------------------
 
     if (this.phase === GraveFallGame.scene.Game.PHASE_GAME_OVER) {
         this.updateGameOver();
+        return;
+    }
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
+        this.updateEnemyDefeatedSequence(step);
         return;
     }
 
@@ -310,6 +313,12 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyHealthFill = null;
     this.enemyHealthFrame = null;
     this.enemyHealthText = null;
+    this.enemyHealthBarWidth = null;
+    this.enemyHealthBarX = null;
+    this.enemyFadeTimerMs = null;
+    this.enemyFadeDurationMs = null;
+    this.enemyDefeatedTimerMs = null;
+    this.encounterIndex = null;
 
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;

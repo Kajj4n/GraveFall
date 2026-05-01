@@ -39,6 +39,7 @@ GraveFallGame.scene.Game.PHASE_COMMAND = "command";
 GraveFallGame.scene.Game.PHASE_MINIGAME = "minigame";
 GraveFallGame.scene.Game.PHASE_ACTION = "action";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
+GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED = "enemyDefeated";
 
 GraveFallGame.scene.Game.PLAYER_THEMES = [
     {
@@ -163,12 +164,30 @@ GraveFallGame.scene.Game.UI_SKINS = {
  * spawnEnemyPatternById().
  */
 GraveFallGame.scene.Game.ENEMIES = {
-    boss: {
-        name: "Boss",
+    ghoul: {
+        name: "Ghoul",
+        isBoss: false,
+        resource: "Ghoul_Idle_T",
+        damageStateResources: {
+            hp100: "Ghoul_Idle_T",
+            hp75: "Ghoul_Bruised_T",
+            hp50: "Ghoul_Hurt_T",
+            hp25: "Ghoul_Dying_T",
+            killed: "Ghoul_Killed_T"
+        },
+        hpMax: 90,
+        actionPhaseDuration: 220,
+        patternInterval: 48,
+        patterns: [
+            "ghoul_orb_crawl",
+            "ghoul_dart_ambush",
+            "ghoul_stomp_pulse"
+        ]
+    },
+    goblinHorde: {
+        name: "Goblin Horde",
+        isBoss: true,
         resource: "Goblin_Idle_T",
-        // Replace these resources later with Boss_Bruised_T, Boss_Hurt_T,
-        // Boss_Dying_T, Boss_Killed_T, etc. when those sprites exist.
-        // The last visible damage state is reused as the killed placeholder.
         damageStateResources: {
             hp100: "Goblin_Idle_T",
             hp75: "Goblin_Bruised_T",
@@ -186,25 +205,25 @@ GraveFallGame.scene.Game.ENEMIES = {
             "boss_diagonal_drop"
         ]
     },
-    goblin: {
-        name: "Goblin",
-        resource: "Goblin_Idle_T",
-        // Swap these placeholders for Goblin_Bruised_T, Goblin_Hurt_T,
-        // Goblin_Dying_T, Goblin_Killed_T, etc. after adding those resources.
+    hyDragon: {
+        name: "HyDragon",
+        isBoss: true,
+        resource: "HyDragon_Idle_T",
         damageStateResources: {
-            hp100: "Goblin_Idle_T",
-            hp75: "Goblin_Bruised_T",
-            hp50: "Goblin_Hurt_T",
-            hp25: "Goblin_Dying_T",
-            killed: "Goblin_Killed_T"
+            hp100: "HyDragon_Idle_T",
+            hp75: "HyDragon_Bruised_T",
+            hp50: "HyDragon_Hurt_T",
+            hp25: "HyDragon_Dying_T",
+            killed: "HyDragon_Killed_T"
         },
-        hpMax: 100,
-        actionPhaseDuration: 240,
-        patternInterval: 45,
+        hpMax: 270,
+        actionPhaseDuration: 330,
+        patternInterval: 50,
         patterns: [
-            "goblin_pebble_rain",
-            "goblin_dart_fan",
-            "goblin_stomp_wave"
+            "hydragon_orb_breath",
+            "hydragon_sword_storm",
+            "hydragon_cross_sweep",
+            "hydragon_fang_fan"
         ]
     }
 };
@@ -326,15 +345,21 @@ GraveFallGame.scene.Game.prototype.stopDungeonMusic = function () {
 GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
     switch (patternId) {
         case "boss_sword_rain":
+        case "hydragon_sword_storm":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWORD_RAIN, 0.65);
             break;
         case "boss_vertical_sweep":
+        case "hydragon_cross_sweep":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWEEP, 0.65);
             break;
         case "boss_orb_burst":
+        case "ghoul_orb_crawl":
+        case "hydragon_orb_breath":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_ORB, 0.65);
             break;
         case "boss_diagonal_drop":
+        case "ghoul_dart_ambush":
+        case "hydragon_fang_fan":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_DAGGER, 0.65);
             break;
         case "goblin_pebble_rain":
@@ -344,6 +369,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_DART, 0.6);
             break;
         case "goblin_stomp_wave":
+        case "ghoul_stomp_pulse":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
             break;
     }
@@ -548,7 +574,40 @@ GraveFallGame.scene.Game.prototype.getPlayerTheme = function (index) {
 };
 
 GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
-    return GraveFallGame.scene.Game.ENEMIES[this.currentEnemyType] || GraveFallGame.scene.Game.ENEMIES.boss;
+    return GraveFallGame.scene.Game.ENEMIES[this.currentEnemyType] || GraveFallGame.scene.Game.ENEMIES.ghoul;
+};
+
+GraveFallGame.scene.Game.prototype.getEnemyTypesByBossFlag = function (isBoss) {
+    var enemies = GraveFallGame.scene.Game.ENEMIES;
+    var enemyTypes = [];
+    var enemyType;
+
+    for (enemyType in enemies) {
+        if (enemies.hasOwnProperty(enemyType) && enemies[enemyType].isBoss === isBoss) {
+            enemyTypes.push(enemyType);
+        }
+    }
+
+    return enemyTypes;
+};
+
+GraveFallGame.scene.Game.prototype.getRandomEnemyType = function (enemyTypes) {
+    if (!enemyTypes || enemyTypes.length <= 0) {
+        return "ghoul";
+    }
+
+    return enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+};
+
+GraveFallGame.scene.Game.prototype.getEnemyTypeForEncounter = function (encounterIndex) {
+    var isBossEncounter = (encounterIndex + 1) % 3 === 0;
+    var enemyTypes = this.getEnemyTypesByBossFlag(isBossEncounter);
+
+    if (enemyTypes.length <= 0) {
+        enemyTypes = this.getEnemyTypesByBossFlag(!isBossEncounter);
+    }
+
+    return this.getRandomEnemyType(enemyTypes);
 };
 
 GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {

@@ -142,11 +142,131 @@ GraveFallGame.scene.Game.prototype.updateGameOver = function () {
     }
 };
 
+GraveFallGame.scene.Game.prototype.setEnemyUiAlpha = function (alpha) {
+    if (this.enemySprite) this.enemySprite.alpha = alpha;
+    if (this.enemyHealthBg) this.enemyHealthBg.alpha = alpha;
+    if (this.enemyHealthFill) this.enemyHealthFill.alpha = alpha;
+    if (this.enemyHealthFrame) this.enemyHealthFrame.alpha = alpha;
+    if (this.enemyHealthText) this.enemyHealthText.alpha = alpha;
+};
+
+GraveFallGame.scene.Game.prototype.updateEnemyHealthBarUi = function () {
+    var eBarWidth = this.enemyHealthBarWidth || 300;
+    var eBarX = typeof this.enemyHealthBarX === "number" ? this.enemyHealthBarX : (this.application.screen.width / 2) - (eBarWidth / 2);
+
+    if (this.enemyHealthFill && this.enemyHealthMax > 0) {
+        this.enemyHealthFill.scaleX = Math.max(0, Math.min(1, this.enemyHealthCurrent / this.enemyHealthMax));
+    }
+
+    if (this.enemyHealthText) {
+        this.enemyHealthText.text = Math.ceil(this.enemyHealthCurrent) + "/" + this.enemyHealthMax;
+        this.enemyHealthText.x = eBarX + (eBarWidth / 2) - ((this.enemyHealthText.text.length * 6 * 2) / 2);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
+    var enemyConfig = this.getCurrentEnemyConfig();
+
+    if (this.enemySprite && this.enemySprite.parent) {
+        this.enemySprite.parent.removeChild(this.enemySprite, true);
+    }
+
+    this.enemySprite = this.createDamageStateGroup(
+        0,
+        0,
+        100,
+        100,
+        this.getEnemyDamageStates(enemyConfig)
+    );
+    this.enemySprite.scaleX = 3.2;
+    this.enemySprite.scaleY = 3.2;
+    this.enemySprite.x = (this.application.screen.width / 1) - ((this.enemySprite.width * this.enemySprite.scaleX) / 1.28);
+    this.enemySprite.y = 180;
+    this.setDamageStateGroupState(this.enemySprite, "hp100");
+    this.enemySprite.alpha = fadeIn === true ? 0 : 1;
+    this.stage.addChild(this.enemySprite);
+    this.bossPlaceholder = this.enemySprite;
+};
+
+GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fadeIn) {
+    var enemyConfig;
+    var alpha = fadeIn === true ? 0 : 1;
+
+    this.currentEnemyType = enemyType;
+    enemyConfig = this.getCurrentEnemyConfig();
+    this.enemyHealthMax = enemyConfig.hpMax;
+    this.enemyHealthCurrent = this.enemyHealthMax;
+    this.enemyDefeatedSoundPlayed = false;
+
+    this.rebuildEnemySprite(fadeIn);
+    this.updateEnemyHealthBarUi();
+    this.updateEnemyDamageState();
+    this.setEnemyUiAlpha(alpha);
+
+    this.enemyFadeTimerMs = fadeIn === true ? 0 : this.enemyFadeDurationMs;
+};
+
+GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
+    var i;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        this.playerMenus[i].confirmed = false;
+        this.playerMenus[i].selectedAction = null;
+        this.playerMenus[i].container.y = this.playerMenus[i].baseY;
+        this.playerMenus[i].hitCooldown = 0;
+        this.deactivateBattleAvatar(this.playerMenus[i]);
+    }
+
+    this.updateAllPlayerDamageStates();
+};
+
+GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
+    if (this.phase === GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
+        return;
+    }
+
+    this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
+    this.enemyDefeatedTimerMs = 2200;
+    this.enemyFadeTimerMs = this.enemyFadeDurationMs;
+    this.clearProjectiles();
+    this.clearArenaItem();
+    this.setBattleArenaVisible(false);
+    this.turnTimerText.alpha = 0;
+    this.updateEnemyDamageState();
+    this.setEnemyUiAlpha(1);
+};
+
+GraveFallGame.scene.Game.prototype.startNextEnemyEncounter = function () {
+    this.encounterIndex++;
+    this.loadEnemyEncounter(this.getEnemyTypeForEncounter(this.encounterIndex), true);
+    this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
+    this.turnTimerMs = 10000;
+    this.lastTurnWarningSecond = null;
+    this.turnTimerText.visible = true;
+    this.turnTimerText.alpha = 1;
+    this.turnTimerText.text = "10";
+    this.resetPlayersForNewEncounter();
+};
+
+GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step) {
+    this.enemyDefeatedTimerMs -= step;
+
+    if (this.enemyDefeatedTimerMs <= 0) {
+        this.startNextEnemyEncounter();
+    }
+};
+
 GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
 
     this.resolveCommandPhaseActions();
+
+    if (this.enemyHealthCurrent <= 0) {
+        this.startEnemyDefeatedSequence();
+        return;
+    }
+
     this.clearArenaItem();
     this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
     this.turnTimerText.alpha = 0;
@@ -178,6 +298,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
 
     this.turnTimerMs = 10000;
     this.lastTurnWarningSecond = null;
+    this.turnTimerText.visible = true;
     this.turnTimerText.alpha = 1;
     this.turnTimerText.text = "10";
 

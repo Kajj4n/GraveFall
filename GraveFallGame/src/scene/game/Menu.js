@@ -227,17 +227,7 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount) {
     this.enemyHealthCurrent = Math.max(0, this.enemyHealthCurrent - amount);
     this.updateEnemyDamageState();
 
-    if (this.enemyHealthFill && this.enemyHealthMax > 0) {
-        this.enemyHealthFill.scaleX = Math.max(0, Math.min(1, this.enemyHealthCurrent / this.enemyHealthMax));
-    }
-
-    if (this.enemyHealthText) {
-        this.enemyHealthText.text = Math.ceil(this.enemyHealthCurrent) + "/" + this.enemyHealthMax;
-        
-        var eBarWidth = 400;
-        var eBarX = (this.application.screen.width / 2) - (eBarWidth / 2);
-        this.enemyHealthText.x = eBarX + (eBarWidth / 2) - ((this.enemyHealthText.text.length * 6 * 2) / 2);
-    }
+    this.updateEnemyHealthBarUi();
 
     if (amount > 0 && wasAlive) {
         this.playSfx(GraveFallGame.SOUNDS.PLAYER_ATTACK, 0.65);
