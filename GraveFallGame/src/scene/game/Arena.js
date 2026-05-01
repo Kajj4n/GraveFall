@@ -184,7 +184,14 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     this.enemySprite.y = 180;
     this.setDamageStateGroupState(this.enemySprite, "hp100");
     this.enemySprite.alpha = fadeIn === true ? 0 : 1;
-    this.stage.addChild(this.enemySprite);
+
+    if (this.stage && typeof this.stage.addChildAt === "function") {
+        // Keep the enemy behind the arena so it cannot overlap the battle frame.
+        this.stage.addChildAt(this.enemySprite, 1);
+    } else {
+        this.stage.addChild(this.enemySprite);
+    }
+
     this.bossPlaceholder = this.enemySprite;
 };
 

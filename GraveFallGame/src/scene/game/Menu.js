@@ -54,6 +54,23 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var buffIcon = new rune.display.Sprite(180, 10, 100, 100, "Buff_Icon_T");
     var itemIcon = new rune.display.Sprite(255, 10, 100, 100, "Item_Icon_T");
 
+    // --- ITEM SUBMENU ICONS ---
+    var healthItemIcon = new rune.display.Sprite(actionPositions[0], 10, 100, 100, "Item_Icon_T");
+    var sharpItemIcon = new rune.display.Sprite(actionPositions[1], 10, 100, 100, "Item_Icon_T");
+    var shieldItemIcon = new rune.display.Sprite(actionPositions[2], 10, 100, 100, "Item_Icon_T");
+    var returnItemIcon = new rune.display.Sprite(actionPositions[3], 10, 100, 100, "Item_Icon_T");
+
+    var itemIconsArray = [healthItemIcon, sharpItemIcon, shieldItemIcon, returnItemIcon];
+    for (var i = 0; i < itemIconsArray.length; i++) {
+        itemIconsArray[i].scaleX = 0.6;
+        itemIconsArray[i].scaleY = 0.6;
+        itemIconsArray[i].visible = false;
+        // Apply coloring here explicitly to match other actions
+        this.applyMonochromeIconColor(itemIconsArray[i], options.playerTheme.accentLight);
+        characterMenuActions.addChild(itemIconsArray[i]);
+    }
+    // --------------------------
+
     var characterHealthBarBackground = new rune.display.Graphic(100, 38, 200, 17);
     var characterHealthBar = new rune.display.Graphic(100, 38, 200, 17);
     var characterHealthMax = new rune.text.BitmapField("/" + options.hpMax);
@@ -150,6 +167,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         classIcon: characterClassIcon,
         battleAvatar: battleAvatar,
         actions: [fightIcon, defendIcon, buffIcon, itemIcon],
+        itemIcons: itemIconsArray,
         actionPositions: actionPositions,
         selectionBar: actionSelectionBar,
         healthBarBackground: characterHealthBarBackground,
@@ -173,7 +191,13 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         moveSpeed: 4,
         attackDamage: options.attackDamage || 20,
         attackDamageBonus: 0,
-        hitCooldown: 0
+        hitCooldown: 0,
+        isDefending: false,
+        isBuffed: false,
+        standResource: options.stand,
+        healingStandSprite: null,
+        healingStandTimer: 0,
+        menuState: "main" // Toggles between "main" and "items"
     };
 
     this.updatePlayerHealthUi(playerMenu);
@@ -181,7 +205,6 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
 
     return playerMenu;
 };
-
 
 GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMenu, allPlayersDead) {
     var state = this.getHealthDamageState(playerMenu.healthCurrent, playerMenu.healthMax, true, allPlayersDead);
@@ -201,6 +224,11 @@ GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMen
 
     for (var i = 0; i < playerMenu.actions.length; i++) {
         playerMenu.actions[i].alpha = downed ? 0.45 : 1;
+    }
+    
+    // Ensure item icons respect the damage state too
+    for (var j = 0; j < playerMenu.itemIcons.length; j++) {
+        playerMenu.itemIcons[j].alpha = downed ? 0.45 : 1;
     }
 };
 
@@ -241,10 +269,8 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount) {
 };
 
 GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
-    var i;
-    var playerMenu;
-    var baseDmg;
-    var bonusDmg;
+    var i, j, playerMenu, target;
+    var baseDmg, bonusDmg, totalDmg;
 
     if (this.enemyHealthCurrent <= 0) {
         return;
@@ -253,41 +279,133 @@ GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         playerMenu = this.playerMenus[i];
 
-        if (playerMenu.healthCurrent <= 0) {
-            continue;
+        if (playerMenu.healthCurrent <= 0) continue;
+
+        playerMenu.isDefending = false;
+
+        // FIGHT
+        if (playerMenu.selectedAction === 0) {
+            baseDmg = 5;
+            bonusDmg = (playerMenu.attackDamageBonus || 0) * 1; 
+            totalDmg = baseDmg + bonusDmg;
+
+            if (playerMenu.isBuffed) {
+                totalDmg *= 2; 
+                playerMenu.isBuffed = false;
+            }
+            
+            this.applyDamageToEnemy(totalDmg);
+            playerMenu.attackDamageBonus = 0; 
+        }
+        
+        // DEFEND
+        else if (playerMenu.selectedAction === 1) {
+            playerMenu.isDefending = true;
+            this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.4);
+        }
+        
+        // BUFF
+        else if (playerMenu.selectedAction === 2) {
+            playerMenu.isBuffed = true;
+            this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.6);
+        }
+        
+        // --- ITEM: HEALTH POTION (NOW REVIVES) ---
+        else if (playerMenu.selectedAction === 10) {
+            for (j = 0; j < this.playerMenus.length; j++) {
+                target = this.playerMenus[j];
+
+                var healAmount = Math.max(1, Math.floor(target.healthMax * 0.10));
+
+                if (target.healthCurrent <= 0) {
+                    // REVIVE
+                    target.healthCurrent = healAmount;
+                    target.confirmed = false;
+                    target.selectedAction = null;
+                    target.isDefending = false;
+                    target.isBuffed = false;
+                    target.hitCooldown = 0;
+                } else {
+                    // NORMAL HEAL
+                    target.healthCurrent = Math.min(target.healthMax, target.healthCurrent + healAmount);
+                }
+
+                this.updatePlayerHealthUi(target);
+                this.updatePlayerDamageState(target, this.areAllPlayersDown());
+            }
+
+            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.7);
         }
 
-        // Action index 0 is the fight action.
-        if (playerMenu.selectedAction === 0) {
-            
-            baseDmg = 5;
-            
-            // --- NEW: Multiplied by 5 for bigger minigame impact! ---
-            bonusDmg = (playerMenu.attackDamageBonus || 0) * 1; 
-            
-            this.applyDamageToEnemy(baseDmg + bonusDmg);
+        // --- ITEM: SHARPENING TOOL ---
+        else if (playerMenu.selectedAction === 11) {
+            for (j = 0; j < this.playerMenus.length; j++) {
+                if (this.playerMenus[j].healthCurrent > 0) {
+                    this.playerMenus[j].isBuffed = true;
+                }
+            }
+            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.7);
+        }
 
-            // Important: Clear the bonus so it doesn't accidentally carry over to the next round
-            playerMenu.attackDamageBonus = 0; 
+        // --- ITEM: SHIELD BARRIER ---
+        else if (playerMenu.selectedAction === 12) {
+            for (j = 0; j < this.playerMenus.length; j++) {
+                if (this.playerMenus[j].healthCurrent > 0) {
+                    this.playerMenus[j].isDefending = true;
+                }
+            }
+            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.7);
         }
     }
 };
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
     var i;
+    var activeIcons = playerMenu.menuState === "main" ? playerMenu.actions : playerMenu.itemIcons;
+    var inactiveIcons = playerMenu.menuState === "main" ? playerMenu.itemIcons : playerMenu.actions;
+
+    // Hide inactive icons
+    for (i = 0; i < inactiveIcons.length; i++) {
+        inactiveIcons[i].visible = false;
+    }
+
+    // Show and scale active icons
+    for (i = 0; i < activeIcons.length; i++) {
+        activeIcons[i].visible = true;
+        if (i === playerMenu.selectedIndex) {
+            activeIcons[i].scaleX = 0.6;
+            activeIcons[i].scaleY = 0.6;
+        } else {
+            activeIcons[i].scaleX = 0.6;
+            activeIcons[i].scaleY = 0.6;
+        }
+    }
 
     playerMenu.selectionBar.x = playerMenu.actionPositions[playerMenu.selectedIndex];
     playerMenu.selectionBar.visible = playerMenu.healthCurrent > 0;
+};
 
-    for (i = 0; i < playerMenu.actions.length; i++) {
-        if (i === playerMenu.selectedIndex) {
-            playerMenu.actions[i].scaleX = 0.6;
-            playerMenu.actions[i].scaleY = 0.6;
-        } else {
-            playerMenu.actions[i].scaleX = 0.6;
-            playerMenu.actions[i].scaleY = 0.6;
-        }
+GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMenu) {
+    if (!playerMenu) {
+        return;
     }
+
+    if (playerMenu.healingStandSprite) {
+        this.clearHealingStandAnimation(playerMenu);
+    }
+
+    playerMenu.menuState = "main";
+    playerMenu.selectedIndex = 0;
+    playerMenu.selectedAction = null;
+    playerMenu.confirmed = false;
+    playerMenu.container.y = playerMenu.baseY;
+
+    if (playerMenu.stand && playerMenu.healthCurrent > 0) {
+        playerMenu.stand.visible = true;
+        playerMenu.stand.alpha = 1;
+    }
+
+    this.updateCharacterMenuVisuals(playerMenu);
 };
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMenu) {
@@ -309,7 +427,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         playerMenu.selectedIndex--;
 
         if (playerMenu.selectedIndex < 0) {
-            playerMenu.selectedIndex = playerMenu.actions.length - 1;
+            playerMenu.selectedIndex = playerMenu.actions.length - 1; // 3
         }
 
         this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.4);
@@ -326,10 +444,57 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     }
 
     if (this.keyboard.justPressed(playerMenu.controls.confirm)) {
-        playerMenu.selectedAction = playerMenu.selectedIndex;
-        playerMenu.confirmed = true;
-        playerMenu.container.y = playerMenu.confirmedY;
-        this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
+        if (playerMenu.menuState === "main" && playerMenu.selectedIndex === 3) {
+            // Open Items Sub-Menu
+            playerMenu.menuState = "items";
+            playerMenu.selectedIndex = 0;
+            this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
+        } else if (playerMenu.menuState === "items" && playerMenu.selectedIndex === 3) {
+            // Return to Main Menu
+            playerMenu.menuState = "main";
+            playerMenu.selectedIndex = 3;
+            this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
+        } else {
+            // Confirm Action
+            // If they are in the item menu, selectedAction maps to 10, 11, 12
+            playerMenu.selectedAction = playerMenu.menuState === "main" ? playerMenu.selectedIndex : 10 + playerMenu.selectedIndex;
+            playerMenu.confirmed = true;
+            playerMenu.container.y = playerMenu.confirmedY;
+
+            if (playerMenu.selectedAction === 10) {
+                // Start animation
+                if (typeof this.startHealingStandAnimation === "function") {
+                    this.startHealingStandAnimation(playerMenu);
+                }
+
+                // --- IMMEDIATE REVIVE LOGIC ---
+                var j, target;
+                for (j = 0; j < this.playerMenus.length; j++) {
+                    target = this.playerMenus[j];
+
+                    // REVIVE dead players immediately
+                    if (target.healthCurrent <= 0) {
+                        var reviveAmount = Math.floor(target.healthMax * 0.15);
+                        target.healthCurrent = Math.max(1, reviveAmount);
+
+                        this.updatePlayerHealthUi(target);
+                        this.updatePlayerDamageState(target, false);
+
+                        // Make them usable immediately
+                        target.confirmed = false;
+                        target.selectedAction = null;
+                        target.container.y = target.baseY;
+
+                        if (target.stand) {
+                            target.stand.visible = true;
+                            target.stand.alpha = 1;
+                        }
+                    }
+                }
+            }
+
+            this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
+        }
     }
 
     this.updateCharacterMenuVisuals(playerMenu);

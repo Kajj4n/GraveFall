@@ -21,6 +21,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.lastTurnWarningSecond = null;
     this.enemyDefeatedSoundPlayed = false;
     this.dungeonMusic = null;
+
+    // Resets the player menus once when a fresh command phase starts.
+    this.commandMenuResetDone = false;
     
     // Fade-in timer for every new enemy and its healthbar.
     this.enemyFadeTimerMs = 0;
@@ -208,6 +211,14 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     rune.scene.Scene.prototype.update.call(this, step);
 
+    this.updateHealingStandAnimations(step);
+
+    // If we are no longer in the command phase, allow the next command phase
+    // to trigger a fresh menu reset.
+    if (this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND) {
+        this.commandMenuResetDone = false;
+    }
+
     // Enemy and health bar fade-in logic.
     if (this.enemyFadeTimerMs < this.enemyFadeDurationMs) {
         this.enemyFadeTimerMs += step;
@@ -227,6 +238,11 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     }
 
     if (this.phase === GraveFallGame.scene.Game.PHASE_COMMAND) {
+        if (!this.commandMenuResetDone && this.turnTimerMs === 10000) {
+            this.resetPlayerMenusForCommandPhase();
+            this.commandMenuResetDone = true;
+        }
+
         this.turnTimerMs -= step;
 
         if (this.turnTimerMs < 0) {
@@ -295,10 +311,176 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     }
 };
 
+GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function () {
+    var i;
+    var menu;
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu) {
+            continue;
+        }
+
+        if (typeof this.clearHealingStandAnimation === "function") {
+            this.clearHealingStandAnimation(menu);
+        }
+
+        menu.menuState = "main";
+        menu.selectedIndex = 0;
+        menu.selectedAction = null;
+        menu.confirmed = false;
+        menu.container.y = menu.baseY;
+
+        if (menu.stand && menu.healthCurrent > 0) {
+            menu.stand.visible = true;
+            menu.stand.alpha = 1;
+        }
+
+        this.updateCharacterMenuVisuals(menu);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.revivePlayerFromPotion = function (playerMenu) {
+    var healAmount;
+
+    if (!playerMenu) {
+        return;
+    }
+
+    healAmount = Math.max(1, Math.floor(playerMenu.healthMax * 0.10));
+
+    if (playerMenu.healthCurrent <= 0) {
+        playerMenu.healthCurrent = healAmount;
+    } else {
+        playerMenu.healthCurrent = Math.min(playerMenu.healthMax, playerMenu.healthCurrent + healAmount);
+    }
+
+    playerMenu.confirmed = false;
+    playerMenu.selectedAction = null;
+    playerMenu.isDefending = false;
+    playerMenu.isBuffed = false;
+    playerMenu.hitCooldown = 0;
+
+    this.updatePlayerHealthUi(playerMenu);
+    this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
+};
+
+GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (playerMenu) {
+    var standResource;
+    var sprite;
+    var theme;
+
+    if (!playerMenu || !playerMenu.stand || !playerMenu.standResource) {
+        return;
+    }
+
+    theme = playerMenu.theme || this.getPlayerTheme(0);
+    standResource = playerMenu.standResource.replace("_Idle_Stance", "_Item_Potion");
+
+    if (!this.resourceExists(standResource)) {
+        return;
+    }
+
+    if (playerMenu.healingStandSprite && playerMenu.healingStandSprite.parent) {
+        playerMenu.healingStandSprite.parent.removeChild(playerMenu.healingStandSprite, true);
+    }
+
+    sprite = new rune.display.Sprite(
+        playerMenu.stand.x,
+        playerMenu.stand.y,
+        playerMenu.stand.width,
+        playerMenu.stand.height,
+        standResource
+    );
+
+    sprite.scaleX = playerMenu.stand.scaleX;
+    sprite.scaleY = playerMenu.stand.scaleY;
+    sprite.alpha = 1;
+
+    if (playerMenu.stand.flippedX === true) {
+        sprite.flippedX = true;
+    }
+
+    this.stage.addChild(sprite);
+
+    // Apply the same character palette first.
+    this.applyPaletteSwaps(sprite, this.getClothingPaletteSwaps(theme));
+
+    // Then recolor any monochrome section that the potion sprite uses.
+    this.applyMonochromeIconColor(sprite, theme.accentLight);
+
+    playerMenu.healingStandSprite = sprite;
+    playerMenu.healingStandTimer = 2000;
+
+    playerMenu.stand.visible = false;
+    playerMenu.stand.alpha = 0;
+};
+
+GraveFallGame.scene.Game.prototype.updateHealingStandAnimations = function (step) {
+    var i;
+    var menu;
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu || !menu.healingStandSprite) {
+            continue;
+        }
+
+        menu.healingStandTimer -= step;
+
+        if (menu.healingStandTimer > 0) {
+            continue;
+        }
+
+        if (menu.healingStandSprite.parent) {
+            menu.healingStandSprite.parent.removeChild(menu.healingStandSprite, true);
+        }
+
+        menu.healingStandSprite = null;
+        menu.healingStandTimer = 0;
+
+        if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION && menu.stand && menu.healthCurrent > 0) {
+            menu.stand.visible = true;
+            menu.stand.alpha = 1;
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (playerMenu) {
+    if (!playerMenu || !playerMenu.healingStandSprite) {
+        return;
+    }
+
+    if (playerMenu.healingStandSprite.parent) {
+        playerMenu.healingStandSprite.parent.removeChild(playerMenu.healingStandSprite, true);
+    }
+
+    playerMenu.healingStandSprite = null;
+    playerMenu.healingStandTimer = 0;
+};
+
 GraveFallGame.scene.Game.prototype.dispose = function () {
+    var i;
+
     this.stopDungeonMusic();
     this.clearProjectiles();
     this.clearArenaItem();
+
+    if (this.playerMenus) {
+        for (i = 0; i < this.playerMenus.length; i++) {
+            this.clearHealingStandAnimation(this.playerMenus[i]);
+        }
+    }
 
     this.projectiles = null;
     this.playerMenus = null;
@@ -319,6 +501,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyFadeDurationMs = null;
     this.enemyDefeatedTimerMs = null;
     this.encounterIndex = null;
+    this.commandMenuResetDone = null;
 
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;
