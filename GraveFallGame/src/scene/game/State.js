@@ -84,7 +84,7 @@ GraveFallGame.scene.Game.PLAYER_THEMES = [
     }
 ];
 
-GraveFallGame.scene.Game.MONO_ICON_SOURCE = "#C4C4C3";
+GraveFallGame.scene.Game.MONO_ICON_SOURCE = "#c5c5c5";
 
 
 GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE = {
