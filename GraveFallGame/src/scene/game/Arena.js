@@ -23,13 +23,10 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     this.arenaBackground.visible = false;
     this.stage.addChild(this.arenaBackground);
 
-    // CHANGED: The projectile layer is now physically bound to the arena's dimensions.
-    // This allows negative coordinates to be clipped/hidden!
     this.arenaProjectileLayer = new rune.display.DisplayObjectContainer(arenaX, arenaY, arenaWidth, arenaHeight);
     this.arenaProjectileLayer.visible = false;
     this.stage.addChild(this.arenaProjectileLayer);
 
-    // CHANGED: Same for the avatar layer
     this.arenaAvatarLayer = new rune.display.DisplayObjectContainer(arenaX, arenaY, arenaWidth, arenaHeight);
     this.arenaAvatarLayer.visible = false;
     this.stage.addChild(this.arenaAvatarLayer);
@@ -78,6 +75,12 @@ GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
         avatar = this.playerMenus[i].battleAvatar;
         avatar.visible = true;
         avatar.alpha = 1;
+
+        if (i >= 2) {
+            avatar.flippedX = true;
+        } else {
+            avatar.flippedX = false;
+        }
 
         targetX = inner.x + (spacing * (slotIndex + 1)) - (avatar.width / 2);
         avatar.x = targetX;
@@ -184,13 +187,13 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     this.enemySprite.y = 180;
     this.setDamageStateGroupState(this.enemySprite, "hp100");
     this.enemySprite.alpha = fadeIn === true ? 0 : 1;
-
-    if (this.stage && typeof this.stage.addChildAt === "function") {
-        // Keep the enemy behind the arena so it cannot overlap the battle frame.
-        this.stage.addChildAt(this.enemySprite, 1);
-    } else {
-        this.stage.addChild(this.enemySprite);
+    
+    // Boss Z-Index Fix
+    var insertIndex = 0;
+    if (this.backgroundBackdrop && this.backgroundBackdrop.parent === this.stage) {
+        insertIndex = this.stage.getChildIndex(this.backgroundBackdrop) + 1;
     }
+    this.stage.addChildAt(this.enemySprite, insertIndex);
 
     this.bossPlaceholder = this.enemySprite;
 };
@@ -219,8 +222,11 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
         this.playerMenus[i].selectedAction = null;
+        this.playerMenus[i].standActionState = null; // Clean up action state
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
+        this.playerMenus[i].menuState = "main";
+        this.updateCharacterMenuVisuals(this.playerMenus[i]);
         this.deactivateBattleAvatar(this.playerMenus[i]);
     }
 
@@ -312,8 +318,15 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
         this.playerMenus[i].selectedAction = null;
+        this.playerMenus[i].standActionState = null; // Clean up action state
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
+        this.playerMenus[i].isDefending = false;
+        
+        // Return menu to main state
+        this.playerMenus[i].menuState = "main";
+        this.updateCharacterMenuVisuals(this.playerMenus[i]);
+
         this.deactivateBattleAvatar(this.playerMenus[i]);
     }
 

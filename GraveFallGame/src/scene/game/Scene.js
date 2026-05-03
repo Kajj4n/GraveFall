@@ -269,6 +269,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
                     if (!this.playerMenus[i].confirmed && this.playerMenus[i].healthCurrent > 0) {
                         this.playerMenus[i].selectedIndex = 0;
                         this.playerMenus[i].selectedAction = 0;
+                        this.playerMenus[i].standActionState = "itemAttack"; // Automatically apply attack stance visual
                         this.playerMenus[i].confirmed = true;
                         this.playerMenus[i].container.y = this.playerMenus[i].confirmedY;
                         autoSelected = true;
@@ -333,6 +334,7 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
         menu.menuState = "main";
         menu.selectedIndex = 0;
         menu.selectedAction = null;
+        menu.standActionState = null; // Clean up action state
         menu.confirmed = false;
         menu.container.y = menu.baseY;
 
@@ -343,31 +345,6 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
 
         this.updateCharacterMenuVisuals(menu);
     }
-};
-
-GraveFallGame.scene.Game.prototype.revivePlayerFromPotion = function (playerMenu) {
-    var healAmount;
-
-    if (!playerMenu) {
-        return;
-    }
-
-    healAmount = Math.max(1, Math.floor(playerMenu.healthMax * 0.10));
-
-    if (playerMenu.healthCurrent <= 0) {
-        playerMenu.healthCurrent = healAmount;
-    } else {
-        playerMenu.healthCurrent = Math.min(playerMenu.healthMax, playerMenu.healthCurrent + healAmount);
-    }
-
-    playerMenu.confirmed = false;
-    playerMenu.selectedAction = null;
-    playerMenu.isDefending = false;
-    playerMenu.isBuffed = false;
-    playerMenu.hitCooldown = 0;
-
-    this.updatePlayerHealthUi(playerMenu);
-    this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
 };
 
 GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (playerMenu) {

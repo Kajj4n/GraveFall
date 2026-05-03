@@ -55,10 +55,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var itemIcon = new rune.display.Sprite(255, 10, 100, 100, "Item_Icon_T");
 
     // --- ITEM SUBMENU ICONS ---
-    var healthItemIcon = new rune.display.Sprite(actionPositions[0], 10, 100, 100, "Item_Icon_T");
-    var sharpItemIcon = new rune.display.Sprite(actionPositions[1], 10, 100, 100, "Item_Icon_T");
-    var shieldItemIcon = new rune.display.Sprite(actionPositions[2], 10, 100, 100, "Item_Icon_T");
-    var returnItemIcon = new rune.display.Sprite(actionPositions[3], 10, 100, 100, "Item_Icon_T");
+    var healthItemIcon = new rune.display.Sprite(actionPositions[0], 10, 100, 100, "Health_Up_Icon_T");
+    var sharpItemIcon = new rune.display.Sprite(actionPositions[1], 10, 100, 100, "Attack_Up_Icon_T");
+    var shieldItemIcon = new rune.display.Sprite(actionPositions[2], 10, 100, 100, "Defence_Up_Icon_T");
+    var returnItemIcon = new rune.display.Sprite(actionPositions[3], 10, 100, 100, "Back_Arrow_Icon_T");
 
     var itemIconsArray = [healthItemIcon, sharpItemIcon, shieldItemIcon, returnItemIcon];
     for (var i = 0; i < itemIconsArray.length; i++) {
@@ -196,6 +196,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         isBuffed: false,
         standResource: options.stand,
         healingStandSprite: null,
+        standActionState: null,
         healingStandTimer: 0,
         menuState: "main" // Toggles between "main" and "items"
     };
@@ -210,8 +211,13 @@ GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMen
     var state = this.getHealthDamageState(playerMenu.healthCurrent, playerMenu.healthMax, true, allPlayersDead);
     var downed = state === "knockedOut" || state === "dead";
     var iconColor = downed ? GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid : playerMenu.theme.accent;
+    var standState = state;
 
-    this.setDamageStateGroupState(playerMenu.stand, state);
+    if (downed !== true && playerMenu.confirmed === true && playerMenu.standActionState) {
+        standState = playerMenu.standActionState;
+    }
+
+    this.setDamageStateGroupState(playerMenu.stand, standState);
     this.setDamageStateGroupState(playerMenu.portrait, state);
 
     this.applyMonochromeIconColor(playerMenu.classIcon, iconColor);
@@ -225,8 +231,7 @@ GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMen
     for (var i = 0; i < playerMenu.actions.length; i++) {
         playerMenu.actions[i].alpha = downed ? 0.45 : 1;
     }
-    
-    // Ensure item icons respect the damage state too
+
     for (var j = 0; j < playerMenu.itemIcons.length; j++) {
         playerMenu.itemIcons[j].alpha = downed ? 0.45 : 1;
     }
@@ -397,6 +402,7 @@ GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMen
     playerMenu.menuState = "main";
     playerMenu.selectedIndex = 0;
     playerMenu.selectedAction = null;
+    playerMenu.standActionState = null; // Clean up action state
     playerMenu.confirmed = false;
     playerMenu.container.y = playerMenu.baseY;
 
@@ -456,33 +462,41 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
             this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
         } else {
             // Confirm Action
-            // If they are in the item menu, selectedAction maps to 10, 11, 12
             playerMenu.selectedAction = playerMenu.menuState === "main" ? playerMenu.selectedIndex : 10 + playerMenu.selectedIndex;
             playerMenu.confirmed = true;
             playerMenu.container.y = playerMenu.confirmedY;
 
+            // --- CHANGED: Added logic for item submenu mapping to attack/defend visual states
+            if (playerMenu.selectedAction === 0 || playerMenu.selectedAction === 11) {
+                playerMenu.standActionState = "itemAttack"; // Attack or Sharpening Tool
+            } else if (playerMenu.selectedAction === 1 || playerMenu.selectedAction === 12) {
+                playerMenu.standActionState = "itemDefend"; // Defend or Shield Barrier
+            } else {
+                playerMenu.standActionState = null;
+            }
+
+            // Apply the sprite change immediately
+            this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
+
             if (playerMenu.selectedAction === 10) {
-                // Start animation
                 if (typeof this.startHealingStandAnimation === "function") {
                     this.startHealingStandAnimation(playerMenu);
                 }
 
-                // --- IMMEDIATE REVIVE LOGIC ---
                 var j, target;
                 for (j = 0; j < this.playerMenus.length; j++) {
                     target = this.playerMenus[j];
 
-                    // REVIVE dead players immediately
                     if (target.healthCurrent <= 0) {
                         var reviveAmount = Math.floor(target.healthMax * 0.15);
                         target.healthCurrent = Math.max(1, reviveAmount);
 
                         this.updatePlayerHealthUi(target);
-                        this.updatePlayerDamageState(target, false);
+                        this.updatePlayerDamageState(target, this.areAllPlayersDown());
 
-                        // Make them usable immediately
                         target.confirmed = false;
                         target.selectedAction = null;
+                        target.standActionState = null; // Clean up revived state
                         target.container.y = target.baseY;
 
                         if (target.stand) {
@@ -496,6 +510,5 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
             this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
         }
     }
-
     this.updateCharacterMenuVisuals(playerMenu);
 };
