@@ -238,7 +238,7 @@ GraveFallGame.scene.Game.ENEMIES = {
 // into data:audio/wav;base64 strings, then paste them into the matching this.add()
 // lines in Requests.js.
 GraveFallGame.MUSIC = {
-    DUNGEON_LOOP: "BGM_Dungeon_Loop"
+    DUNGEON_LOOP: "GraveFall_Dungeon_Loop"
 };
 
 GraveFallGame.SOUNDS = {
