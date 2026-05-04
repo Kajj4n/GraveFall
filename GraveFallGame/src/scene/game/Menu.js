@@ -114,11 +114,15 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     characterStand.scaleX = standScale;
     characterStand.scaleY = standScale;
 
-    if (options.flipStandX === true) {
+    var shouldFlip = options.x >= (this.application.screen.width / 2);
+
+    if (shouldFlip) {
+        characterStand.flippedX = true;
+        battleAvatar.flippedX = true;
+    } else {
         characterStand.flippedX = false;
         battleAvatar.flippedX = false;
     }
-
     characterMenu.addChild(characterMenuCharacter);
     characterMenu.addChild(characterMenuActions);
     characterMenu.addChild(outerFrame);

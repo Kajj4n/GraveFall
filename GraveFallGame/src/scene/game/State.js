@@ -220,108 +220,57 @@ GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
     { name: "MG_Sequence_Slot", size: "42x42", purpose: "Optional wizard sequence slot frame" }
 ];
 
-// Party setup. To give everyone the same attack minigame, change only the
-// attackMinigame values below, for example all four to "buttonMash".
-GraveFallGame.scene.Game.PARTY_MEMBERS = [
+// --- DYNAMIC CHARACTER SELECTION TEMPLATES ---
+// These are the raw classes players can choose from in the Character Select Menu
+GraveFallGame.scene.Game.CLASS_TEMPLATES = [
     {
         id: "fighter",
         name: "Warrior",
-        x: 0,
-        y: 592,
         portrait: "Fighter_Portrait",
         classIcon: "Fighter_Icon_T",
         stand: "Fighter_Idle_Stance",
-        hpCurrent: 100,
         hpMax: 160,
-        themeIndex: 0,
+        flipStandX: false,
         attackMinigame: "buttonMash",
-        controls: {
-            left: "a",
-            right: "d",
-            confirm: "space"
-        },
-        moveControls: {
-            left: "a",
-            right: "d",
-            up: "w",
-            down: "s"
-        }
+        attackDamage: 5
     },
     {
         id: "assassin",
         name: "Rogue",
-        x: 320,
-        y: 592,
         portrait: "Assassin_Portrait",
         classIcon: "Assassin_Icon_T",
         stand: "Assassin_Idle_Stance",
-        hpCurrent: 95,
         hpMax: 120,
-        themeIndex: 1,
+        flipStandX: false,
         attackMinigame: "timingBar",
-        controls: {
-            left: "left",
-            right: "right",
-            confirm: "enter"
-        },
-        moveControls: {
-            left: "left",
-            right: "right",
-            up: "up",
-            down: "down"
-        }
+        attackDamage: 5
     },
     {
         id: "wizard",
         name: "Wizard",
-        x: 640,
-        y: 592,
         portrait: "Wizard_Portrait",
         classIcon: "Wizard_Icon_T",
         stand: "Wizard_Idle_Stance",
-        hpCurrent: 34,
         hpMax: 100,
-        themeIndex: 2,
-        flipStandX: true,
+        flipStandX: false,
         attackMinigame: "buttonSequence",
-        controls: {
-            left: "j",
-            right: "l",
-            confirm: "k"
-        },
-        moveControls: {
-            left: "j",
-            right: "l",
-            up: "i",
-            down: "k"
-        }
+        attackDamage: 5
     },
     {
         id: "ranger",
         name: "Ranger",
-        x: 960,
-        y: 592,
         portrait: "Ranger_Portrait",
         classIcon: "Ranger_Icon_T",
         stand: "Ranger_Idle_Stance",
-        hpCurrent: 34,
         hpMax: 112,
-        themeIndex: 3,
-        flipStandX: true,
+        flipStandX: false,
         attackMinigame: "targetReticle",
-        controls: {
-            left: "v",
-            right: "n",
-            confirm: "b"
-        },
-        moveControls: {
-            left: "f",
-            right: "h",
-            up: "t",
-            down: "g"
-        }
+        attackDamage: 5
     }
 ];
+
+// This will be dynamically populated by the Character Select screen right before the game starts.
+GraveFallGame.scene.Game.PARTY_MEMBERS = [];
 
 /**
  * Enemy / phase prototype data.
@@ -441,14 +390,6 @@ GraveFallGame.playSound = function (application, soundName, volume, pan, unique)
             return null;
         }
 
-        // IMPORTANT:
-        // Rune's second argument to SoundChannel.get(name, unique) controls
-        // whether a brand new Sound object is created. Passing true for every
-        // one-shot SFX causes application.sounds.sound.length to grow forever
-        // during a long game scene, eventually making SFX lag or stop.
-        //
-        // Shared SFX should be the default. Only pass unique === true for a
-        // sound that must overlap itself while a previous copy is still playing.
         sound = application.sounds.sound.get(soundName, unique === true);
 
         if (sound) {
@@ -459,8 +400,6 @@ GraveFallGame.playSound = function (application, soundName, volume, pan, unique)
 
         return sound;
     } catch (e) {
-        // This keeps development safe while sound resources are still being
-        // replaced. Missing or badly pasted audio data should not crash gameplay.
         return null;
     }
 };
@@ -473,8 +412,6 @@ GraveFallGame.playMusic = function (application, musicName, volume, pan) {
             return null;
         }
 
-        // Rune has a dedicated music channel. Use a shared object here so this
-        // looping placeholder is treated as one background track, not as stacked SFX.
         music = application.sounds.music.get(musicName, false);
 
         if (music) {
@@ -496,7 +433,6 @@ GraveFallGame.stopMusic = function (music) {
             music.stop();
         }
     } catch (e) {
-        // Audio teardown should never block scene cleanup.
     }
 };
 
@@ -569,8 +505,6 @@ GraveFallGame.scene.Game.prototype.shakeCamera = function (duration, amountX, am
             );
         }
     } catch (e) {
-        // Camera shake is juice only; gameplay should continue if the camera
-        // subsystem is missing during early boot or tests.
     }
 };
 

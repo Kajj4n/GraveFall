@@ -5,7 +5,6 @@
 GraveFallGame.scene.Game.prototype.init = function () {
     rune.scene.Scene.prototype.init.call(this);
 
-    this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
     this.encounterIndex = 0;
     this.currentEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
     this.actionPhaseTimer = 0;
@@ -23,19 +22,12 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyDefeatedSoundPlayed = false;
     this.dungeonMusic = null;
 
-    // Resets the player menus once when a fresh command phase starts.
     this.commandMenuResetDone = false;
     
-    // Fade-in timer for every new enemy and its healthbar.
     this.enemyFadeTimerMs = 0;
     this.enemyFadeDurationMs = 1500;
     this.enemyDefeatedTimerMs = 0;
 
-    // Passage transition that plays between enemy encounters.
-    // This deliberately avoids CameraViewport.zoom because that resizes Rune's
-    // camera canvas and can make character sprites look fuzzy after the zoom.
-    // Instead, only the background art is pushed toward the entryway while the
-    // camera itself stays at 1:1 so party/enemy sprites keep their normal pixel quality.
     this.passageTransitionTimerMs = 0;
     this.passageTransitionDurationMs = 9550;
     this.passageTransitionCorpseVanishMs = 1100;
@@ -62,7 +54,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
 
     this.startDungeonMusic();
 
-    // turn timer (10 seconds ≈ 600 frames)
     this.turnTimer = 600;
     this.turnTimerMs = 10000;
 
@@ -102,7 +93,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.stage.addChild(this.enemySprite);
     this.bossPlaceholder = this.enemySprite;
 
-    // --- ENEMY HEALTH BAR UI ---
     var eBarWidth = 300;
     var eBarHeight = 32;
     var eBarX = (this.application.screen.width / 2) - (eBarWidth / 2);
@@ -127,14 +117,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyHealthText.x = eBarX + (eBarWidth / 2) - ((this.enemyHealthText.text.length * 6 * 2) / 2);
     this.enemyHealthText.y = eBarY + 8;
     this.stage.addChild(this.enemyHealthText);
-
-    // Initial opacity set to 0 to prepare for the fade-in
-    this.enemySprite.alpha = 0;
-    this.enemyHealthBg.alpha = 0;
-    this.enemyHealthFill.alpha = 0;
-    this.enemyHealthFrame.alpha = 0;
-    this.enemyHealthText.alpha = 0;
-    // --------------------------------
 
     this.createBattleArena();
     this.stage.addChild(this.turnTimerText);
@@ -161,8 +143,35 @@ GraveFallGame.scene.Game.prototype.init = function () {
         }));
     }
 
+    // --- INIT INTRO TRANSITION ---
+    // Start game sequence natively utilizing the Defeated/Transition logic
+    this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
+    this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
+    this.passageTransitionTimerMs = 0;
+    this.passageTransitionEncounterLoaded = true; // Avoids loading next encounter immediately
+    this.passageTransitionCorpseHidden = true; // Skip hiding corpse
+    this.passageTransitionStepsPlayed = false;
+    this.passageTransitionPartyRevealed = false;
+    this.passageTransitionActionsShown = false;
+    this.enemyFadeTimerMs = this.enemyFadeDurationMs;
+    
+    this.clearProjectiles();
+    this.clearArenaItem();
+    this.setBattleArenaVisible(false);
+    this.turnTimerText.visible = false;
+    this.turnTimerText.alpha = 0;
+
+    for (var p = 0; p < this.playerMenus.length; p++) {
+        this.playerMenus[p].standActionState = null;
+        this.playerMenus[p].container.y = this.playerMenus[p].baseY;
+        this.updateCharacterMenuVisuals(this.playerMenus[p]);
+    }
+
     this.updateAllPlayerDamageStates();
+    this.setPlayerTransitionVisibility(true, false);
     this.updateEnemyDamageState();
+    this.setEnemyUiAlpha(0); // Ensure it starts completely faded out
+    this.applyPassageCameraTransition(0);
 };
 
 GraveFallGame.scene.Game.prototype.update = function (step) {
@@ -175,13 +184,10 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     this.updateHealingStandAnimations(step);
 
-    // If we are no longer in the command phase, allow the next command phase
-    // to trigger a fresh menu reset.
     if (this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND) {
         this.commandMenuResetDone = false;
     }
 
-    // Enemy and health bar fade-in logic.
     if (this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED && this.enemyFadeTimerMs < this.enemyFadeDurationMs) {
         this.enemyFadeTimerMs += step;
         
@@ -231,7 +237,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
                     if (!this.playerMenus[i].confirmed && this.playerMenus[i].healthCurrent > 0) {
                         this.playerMenus[i].selectedIndex = 0;
                         this.playerMenus[i].selectedAction = 0;
-                        this.playerMenus[i].standActionState = "itemAttack"; // Automatically apply attack stance visual
+                        this.playerMenus[i].standActionState = "itemAttack";
                         this.playerMenus[i].confirmed = true;
                         this.playerMenus[i].container.y = this.playerMenus[i].confirmedY;
                         autoSelected = true;
@@ -296,7 +302,7 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
         menu.menuState = "main";
         menu.selectedIndex = 0;
         menu.selectedAction = null;
-        menu.standActionState = null; // Clean up action state
+        menu.standActionState = null;
         menu.confirmed = false;
         menu.container.y = menu.baseY;
 
@@ -347,10 +353,7 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
 
     this.stage.addChild(sprite);
 
-    // Apply the same character palette first.
     this.applyPaletteSwaps(sprite, this.getClothingPaletteSwaps(theme));
-
-    // Then recolor any monochrome section that the potion sprite uses.
     this.applyMonochromeIconColor(sprite, theme.accentLight);
 
     playerMenu.healingStandSprite = sprite;
@@ -429,7 +432,6 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyHealthCurrent = null;
     this.enemyHealthMax = null;
     
-    // Cleanup new UI
     this.enemyHealthBg = null;
     this.enemyHealthFill = null;
     this.enemyHealthFrame = null;
