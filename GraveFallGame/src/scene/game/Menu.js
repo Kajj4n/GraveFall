@@ -229,7 +229,14 @@ GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMen
     this.applyMonochromeIconColor(playerMenu.classIcon, iconColor);
     this.applyMonochromeIconColor(playerMenu.battleAvatar, iconColor);
 
-    playerMenu.stand.alpha = 1;
+    if (playerMenu.stand) {
+        playerMenu.stand.alpha = 1;
+
+        if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION && !playerMenu.healingStandSprite) {
+            playerMenu.stand.visible = true;
+        }
+    }
+
     playerMenu.classIcon.alpha = 1;
     playerMenu.container.alpha = 1;
     playerMenu.selectionBar.visible = !downed;
@@ -413,7 +420,7 @@ GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMen
     playerMenu.confirmed = false;
     playerMenu.container.y = playerMenu.baseY;
 
-    if (playerMenu.stand && playerMenu.healthCurrent > 0) {
+    if (playerMenu.stand && !playerMenu.healingStandSprite) {
         playerMenu.stand.visible = true;
         playerMenu.stand.alpha = 1;
     }

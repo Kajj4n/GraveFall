@@ -208,7 +208,7 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (vis
         }
 
         if (menu.stand) {
-            menu.stand.visible = visible === true && menu.healthCurrent > 0;
+            menu.stand.visible = visible === true && !menu.healingStandSprite;
             menu.stand.alpha = visible === true ? 1 : 0;
         }
 
@@ -257,7 +257,7 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAl
         }
 
         if (menu.stand) {
-            menu.stand.visible = showPlayer && menu.healthCurrent > 0;
+            menu.stand.visible = showPlayer && !menu.healingStandSprite;
             menu.stand.alpha = playerAlpha;
         }
 

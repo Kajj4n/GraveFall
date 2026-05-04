@@ -310,7 +310,7 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
         menu.confirmed = false;
         menu.container.y = menu.baseY;
 
-        if (menu.stand && menu.healthCurrent > 0) {
+        if (menu.stand && !menu.healingStandSprite) {
             menu.stand.visible = true;
             menu.stand.alpha = 1;
         }
@@ -351,7 +351,7 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
     sprite.scaleY = playerMenu.stand.scaleY;
     sprite.alpha = 1;
 
-    if (playerMenu.stand.flippedX === true) {
+    if (playerMenu.flipStandX === true || (playerMenu.stand && playerMenu.stand.damageStateFlippedX === true)) {
         sprite.flippedX = true;
     }
 
@@ -395,7 +395,7 @@ GraveFallGame.scene.Game.prototype.updateHealingStandAnimations = function (step
         menu.healingStandSprite = null;
         menu.healingStandTimer = 0;
 
-        if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION && menu.stand && menu.healthCurrent > 0) {
+        if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION && menu.stand) {
             menu.stand.visible = true;
             menu.stand.alpha = 1;
         }

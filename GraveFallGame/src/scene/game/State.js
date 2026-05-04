@@ -558,16 +558,19 @@ GraveFallGame.scene.Game.prototype.createDamageStateGroup = function (x, y, widt
     options = options || {};
     group.stateSprites = [];
     group.currentDamageState = null;
-    group.flippedX = options.flippedX === true;
+    group.damageStateFlippedX = options.flippedX === true;
+
+    // Rune applies flippedX to every DisplayObject during rendering. Do not flip
+    // both this container and its child sprites, because that mirrors twice and
+    // visually cancels the party-facing flip. The metadata above is the source of
+    // truth; the visible state sprite is flipped by setDamageStateGroupFlippedX().
+    group.flippedX = false;
 
     for (i = 0; i < stateConfigs.length; i++) {
         sprite = new rune.display.Sprite(0, 0, width, height, this.resolveExistingResource([stateConfigs[i].resource], stateConfigs[0].resource));
         sprite.damageState = stateConfigs[i].state;
         sprite.visible = false;
-
-        if (options.flippedX === true) {
-            sprite.flippedX = true;
-        }
+        sprite.flippedX = group.damageStateFlippedX === true;
 
         group.addChild(sprite);
         group.stateSprites.push(sprite);
@@ -583,14 +586,19 @@ GraveFallGame.scene.Game.prototype.setDamageStateGroupFlippedX = function (group
         return;
     }
 
-    group.flippedX = flippedX === true;
+    group.damageStateFlippedX = flippedX === true;
+
+    // Keep the container unflipped. Flipping the container and the children causes
+    // a double mirror in Rune's renderer, which is why previous fixes appeared to
+    // work only when one flippedX assignment was changed back to false.
+    group.flippedX = false;
 
     if (!group.stateSprites) {
         return;
     }
 
     for (i = 0; i < group.stateSprites.length; i++) {
-        group.stateSprites[i].flippedX = flippedX === true;
+        group.stateSprites[i].flippedX = group.damageStateFlippedX === true;
     }
 };
 
@@ -612,6 +620,7 @@ GraveFallGame.scene.Game.prototype.setDamageStateGroupState = function (group, s
     }
 
     for (i = 0; i < group.stateSprites.length; i++) {
+        group.stateSprites[i].flippedX = group.damageStateFlippedX === true;
         group.stateSprites[i].visible = i === fallbackIndex;
     }
 };
