@@ -162,6 +162,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
 
     var playerMenu = {
         container: characterMenu,
+        characterContainer: characterMenuCharacter,
+        actionsContainer: characterMenuActions,
         stand: characterStand,
         portrait: characterIcon,
         classIcon: characterClassIcon,
@@ -267,9 +269,10 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount) {
         this.playSfx(GraveFallGame.SOUNDS.ENEMY_HIT, 0.55);
     }
 
-    if (wasAlive && this.enemyHealthCurrent <= 0 && this.enemyDefeatedSoundPlayed !== true) {
-        this.enemyDefeatedSoundPlayed = true;
-        this.playSfx(GraveFallGame.SOUNDS.ENEMY_DEFEATED, 0.8);
+    if (wasAlive && this.enemyHealthCurrent <= 0) {
+        // The defeat sound is now delayed until the corpse sprite disappears,
+        // so the hit can breathe before the passage transition starts.
+        this.enemyDefeatedSoundPlayed = false;
     }
 };
 

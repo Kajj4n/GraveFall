@@ -36,10 +36,21 @@ GraveFallGame.scene.Game.prototype.init = function () {
     // Instead, only the background art is pushed toward the entryway while the
     // camera itself stays at 1:1 so party/enemy sprites keep their normal pixel quality.
     this.passageTransitionTimerMs = 0;
-    this.passageTransitionDurationMs = 2600;
-    this.passageTransitionSwitchMs = 1200;
+    this.passageTransitionDurationMs = 8400;
+    this.passageTransitionCorpseVanishMs = 1100;
+    this.passageTransitionWalkStartMs = 1650;
+    this.passageTransitionBlackStartMs = 3500;
+    this.passageTransitionLoadEncounterMs = 3900;
+    this.passageTransitionFadeInStartMs = 4600;
+    this.passageTransitionFadeInEndMs = 6200;
+    this.passageTransitionEnemyFadeStartMs = 6500;
+    this.passageTransitionActionsAppearMs = 8200;
     this.passageTransitionEncounterLoaded = false;
-    this.passageTransitionBackdropMaxScale = 1.85;
+    this.passageTransitionCorpseHidden = false;
+    this.passageTransitionStepsPlayed = false;
+    this.passageTransitionPartyRevealed = false;
+    this.passageTransitionActionsShown = false;
+    this.passageTransitionBackdropMaxScale = 1.95;
     this.passageTransitionFocusX = this.application.screen.width / 2;
     this.passageTransitionFocusY = this.application.screen.height * 0.48;
 
@@ -233,7 +244,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     }
 
     // Enemy and health bar fade-in logic.
-    if (this.enemyFadeTimerMs < this.enemyFadeDurationMs) {
+    if (this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED && this.enemyFadeTimerMs < this.enemyFadeDurationMs) {
         this.enemyFadeTimerMs += step;
         
         var fadeAlpha = Math.min(1, this.enemyFadeTimerMs / this.enemyFadeDurationMs);
@@ -494,8 +505,19 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.commandMenuResetDone = null;
     this.passageTransitionTimerMs = null;
     this.passageTransitionDurationMs = null;
-    this.passageTransitionSwitchMs = null;
+    this.passageTransitionCorpseVanishMs = null;
+    this.passageTransitionWalkStartMs = null;
+    this.passageTransitionBlackStartMs = null;
+    this.passageTransitionLoadEncounterMs = null;
+    this.passageTransitionFadeInStartMs = null;
+    this.passageTransitionFadeInEndMs = null;
+    this.passageTransitionEnemyFadeStartMs = null;
+    this.passageTransitionActionsAppearMs = null;
     this.passageTransitionEncounterLoaded = null;
+    this.passageTransitionCorpseHidden = null;
+    this.passageTransitionStepsPlayed = null;
+    this.passageTransitionPartyRevealed = null;
+    this.passageTransitionActionsShown = null;
     this.passageTransitionBackdropMaxScale = null;
     this.passageTransitionFocusX = null;
     this.passageTransitionFocusY = null;
