@@ -190,8 +190,11 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         confirmedY: options.y + 58,
         controls: options.controls,
         moveControls: options.moveControls,
+        characterId: options.characterId || null,
+        characterName: options.characterName || "Character",
+        attackMinigame: options.attackMinigame || GraveFallGame.scene.Game.DEFAULT_ATTACK_MINIGAME,
         moveSpeed: 4,
-        attackDamage: options.attackDamage || 20,
+        attackDamage: options.attackDamage || 5,
         attackDamageBonus: 0,
         hitCooldown: 0,
         isDefending: false,
@@ -293,7 +296,7 @@ GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
 
         // FIGHT
         if (playerMenu.selectedAction === 0) {
-            baseDmg = 5;
+            baseDmg = playerMenu.attackDamage || 5;
             bonusDmg = (playerMenu.attackDamageBonus || 0) * 1; 
             totalDmg = baseDmg + bonusDmg;
 

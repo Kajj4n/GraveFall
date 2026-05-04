@@ -11,6 +11,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
     this.minigameTimer = 0;
+    this.minigameDurationMs = 0;
     this.projectiles = [];
     this.playerMenus = [];
 
@@ -138,95 +139,27 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.createBattleArena();
     this.stage.addChild(this.turnTimerText);
 
-    this.playerMenus.push(this.createCharacterMenu({
-        x: 0,
-        y: 592,
-        portrait: "Fighter_Portrait",
-        classIcon: "Fighter_Icon_T",
-        stand: "Fighter_Idle_Stance",
-        hpCurrent: 100,
-        hpMax: 160,
-        playerTheme: this.getPlayerTheme(0),
-        controls: {
-            left: "a",
-            right: "d",
-            confirm: "space"
-        },
-        moveControls: {
-            left: "a",
-            right: "d",
-            up: "w",
-            down: "s"
-        }
-    }));
+    for (var partyIndex = 0; partyIndex < GraveFallGame.scene.Game.PARTY_MEMBERS.length; partyIndex++) {
+        var partyMember = GraveFallGame.scene.Game.PARTY_MEMBERS[partyIndex];
 
-    this.playerMenus.push(this.createCharacterMenu({
-        x: 320,
-        y: 592,
-        portrait: "Assassin_Portrait",
-        classIcon: "Assassin_Icon_T",
-        stand: "Assassin_Idle_Stance",
-        hpCurrent: 95,
-        hpMax: 120,
-        playerTheme: this.getPlayerTheme(1),
-        controls: {
-            left: "left",
-            right: "right",
-            confirm: "enter"
-        },
-        moveControls: {
-            left: "left",
-            right: "right",
-            up: "up",
-            down: "down"
-        }
-    }));
-
-    this.playerMenus.push(this.createCharacterMenu({
-        x: 640,
-        y: 592,
-        portrait: "Wizard_Portrait",
-        classIcon: "Wizard_Icon_T",
-        stand: "Wizard_Idle_Stance",
-        hpCurrent: 34,
-        hpMax: 100,
-        playerTheme: this.getPlayerTheme(2),
-        flipStandX: true,
-        controls: {
-            left: "j",
-            right: "l",
-            confirm: "k"
-        },
-        moveControls: {
-            left: "j",
-            right: "l",
-            up: "i",
-            down: "k"
-        }
-    }));
-
-    this.playerMenus.push(this.createCharacterMenu({
-        x: 960,
-        y: 592,
-        portrait: "Ranger_Portrait",
-        classIcon: "Ranger_Icon_T",
-        stand: "Ranger_Idle_Stance",
-        hpCurrent: 34,
-        hpMax: 112,
-        playerTheme: this.getPlayerTheme(3),
-        flipStandX: true,
-        controls: {
-            left: "v",
-            right: "n",
-            confirm: "b"
-        },
-        moveControls: {
-            left: "f",
-            right: "h",
-            up: "t",
-            down: "g"
-        }
-    }));
+        this.playerMenus.push(this.createCharacterMenu({
+            characterId: partyMember.id,
+            characterName: partyMember.name,
+            x: partyMember.x,
+            y: partyMember.y,
+            portrait: partyMember.portrait,
+            classIcon: partyMember.classIcon,
+            stand: partyMember.stand,
+            hpCurrent: partyMember.hpCurrent,
+            hpMax: partyMember.hpMax,
+            playerTheme: this.getPlayerTheme(partyMember.themeIndex || 0),
+            flipStandX: partyMember.flipStandX === true,
+            controls: partyMember.controls,
+            moveControls: partyMember.moveControls,
+            attackMinigame: partyMember.attackMinigame,
+            attackDamage: partyMember.attackDamage || 5
+        }));
+    }
 
     this.updateAllPlayerDamageStates();
     this.updateEnemyDamageState();
@@ -539,6 +472,8 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.arena = null;
     this.turnTimerText = null;
     this.turnTimerMs = null;
+    this.minigameTimer = null;
+    this.minigameDurationMs = null;
     this.arenaItem = null;
     this.itemSpawnTimer = null;
     this.gameOverText = null;

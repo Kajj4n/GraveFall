@@ -157,6 +157,172 @@ GraveFallGame.scene.Game.UI_SKINS = {
     }
 };
 
+//------------------------------------------------------------------------------
+// Attack minigame data
+//------------------------------------------------------------------------------
+
+// These ids are deliberately data-driven. Characters point to one of these ids
+// through PARTY_MEMBERS.attackMinigame, so any character can use any minigame.
+GraveFallGame.scene.Game.DEFAULT_ATTACK_MINIGAME = "buttonSequence";
+
+GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
+    buttonMash: {
+        id: "buttonMash",
+        title: "WARRIOR: MASH",
+        setup: "setupButtonMashMinigame",
+        update: "updateButtonMashMinigame",
+        damagePerPress: 1,
+        maxUsefulPresses: 36
+    },
+    buttonSequence: {
+        id: "buttonSequence",
+        title: "WIZARD: SEQUENCE",
+        setup: "setupButtonSequenceMinigame",
+        update: "updateButtonSequenceMinigame",
+        sequenceLength: 5,
+        damagePerInput: 1,
+        damagePerSequence: 3,
+        wrongPenalty: 1
+    },
+    targetReticle: {
+        id: "targetReticle",
+        title: "RANGER: AIM",
+        setup: "setupTargetReticleMinigame",
+        update: "updateTargetReticleMinigame",
+        perfectDamage: 5,
+        goodDamage: 3,
+        okDamage: 1,
+        shotCooldownMs: 280
+    },
+    timingBar: {
+        id: "timingBar",
+        title: "ROGUE: BACKSTAB",
+        setup: "setupTimingBarMinigame",
+        update: "updateTimingBarMinigame",
+        perfectDamage: 5,
+        goodDamage: 3,
+        okDamage: 1,
+        baseSpeed: 0.22,
+        speedVariance: 0.12
+    }
+};
+
+// Sprite names the minigames will try to use if those resources are baked into
+// Requests.js later. Until then, runtime Graphics are used as placeholders.
+GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
+    { name: "MG_Ranger_Target", size: "112x40", purpose: "Ranger aiming board / wide target sprite" },
+    { name: "MG_Ranger_Bullseye", size: "16x16", purpose: "Center scoring mark / bullseye for the ranger target" },
+    { name: "MG_Ranger_Reticle", size: "16x16", purpose: "Moving ranger reticle / crosshair" },
+    { name: "MG_Rogue_Bar_Back", size: "196x20", purpose: "Rogue horizontal timing bar background" },
+    { name: "MG_Rogue_HitZone", size: "20x28", purpose: "Rogue center hit-zone marker" },
+    { name: "MG_Rogue_Timing_Block", size: "14x24", purpose: "Rogue moving timing rectangle" },
+    { name: "MG_Button_Mash_Icon", size: "64x64", purpose: "Optional warrior mash prompt icon" },
+    { name: "MG_Sequence_Slot", size: "42x42", purpose: "Optional wizard sequence slot frame" }
+];
+
+// Party setup. To give everyone the same attack minigame, change only the
+// attackMinigame values below, for example all four to "buttonMash".
+GraveFallGame.scene.Game.PARTY_MEMBERS = [
+    {
+        id: "fighter",
+        name: "Warrior",
+        x: 0,
+        y: 592,
+        portrait: "Fighter_Portrait",
+        classIcon: "Fighter_Icon_T",
+        stand: "Fighter_Idle_Stance",
+        hpCurrent: 100,
+        hpMax: 160,
+        themeIndex: 0,
+        attackMinigame: "buttonMash",
+        controls: {
+            left: "a",
+            right: "d",
+            confirm: "space"
+        },
+        moveControls: {
+            left: "a",
+            right: "d",
+            up: "w",
+            down: "s"
+        }
+    },
+    {
+        id: "assassin",
+        name: "Rogue",
+        x: 320,
+        y: 592,
+        portrait: "Assassin_Portrait",
+        classIcon: "Assassin_Icon_T",
+        stand: "Assassin_Idle_Stance",
+        hpCurrent: 95,
+        hpMax: 120,
+        themeIndex: 1,
+        attackMinigame: "timingBar",
+        controls: {
+            left: "left",
+            right: "right",
+            confirm: "enter"
+        },
+        moveControls: {
+            left: "left",
+            right: "right",
+            up: "up",
+            down: "down"
+        }
+    },
+    {
+        id: "wizard",
+        name: "Wizard",
+        x: 640,
+        y: 592,
+        portrait: "Wizard_Portrait",
+        classIcon: "Wizard_Icon_T",
+        stand: "Wizard_Idle_Stance",
+        hpCurrent: 34,
+        hpMax: 100,
+        themeIndex: 2,
+        flipStandX: true,
+        attackMinigame: "buttonSequence",
+        controls: {
+            left: "j",
+            right: "l",
+            confirm: "k"
+        },
+        moveControls: {
+            left: "j",
+            right: "l",
+            up: "i",
+            down: "k"
+        }
+    },
+    {
+        id: "ranger",
+        name: "Ranger",
+        x: 960,
+        y: 592,
+        portrait: "Ranger_Portrait",
+        classIcon: "Ranger_Icon_T",
+        stand: "Ranger_Idle_Stance",
+        hpCurrent: 34,
+        hpMax: 112,
+        themeIndex: 3,
+        flipStandX: true,
+        attackMinigame: "targetReticle",
+        controls: {
+            left: "v",
+            right: "n",
+            confirm: "b"
+        },
+        moveControls: {
+            left: "f",
+            right: "h",
+            up: "t",
+            down: "g"
+        }
+    }
+];
+
 /**
  * Enemy / phase prototype data.
  *

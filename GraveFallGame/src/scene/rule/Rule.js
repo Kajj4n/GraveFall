@@ -47,8 +47,9 @@ GraveFallGame.scene.Rule.prototype.init = function() {
 
     var ruleText = new rune.text.BitmapField(
         "HOW TO PLAY\n\n" +
-        "MOVE WITH ARROW KEYS\n" +
-        "AVOID THE PROJECTILES\n" +
+        "CHOOSE FIGHT TO START ATTACK MINIGAMES\n" +
+        "GOOD QTES DEAL BONUS DAMAGE\n" +
+        "THEN AVOID THE ENEMY PROJECTILES\n" +
         "SURVIVE AS LONG AS YOU CAN\n\n" +
         "PRESS ESCAPE TO GO BACK"
     );
