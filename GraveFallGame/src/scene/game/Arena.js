@@ -233,13 +233,152 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
     this.updateAllPlayerDamageStates();
 };
 
+
+GraveFallGame.scene.Game.prototype.getPrimaryCamera = function () {
+    if (!this.cameras || typeof this.cameras.getCameraAt !== "function") {
+        return null;
+    }
+
+    return this.cameras.getCameraAt(0);
+};
+
+GraveFallGame.scene.Game.prototype.easePassageTransition = function (value) {
+    value = Math.max(0, Math.min(1, value));
+    return value < 0.5
+        ? 4 * value * value * value
+        : 1 - Math.pow(-2 * value + 2, 3) / 2;
+};
+
+GraveFallGame.scene.Game.prototype.resetPassageCameraTransition = function () {
+    var camera = this.getPrimaryCamera();
+
+    if (camera && camera.viewport) {
+        // Do not leave Rune's camera canvas resized after the transition.
+        if (camera.viewport.zoom !== 1) {
+            camera.viewport.zoom = 1;
+        }
+
+        camera.viewport.x = 0;
+        camera.viewport.y = 0;
+    }
+
+    if (camera && camera.canvas) {
+        camera.canvas.smoothing = false;
+    }
+
+    if (camera && camera.fade) {
+        camera.fade.opacity = 0;
+    }
+
+    if (this.backgroundBackdrop) {
+        this.backgroundBackdrop.scaleX = 1;
+        this.backgroundBackdrop.scaleY = 1;
+        this.backgroundBackdrop.x = 0;
+        this.backgroundBackdrop.y = 0;
+        this.backgroundBackdrop.alpha = 1;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elapsedMs) {
+    var camera = this.getPrimaryCamera();
+    var duration = this.passageTransitionDurationMs || 2600;
+    var pushInMs = 980;
+    var holdUntilMs = 1320;
+    var fadeOutMs = 940;
+    var fadeInStartMs = 1500;
+    var fadeInMs = Math.max(1, duration - fadeInStartMs);
+    var focusX = this.passageTransitionFocusX || (this.application.screen.width / 2);
+    var focusY = this.passageTransitionFocusY || (this.application.screen.height * 0.48);
+    var pushProgress;
+    var fadeOpacity;
+    var scale;
+
+    // Keep the actual camera locked to its native 1:1 render size. The old
+    // transition used CameraViewport.zoom, which resized the camera canvas and
+    // made character sprites look like blurry upscaled images. This version
+    // fakes the forward motion by transforming only the background art.
+    if (camera && camera.viewport) {
+        if (camera.viewport.zoom !== 1) {
+            camera.viewport.zoom = 1;
+        }
+
+        camera.viewport.x = 0;
+        camera.viewport.y = 0;
+    }
+
+    if (camera && camera.canvas) {
+        camera.canvas.smoothing = false;
+    }
+
+    if (elapsedMs <= pushInMs) {
+        pushProgress = this.easePassageTransition(elapsedMs / pushInMs);
+    } else if (elapsedMs < holdUntilMs) {
+        pushProgress = 1;
+    } else {
+        pushProgress = 1 - this.easePassageTransition((elapsedMs - holdUntilMs) / Math.max(1, duration - holdUntilMs));
+    }
+
+    if (this.backgroundBackdrop) {
+        scale = 1 + ((this.passageTransitionBackdropMaxScale - 1) * pushProgress);
+        this.backgroundBackdrop.scaleX = scale;
+        this.backgroundBackdrop.scaleY = scale;
+        this.backgroundBackdrop.x = Math.round(focusX - (focusX * scale));
+        this.backgroundBackdrop.y = Math.round(focusY - (focusY * scale));
+    }
+
+    if (camera && camera.fade) {
+        if (elapsedMs < fadeOutMs) {
+            fadeOpacity = 0.95 * this.easePassageTransition(elapsedMs / fadeOutMs);
+        } else if (elapsedMs < fadeInStartMs) {
+            fadeOpacity = 0.95;
+        } else {
+            fadeOpacity = 0.95 * (1 - this.easePassageTransition((elapsedMs - fadeInStartMs) / fadeInMs));
+        }
+
+        camera.fade.opacity = Math.max(0, Math.min(0.95, fadeOpacity));
+    }
+};
+
+GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = function () {
+    if (this.passageTransitionEncounterLoaded === true) {
+        return;
+    }
+
+    this.passageTransitionEncounterLoaded = true;
+    this.encounterIndex++;
+    this.loadEnemyEncounter(this.getEnemyTypeForEncounter(this.encounterIndex), true);
+    this.resetPlayersForNewEncounter();
+    this.turnTimerText.visible = true;
+    this.turnTimerText.alpha = 0;
+    this.turnTimerText.text = "10";
+    this.turnTimerMs = 10000;
+    this.lastTurnWarningSecond = null;
+};
+
+GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = function () {
+    if (this.passageTransitionEncounterLoaded !== true) {
+        this.loadNextEnemyEncounterDuringTransition();
+    }
+
+    this.resetPassageCameraTransition();
+    this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
+    this.turnTimerMs = 10000;
+    this.lastTurnWarningSecond = null;
+    this.turnTimerText.visible = true;
+    this.turnTimerText.alpha = 1;
+    this.turnTimerText.text = "10";
+    this.commandMenuResetDone = false;
+};
+
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     if (this.phase === GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
         return;
     }
 
     this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
-    this.enemyDefeatedTimerMs = 2200;
+    this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
+    this.passageTransitionTimerMs = 0;
+    this.passageTransitionEncounterLoaded = false;
     this.enemyFadeTimerMs = this.enemyFadeDurationMs;
     this.clearProjectiles();
     this.clearArenaItem();
@@ -247,25 +386,28 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     this.turnTimerText.alpha = 0;
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(1);
+    this.applyPassageCameraTransition(0);
+    this.playSfx(GraveFallGame.SOUNDS.PASSAGE_STEPS, 0.72);
 };
 
 GraveFallGame.scene.Game.prototype.startNextEnemyEncounter = function () {
-    this.encounterIndex++;
-    this.loadEnemyEncounter(this.getEnemyTypeForEncounter(this.encounterIndex), true);
-    this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
-    this.turnTimerMs = 10000;
-    this.lastTurnWarningSecond = null;
-    this.turnTimerText.visible = true;
-    this.turnTimerText.alpha = 1;
-    this.turnTimerText.text = "10";
-    this.resetPlayersForNewEncounter();
+    this.passageTransitionEncounterLoaded = false;
+    this.loadNextEnemyEncounterDuringTransition();
+    this.finishEnemyDefeatedTransitionToCommand();
 };
 
 GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step) {
     this.enemyDefeatedTimerMs -= step;
+    this.passageTransitionTimerMs += step;
+
+    this.applyPassageCameraTransition(this.passageTransitionTimerMs);
+
+    if (this.passageTransitionTimerMs >= this.passageTransitionSwitchMs) {
+        this.loadNextEnemyEncounterDuringTransition();
+    }
 
     if (this.enemyDefeatedTimerMs <= 0) {
-        this.startNextEnemyEncounter();
+        this.finishEnemyDefeatedTransitionToCommand();
     }
 };
 

@@ -4,3 +4,8 @@
     outline: none;
     position: fixed;
 }
+
+canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}

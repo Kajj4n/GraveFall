@@ -9,7 +9,14 @@ npx google-closure-compiler \
 --js "./../../lib/rune.js" \
 --js "./../../src/scope/Manifest.js" \
 --js "./../../src/data/resource/Requests.js" \
---js "./../../src/scene/game/Game.js" \
+--js "./../../src/scene/game/State.js" \
+--js "./../../src/scene/game/Arena.js" \
+--js "./../../src/scene/game/Menu.js" \
+--js "./../../src/scene/game/Minigame.js" \
+--js "./../../src/scene/game/Projectile.js" \
+--js "./../../src/scene/game/Scene.js" \
+--js "./../../src/scene/menu/Menu.js" \
+--js "./../../src/scene/rule/Rule.js" \
 --js "./../../src/system/Main.js" \
 --js "./../../src/scope/Alias.js" \
 --js_output_file "./../../dist/GraveFallGame.js";

@@ -30,6 +30,19 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyFadeDurationMs = 1500;
     this.enemyDefeatedTimerMs = 0;
 
+    // Passage transition that plays between enemy encounters.
+    // This deliberately avoids CameraViewport.zoom because that resizes Rune's
+    // camera canvas and can make character sprites look fuzzy after the zoom.
+    // Instead, only the background art is pushed toward the entryway while the
+    // camera itself stays at 1:1 so party/enemy sprites keep their normal pixel quality.
+    this.passageTransitionTimerMs = 0;
+    this.passageTransitionDurationMs = 2600;
+    this.passageTransitionSwitchMs = 1200;
+    this.passageTransitionEncounterLoaded = false;
+    this.passageTransitionBackdropMaxScale = 1.85;
+    this.passageTransitionFocusX = this.application.screen.width / 2;
+    this.passageTransitionFocusY = this.application.screen.height * 0.48;
+
     this.startDungeonMusic();
 
     // turn timer (10 seconds ≈ 600 frames)
@@ -479,6 +492,13 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyDefeatedTimerMs = null;
     this.encounterIndex = null;
     this.commandMenuResetDone = null;
+    this.passageTransitionTimerMs = null;
+    this.passageTransitionDurationMs = null;
+    this.passageTransitionSwitchMs = null;
+    this.passageTransitionEncounterLoaded = null;
+    this.passageTransitionBackdropMaxScale = null;
+    this.passageTransitionFocusX = null;
+    this.passageTransitionFocusY = null;
 
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;

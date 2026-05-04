@@ -252,6 +252,7 @@ GraveFallGame.SOUNDS = {
     PLAYER_ATTACK: "SFX_Player_Attack",
     ENEMY_HIT: "SFX_Enemy_Hit",
     ENEMY_DEFEATED: "SFX_Enemy_Defeated",
+    PASSAGE_STEPS: "SFX_Passage_Steps",
     PLAYER_HIT: "SFX_Player_Hit",
     PLAYER_DOWNED: "SFX_Player_Downed",
     ITEM_SPAWN: "SFX_Item_Spawn",
