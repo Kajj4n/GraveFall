@@ -323,6 +323,10 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
     var standResource;
     var sprite;
     var theme;
+    var standFrameWidth;
+    var standFrameHeight;
+    var standParent;
+    var standIndex;
 
     if (!playerMenu || !playerMenu.stand || !playerMenu.standResource) {
         return;
@@ -339,11 +343,23 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
         playerMenu.healingStandSprite.parent.removeChild(playerMenu.healingStandSprite, true);
     }
 
+    // Rune's DisplayObject.width / height are scaled values. The potion stand
+    // must be created from the unscaled frame size, then given the same scale as
+    // the real stand. Using the scaled width here applies scale twice and shifts
+    // item sprites into the next party slots.
+    standFrameWidth = playerMenu.stand.unscaledWidth || 100;
+    standFrameHeight = playerMenu.stand.unscaledHeight || 100;
+
+    if (playerMenu.stand.stateSprites && playerMenu.stand.stateSprites.length > 0) {
+        standFrameWidth = playerMenu.stand.stateSprites[0].unscaledWidth || standFrameWidth;
+        standFrameHeight = playerMenu.stand.stateSprites[0].unscaledHeight || standFrameHeight;
+    }
+
     sprite = new rune.display.Sprite(
         playerMenu.stand.x,
         playerMenu.stand.y,
-        playerMenu.stand.width,
-        playerMenu.stand.height,
+        standFrameWidth,
+        standFrameHeight,
         standResource
     );
 
@@ -355,7 +371,16 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
         sprite.flippedX = true;
     }
 
-    this.stage.addChild(sprite);
+    // Keep the temporary item sprite in the same display-list parent and local
+    // coordinate space as the real stand. Rune x/y are relative to the parent.
+    standParent = playerMenu.stand.parent || this.stage;
+    standIndex = typeof standParent.getChildIndex === "function" ? standParent.getChildIndex(playerMenu.stand) : -1;
+
+    if (standIndex > -1 && typeof standParent.addChildAt === "function") {
+        standParent.addChildAt(sprite, Math.min(standParent.numChildren, standIndex + 1));
+    } else {
+        standParent.addChild(sprite);
+    }
 
     this.applyPaletteSwaps(sprite, this.getClothingPaletteSwaps(theme));
     this.applyMonochromeIconColor(sprite, theme.accentLight);
@@ -402,7 +427,7 @@ GraveFallGame.scene.Game.prototype.updateHealingStandAnimations = function (step
     }
 };
 
-GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (playerMenu) {
+GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (playerMenu, restoreStand) {
     if (!playerMenu || !playerMenu.healingStandSprite) {
         return;
     }
@@ -413,6 +438,23 @@ GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (player
 
     playerMenu.healingStandSprite = null;
     playerMenu.healingStandTimer = 0;
+
+    if (restoreStand === true && playerMenu.stand) {
+        playerMenu.stand.visible = true;
+        playerMenu.stand.alpha = 1;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.clearAllHealingStandAnimations = function (restoreStand) {
+    var i;
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        this.clearHealingStandAnimation(this.playerMenus[i], restoreStand === true);
+    }
 };
 
 GraveFallGame.scene.Game.prototype.dispose = function () {

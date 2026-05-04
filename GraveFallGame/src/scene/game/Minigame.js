@@ -10,6 +10,10 @@ GraveFallGame.scene.Game.prototype.startMinigamePhase = function () {
     this.minigameTimer = 10000;
     this.minigameDurationMs = this.minigameTimer;
 
+    if (typeof this.clearAllHealingStandAnimations === "function") {
+        this.clearAllHealingStandAnimations(true);
+    }
+
     if (this.turnTimerText) {
         this.turnTimerText.visible = false;
     }

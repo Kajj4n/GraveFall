@@ -530,6 +530,10 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
         return;
     }
 
+    if (typeof this.clearAllHealingStandAnimations === "function") {
+        this.clearAllHealingStandAnimations(true);
+    }
+
     this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
     this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
     this.passageTransitionTimerMs = 0;
@@ -683,6 +687,10 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     var i;
 
     this.resolveCommandPhaseActions();
+
+    if (typeof this.clearAllHealingStandAnimations === "function") {
+        this.clearAllHealingStandAnimations(false);
+    }
 
     if (this.enemyHealthCurrent <= 0) {
         this.startEnemyDefeatedSequence();
