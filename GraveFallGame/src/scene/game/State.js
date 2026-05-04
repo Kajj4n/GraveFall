@@ -275,7 +275,15 @@ GraveFallGame.playSound = function (application, soundName, volume, pan, unique)
             return null;
         }
 
-        sound = application.sounds.sound.get(soundName, unique !== false);
+        // IMPORTANT:
+        // Rune's second argument to SoundChannel.get(name, unique) controls
+        // whether a brand new Sound object is created. Passing true for every
+        // one-shot SFX causes application.sounds.sound.length to grow forever
+        // during a long game scene, eventually making SFX lag or stop.
+        //
+        // Shared SFX should be the default. Only pass unique === true for a
+        // sound that must overlap itself while a previous copy is still playing.
+        sound = application.sounds.sound.get(soundName, unique === true);
 
         if (sound) {
             sound.volume = typeof volume === "number" ? volume : 1;
