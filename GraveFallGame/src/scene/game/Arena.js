@@ -75,12 +75,10 @@ GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
         avatar = this.playerMenus[i].battleAvatar;
         avatar.visible = true;
         avatar.alpha = 1;
-
-        if (i >= 2) {
-            avatar.flippedX = true;
-        } else {
-            avatar.flippedX = false;
-        }
+        avatar.flippedX = GraveFallGame.scene.Game.getPartyMemberFlippedX(
+            typeof this.playerMenus[i].partyRenderIndex === "number" ? this.playerMenus[i].partyRenderIndex : i,
+            this.playerMenus[i].partySize || this.playerMenus.length
+        );
 
         targetX = inner.x + (spacing * (slotIndex + 1)) - (avatar.width / 2);
         avatar.x = targetX;

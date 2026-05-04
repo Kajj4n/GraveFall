@@ -200,6 +200,7 @@ GraveFallGame.scene.CharacterSelect.prototype.resolveExistingResource = GraveFal
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (node, theme) {
     var sprite;
     var resource;
+    var paletteSwaps;
 
     resource = node && node.template && node.template.stand ? node.template.stand : null;
     if (!resource) {
@@ -214,9 +215,11 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (
         sprite.flippedX = true;
     }
 
-    if (theme) {
-        this.applyPaletteSwaps(sprite, this.getClothingPaletteSwaps(theme));
-    }
+    paletteSwaps = theme ? this.getClothingPaletteSwaps(theme) : this.getClothingPaletteSwaps({
+        clothing: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE
+    });
+
+    this.applyPaletteSwaps(sprite, paletteSwaps);
 
     return sprite;
 };
@@ -369,6 +372,10 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
         if (tmpl.flipStandX) {
             standSprite.flippedX = true;
         }
+
+        this.applyPaletteSwaps(standSprite, this.getClothingPaletteSwaps({
+            clothing: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE
+        }));
 
         this.stage.addChild(standSprite);
 
@@ -584,7 +591,7 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
             attackMinigame: tmpl.attackMinigame,
             controls: p.controller.controls,
             moveControls: p.controller.moveControls,
-            flipStandX: tmpl.flipStandX,
+            flipStandX: false,
             attackDamage: tmpl.attackDamage,
             y: 592
         };
@@ -603,6 +610,9 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
 
     for (var i = 0; i < numPlayers; i++) {
         activeParty[i].x = startX + (i * menuWidth);
+        activeParty[i].partyRenderIndex = i;
+        activeParty[i].partySize = numPlayers;
+        activeParty[i].flipStandX = GraveFallGame.scene.Game.getPartyMemberFlippedX(i, numPlayers);
     }
 
     GraveFallGame.scene.Game.PARTY_MEMBERS = activeParty;

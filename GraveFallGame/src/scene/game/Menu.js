@@ -43,7 +43,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var actionAccent = new rune.display.Graphic(0, 0, menuWidth, 2);
     var actionSelectionBar = new rune.display.Graphic(actionPositions[0], 57, 60, 3);
 
-    var characterStand = this.createDamageStateGroup(standX, 400, 100, 100, this.getPlayerStandDamageStates(options.stand), { flippedX: options.flipStandX });
+    var shouldFlip = options.flipStandX === true;
+    var characterStand = this.createDamageStateGroup(standX, 400, 100, 100, this.getPlayerStandDamageStates(options.stand), { flippedX: shouldFlip });
     var battleAvatar = new rune.display.Sprite(0, 0, 100, 100, options.classIcon);
 
     var characterIcon = this.createDamageStateGroup(10, 5, 80, 80, this.getPortraitDamageStates(options.portrait));
@@ -114,15 +115,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     characterStand.scaleX = standScale;
     characterStand.scaleY = standScale;
 
-    var shouldFlip = options.x >= (this.application.screen.width / 2);
-
-    if (shouldFlip) {
-        characterStand.flippedX = true;
-        battleAvatar.flippedX = true;
-    } else {
-        characterStand.flippedX = false;
-        battleAvatar.flippedX = false;
-    }
+    this.setDamageStateGroupFlippedX(characterStand, shouldFlip);
+    battleAvatar.flippedX = shouldFlip;
     characterMenu.addChild(characterMenuCharacter);
     characterMenu.addChild(characterMenuActions);
     characterMenu.addChild(outerFrame);
@@ -196,6 +190,9 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         moveControls: options.moveControls,
         characterId: options.characterId || null,
         characterName: options.characterName || "Character",
+        partyRenderIndex: typeof options.partyRenderIndex === "number" ? options.partyRenderIndex : 0,
+        partySize: typeof options.partySize === "number" ? options.partySize : 1,
+        flipStandX: shouldFlip,
         attackMinigame: options.attackMinigame || GraveFallGame.scene.Game.DEFAULT_ATTACK_MINIGAME,
         moveSpeed: 4,
         attackDamage: options.attackDamage || 5,

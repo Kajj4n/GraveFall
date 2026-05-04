@@ -252,7 +252,7 @@ GraveFallGame.scene.Game.CLASS_TEMPLATES = [
         classIcon: "Wizard_Icon_T",
         stand: "Wizard_Idle_Stance",
         hpMax: 100,
-        flipStandX: false,
+        flipStandX: true,
         attackMinigame: "buttonSequence",
         attackDamage: 5
     },
@@ -263,7 +263,7 @@ GraveFallGame.scene.Game.CLASS_TEMPLATES = [
         classIcon: "Ranger_Icon_T",
         stand: "Ranger_Idle_Stance",
         hpMax: 112,
-        flipStandX: false,
+        flipStandX: true,
         attackMinigame: "targetReticle",
         attackDamage: 5
     }
@@ -271,6 +271,23 @@ GraveFallGame.scene.Game.CLASS_TEMPLATES = [
 
 // This will be dynamically populated by the Character Select screen right before the game starts.
 GraveFallGame.scene.Game.PARTY_MEMBERS = [];
+
+// Party-facing is based on the rendered party order, not controller id.
+GraveFallGame.scene.Game.getPartyMemberFlippedX = function (renderIndex, partySize) {
+    if (partySize === 2) {
+        return renderIndex === 1;
+    }
+
+    if (partySize === 3) {
+        return renderIndex === 2;
+    }
+
+    if (partySize >= 4) {
+        return renderIndex >= 2;
+    }
+
+    return false;
+};
 
 /**
  * Enemy / phase prototype data.
@@ -541,6 +558,7 @@ GraveFallGame.scene.Game.prototype.createDamageStateGroup = function (x, y, widt
     options = options || {};
     group.stateSprites = [];
     group.currentDamageState = null;
+    group.flippedX = options.flippedX === true;
 
     for (i = 0; i < stateConfigs.length; i++) {
         sprite = new rune.display.Sprite(0, 0, width, height, this.resolveExistingResource([stateConfigs[i].resource], stateConfigs[0].resource));
@@ -556,6 +574,24 @@ GraveFallGame.scene.Game.prototype.createDamageStateGroup = function (x, y, widt
     }
 
     return group;
+};
+
+GraveFallGame.scene.Game.prototype.setDamageStateGroupFlippedX = function (group, flippedX) {
+    var i;
+
+    if (!group) {
+        return;
+    }
+
+    group.flippedX = flippedX === true;
+
+    if (!group.stateSprites) {
+        return;
+    }
+
+    for (i = 0; i < group.stateSprites.length; i++) {
+        group.stateSprites[i].flippedX = flippedX === true;
+    }
 };
 
 GraveFallGame.scene.Game.prototype.setDamageStateGroupState = function (group, state) {
