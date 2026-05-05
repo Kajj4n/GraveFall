@@ -265,7 +265,7 @@ GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
 };
 
 // --- PASS COLOR TO ENEMY DAMAGE ---
-GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor) {
+GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor, skipDefaultSfx) {
     var wasAlive = this.enemyHealthCurrent > 0;
 
     if (amount > 0) {
@@ -277,7 +277,7 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
 
     this.updateEnemyHealthBarUi();
 
-    if (amount > 0 && wasAlive) {
+    if (amount > 0 && wasAlive && skipDefaultSfx !== true) {
         this.playSfx(GraveFallGame.SOUNDS.PLAYER_ATTACK, 0.65);
         this.playSfx(GraveFallGame.SOUNDS.ENEMY_HIT, 0.55);
     }
@@ -285,6 +285,229 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
     if (wasAlive && this.enemyHealthCurrent <= 0) {
         this.enemyDefeatedSoundPlayed = false;
     }
+};
+
+
+GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, playerColor) {
+    var text;
+    var popup;
+    var enemyCenterX;
+    var enemyTopY;
+
+    if (!this.enemySprite || amount <= 0) {
+        return;
+    }
+
+    if (!this.damagePopups) {
+        this.damagePopups = [];
+    }
+
+    text = "-" + Math.floor(amount);
+    popup = new rune.text.BitmapField(text);
+    popup.width = 180;
+    popup.height = 48;
+    popup.scaleX = 2;
+    popup.scaleY = 2;
+    popup.life = 720;
+    popup.startLife = popup.life;
+
+    enemyCenterX = this.enemySprite.x + ((this.enemySprite.width * this.enemySprite.scaleX) / 2);
+    enemyTopY = this.enemySprite.y + 16;
+
+    popup.x = Math.round(enemyCenterX - ((text.length * 6 * popup.scaleX) / 2));
+    popup.y = Math.round(enemyTopY - 26 - (this.damagePopups.length * 14));
+
+    this.stage.addChild(popup);
+    this.damagePopups.push(popup);
+};
+
+GraveFallGame.scene.Game.prototype.setEnemyPreviewFlash = function (durationMs) {
+    this.enemyPreviewFlashTimerMs = Math.max(this.enemyPreviewFlashTimerMs || 0, durationMs || 260);
+    this.enemyPreviewFlashDurationMs = Math.max(this.enemyPreviewFlashDurationMs || 0, durationMs || 260);
+};
+
+GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (selectedAction) {
+    if (selectedAction === 0 || selectedAction === 2 || selectedAction === 11) {
+        return "itemAttack";
+    }
+
+    if (selectedAction === 1 || selectedAction === 12) {
+        return "itemDefend";
+    }
+
+    return null;
+};
+
+GraveFallGame.scene.Game.prototype.getActionPreviewDuration = function (selectedAction) {
+    if (selectedAction === 1 || selectedAction === 12) {
+        return 1000;
+    }
+
+    if (selectedAction === 0) {
+        return 760;
+    }
+
+    return 900;
+};
+
+GraveFallGame.scene.Game.prototype.startPlayerActionPreviewShake = function (playerMenu, selectedAction) {
+    if (!playerMenu || !playerMenu.stand) {
+        return;
+    }
+
+    if (typeof playerMenu.previewStandBaseX !== "number") {
+        playerMenu.previewStandBaseX = playerMenu.stand.x;
+        playerMenu.previewStandBaseY = playerMenu.stand.y;
+    }
+
+    playerMenu.previewShakeTimerMs = selectedAction === 1 || selectedAction === 12 ? 420 : 300;
+    playerMenu.previewShakeDurationMs = playerMenu.previewShakeTimerMs;
+    playerMenu.previewShakeAmountX = selectedAction === 1 || selectedAction === 12 ? 3 : 8;
+    playerMenu.previewShakeAmountY = selectedAction === 1 || selectedAction === 12 ? 2 : 5;
+};
+
+GraveFallGame.scene.Game.prototype.restorePlayerActionPreviewShake = function (playerMenu) {
+    if (!playerMenu || !playerMenu.stand) {
+        return;
+    }
+
+    if (typeof playerMenu.previewStandBaseX === "number") {
+        playerMenu.stand.x = playerMenu.previewStandBaseX;
+        playerMenu.stand.y = playerMenu.previewStandBaseY;
+    }
+
+    playerMenu.previewShakeTimerMs = 0;
+    playerMenu.previewShakeDurationMs = 0;
+};
+
+GraveFallGame.scene.Game.prototype.getPlayerAttackPreviewSfx = function (playerMenu) {
+    var id = playerMenu && playerMenu.characterId ? playerMenu.characterId : "";
+    var minigame = playerMenu && playerMenu.attackMinigame ? playerMenu.attackMinigame : "";
+
+    if (id === "wizard" || minigame === "buttonSequence") {
+        return GraveFallGame.SOUNDS.ATTACK_ORB;
+    }
+
+    if (id === "ranger" || minigame === "targetReticle") {
+        return GraveFallGame.SOUNDS.ATTACK_DART;
+    }
+
+    return GraveFallGame.SOUNDS.PLAYER_ATTACK;
+};
+
+GraveFallGame.scene.Game.prototype.playActionPreviewSfx = function (playerMenu, selectedAction, didDamage) {
+    var id;
+    var attackSfx;
+
+    if (selectedAction === 0) {
+        id = playerMenu && playerMenu.characterId ? playerMenu.characterId : "";
+        attackSfx = this.getPlayerAttackPreviewSfx(playerMenu);
+        this.playSfx(attackSfx, id === "ranger" ? 0.6 : 0.68, 0, true);
+
+        if (id === "assassin" || (playerMenu && playerMenu.attackMinigame === "timingBar")) {
+            this.queueSfx(120, attackSfx, 0.58, 0, true);
+        }
+
+        if (didDamage === true) {
+            this.queueSfx(id === "assassin" ? 170 : 70, GraveFallGame.SOUNDS.ENEMY_HIT, 0.54, 0, true);
+        }
+
+        return;
+    }
+
+    if (selectedAction === 1 || selectedAction === 12) {
+        this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45, 0, true);
+        return;
+    }
+
+    if (selectedAction === 2 || selectedAction === 11 || selectedAction === 10) {
+        this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.62, 0, true);
+        return;
+    }
+
+    this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45, 0, true);
+};
+
+GraveFallGame.scene.Game.prototype.calculatePlayerAttackDamage = function (playerMenu) {
+    var baseDmg = playerMenu.attackDamage || 5;
+    var bonusDmg = (playerMenu.attackDamageBonus || 0) * 1;
+    var totalDmg = baseDmg + bonusDmg;
+
+    if (playerMenu.isBuffed) {
+        totalDmg *= 2;
+        playerMenu.isBuffed = false;
+    }
+
+    playerMenu.attackDamageBonus = 0;
+    return totalDmg;
+};
+
+GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playerMenu) {
+    var j;
+    var target;
+    var healAmount;
+    var totalDmg;
+    var didDamage = false;
+
+    if (!playerMenu || playerMenu.healthCurrent <= 0 || playerMenu.actionPreviewResolved === true) {
+        return false;
+    }
+
+    playerMenu.actionPreviewResolved = true;
+
+    if (playerMenu.selectedAction === 0) {
+        totalDmg = this.calculatePlayerAttackDamage(playerMenu);
+        didDamage = totalDmg > 0 && this.enemyHealthCurrent > 0;
+
+        if (didDamage) {
+            this.applyDamageToEnemy(totalDmg, playerMenu.theme.accent, true);
+            this.createEnemyDamagePopup(totalDmg, playerMenu.theme.accent);
+            this.setEnemyPreviewFlash(300);
+            this.shakeCamera(160, 4, 3, true);
+        }
+    } else if (playerMenu.selectedAction === 1) {
+        playerMenu.isDefending = true;
+    } else if (playerMenu.selectedAction === 2) {
+        playerMenu.isBuffed = true;
+    } else if (playerMenu.selectedAction === 10) {
+        if (typeof this.startHealingStandAnimation === "function") {
+            this.startHealingStandAnimation(playerMenu);
+        }
+
+        for (j = 0; j < this.playerMenus.length; j++) {
+            target = this.playerMenus[j];
+            healAmount = Math.max(1, Math.floor(target.healthMax * 0.10));
+
+            if (target.healthCurrent <= 0) {
+                target.healthCurrent = healAmount;
+                target.confirmed = false;
+                target.selectedAction = null;
+                target.isDefending = false;
+                target.isBuffed = false;
+                target.hitCooldown = 0;
+            } else {
+                target.healthCurrent = Math.min(target.healthMax, target.healthCurrent + healAmount);
+            }
+
+            this.updatePlayerHealthUi(target);
+            this.updatePlayerDamageState(target, this.areAllPlayersDown());
+        }
+    } else if (playerMenu.selectedAction === 11) {
+        for (j = 0; j < this.playerMenus.length; j++) {
+            if (this.playerMenus[j].healthCurrent > 0) {
+                this.playerMenus[j].isBuffed = true;
+            }
+        }
+    } else if (playerMenu.selectedAction === 12) {
+        for (j = 0; j < this.playerMenus.length; j++) {
+            if (this.playerMenus[j].healthCurrent > 0) {
+                this.playerMenus[j].isDefending = true;
+            }
+        }
+    }
+
+    this.playActionPreviewSfx(playerMenu, playerMenu.selectedAction, didDamage);
+    return didDamage;
 };
 
 GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {

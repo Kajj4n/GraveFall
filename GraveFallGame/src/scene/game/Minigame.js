@@ -742,5 +742,5 @@ GraveFallGame.scene.Game.prototype.endMinigamePhase = function () {
         this.turnTimerText.visible = false;
     }
 
-    this.startActionPhase();
+    this.startActionPreviewPhase();
 };

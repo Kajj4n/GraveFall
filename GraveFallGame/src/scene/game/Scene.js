@@ -13,6 +13,17 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.minigameDurationMs = 0;
     this.projectiles = [];
     this.playerMenus = [];
+    this.damagePopups = [];
+    this.delayedSfxQueue = [];
+    this.actionPreviewQueue = [];
+    this.actionPreviewIndex = 0;
+    this.actionPreviewTimerMs = 0;
+    this.actionPreviewCurrentMenu = null;
+    this.actionPreviewStepStarted = false;
+    this.actionPreviewStepDurationMs = 850;
+    this.commandActionsResolved = false;
+    this.enemyPreviewFlashTimerMs = 0;
+    this.enemyPreviewFlashDurationMs = 0;
 
     this.arenaItem = null;
     this.itemSpawnTimer = 0;
@@ -255,6 +266,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     this.updateHealingStandAnimations(step);
     this.updateScorePopups(step); // --- Hooked in Score UI updating ---
+    this.updateActionPreviewEffects(step);
 
     if (this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND) {
         this.commandMenuResetDone = false;
@@ -332,13 +344,15 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
             if (requiresMinigame && typeof this.startMinigamePhase === "function") {
                 this.startMinigamePhase();
             } else {
-                this.startActionPhase();
+                this.startActionPreviewPhase();
             }
 
             return;
         }
     } else if (this.phase === GraveFallGame.scene.Game.PHASE_MINIGAME) {
         this.updateMinigamePhase(step);
+    } else if (this.phase === GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW) {
+        this.updateActionPreviewPhase(step);
     } else if (this.phase === GraveFallGame.scene.Game.PHASE_ACTION) {
         this.updateActionPhase();
     }

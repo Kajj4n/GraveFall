@@ -569,6 +569,8 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
         this.clearAllHealingStandAnimations(true);
     }
 
+    this.clearActionPreviewState();
+
     // --- SCORE TRIGGER: Defeated Enemies ---
     this.addScorePopup(1000, "ENEMY DEFEATED");
     if (this.encounterAllyDowned !== true) {
@@ -715,6 +717,8 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
 
             if (this.passageTransitionActionsShown !== true) {
                 this.passageTransitionActionsShown = true;
+                this.finishEnemyDefeatedTransitionToCommand();
+                return;
             }
         }
     }
@@ -724,11 +728,259 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     }
 };
 
+
+GraveFallGame.scene.Game.prototype.updateActionPreviewEffects = function (step) {
+    var i;
+    var menu;
+    var popup;
+    var flashRatio;
+    var shakeRatio;
+    var shakeX;
+    var shakeY;
+    var delayed;
+
+    if (this.delayedSfxQueue) {
+        for (i = this.delayedSfxQueue.length - 1; i >= 0; i--) {
+            delayed = this.delayedSfxQueue[i];
+            delayed.delayMs -= step;
+
+            if (delayed.delayMs <= 0) {
+                this.playSfx(delayed.soundName, delayed.volume, delayed.pan, delayed.unique);
+                this.delayedSfxQueue.splice(i, 1);
+            }
+        }
+    }
+
+    if (this.damagePopups) {
+        for (i = this.damagePopups.length - 1; i >= 0; i--) {
+            popup = this.damagePopups[i];
+            popup.life -= step;
+            popup.y -= 22 * (step / 1000);
+
+            if (popup.life < 240) {
+                popup.alpha = Math.max(0, popup.life / 240);
+            }
+
+            if (popup.life <= 0) {
+                if (popup.parent) {
+                    popup.parent.removeChild(popup, true);
+                }
+
+                this.damagePopups.splice(i, 1);
+            }
+        }
+    }
+
+    if (this.enemyPreviewFlashTimerMs > 0) {
+        this.enemyPreviewFlashTimerMs -= step;
+        flashRatio = this.enemyPreviewFlashDurationMs > 0 ? this.enemyPreviewFlashTimerMs / this.enemyPreviewFlashDurationMs : 0;
+
+        if (this.enemySprite) {
+            this.enemySprite.alpha = Math.max(0.3, Math.min(1, flashRatio < 0.5 ? 1 : 0.35));
+        }
+
+        if (this.enemyPreviewFlashTimerMs <= 0 && this.enemySprite && this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
+            this.enemySprite.alpha = 1;
+        }
+    }
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu || !menu.stand || menu.previewShakeTimerMs <= 0) {
+            continue;
+        }
+
+        if (typeof menu.previewStandBaseX !== "number") {
+            menu.previewStandBaseX = menu.stand.x;
+            menu.previewStandBaseY = menu.stand.y;
+        }
+
+        menu.previewShakeTimerMs -= step;
+        shakeRatio = menu.previewShakeDurationMs > 0 ? menu.previewShakeTimerMs / menu.previewShakeDurationMs : 0;
+        shakeX = (Math.random() < 0.5 ? -1 : 1) * Math.ceil((menu.previewShakeAmountX || 4) * Math.max(0, shakeRatio));
+        shakeY = (Math.random() < 0.5 ? -1 : 1) * Math.ceil((menu.previewShakeAmountY || 3) * Math.max(0, shakeRatio));
+
+        if (menu.previewShakeTimerMs > 0) {
+            menu.stand.x = menu.previewStandBaseX + shakeX;
+            menu.stand.y = menu.previewStandBaseY + shakeY;
+        } else {
+            this.restorePlayerActionPreviewShake(menu);
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.clearActionPreviewState = function () {
+    var i;
+
+    this.actionPreviewQueue = [];
+    this.actionPreviewIndex = 0;
+    this.actionPreviewTimerMs = 0;
+    this.actionPreviewCurrentMenu = null;
+    this.actionPreviewStepStarted = false;
+    this.enemyPreviewFlashTimerMs = 0;
+    this.enemyPreviewFlashDurationMs = 0;
+
+    if (this.enemySprite && this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
+        this.enemySprite.alpha = 1;
+    }
+
+    if (this.playerMenus) {
+        for (i = 0; i < this.playerMenus.length; i++) {
+            this.restorePlayerActionPreviewShake(this.playerMenus[i]);
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.buildActionPreviewQueue = function () {
+    var queue = [];
+    var i;
+    var menu;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (menu && menu.healthCurrent > 0 && menu.selectedAction !== null && typeof menu.selectedAction !== "undefined") {
+            queue.push(menu);
+        }
+    }
+
+    return queue;
+};
+
+GraveFallGame.scene.Game.prototype.startActionPreviewPhase = function () {
+    var i;
+    var menu;
+
+    if (this.enemyHealthCurrent <= 0) {
+        this.startEnemyDefeatedSequence();
+        return;
+    }
+
+    this.phase = GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW;
+    this.commandActionsResolved = false;
+    this.actionPreviewQueue = this.buildActionPreviewQueue();
+    this.actionPreviewIndex = 0;
+    this.actionPreviewTimerMs = 0;
+    this.actionPreviewCurrentMenu = null;
+    this.actionPreviewStepStarted = false;
+    this.lastTurnWarningSecond = null;
+
+    if (this.turnTimerText) {
+        this.turnTimerText.visible = false;
+        this.turnTimerText.alpha = 0;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+        menu.actionPreviewResolved = false;
+        menu.isDefending = false;
+
+        if (menu.stand) {
+            menu.stand.visible = menu.healthCurrent > 0;
+            menu.stand.alpha = menu.healthCurrent > 0 ? 1 : 0;
+        }
+    }
+
+    if (this.actionPreviewQueue.length <= 0) {
+        this.commandActionsResolved = true;
+        this.startActionPhase();
+        return;
+    }
+
+    this.beginActionPreviewStep();
+};
+
+GraveFallGame.scene.Game.prototype.beginActionPreviewStep = function () {
+    var playerMenu;
+    var standState;
+
+    if (!this.actionPreviewQueue || this.actionPreviewIndex >= this.actionPreviewQueue.length) {
+        this.finishActionPreviewPhase();
+        return;
+    }
+
+    playerMenu = this.actionPreviewQueue[this.actionPreviewIndex];
+
+    if (!playerMenu || playerMenu.healthCurrent <= 0) {
+        this.actionPreviewIndex++;
+        this.beginActionPreviewStep();
+        return;
+    }
+
+    this.actionPreviewCurrentMenu = playerMenu;
+    this.actionPreviewTimerMs = this.getActionPreviewDuration(playerMenu.selectedAction);
+    this.actionPreviewStepStarted = true;
+
+    standState = this.getActionPreviewStandState(playerMenu.selectedAction);
+    playerMenu.standActionState = standState;
+    this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
+    this.startPlayerActionPreviewShake(playerMenu, playerMenu.selectedAction);
+    this.applyCommandActionForPlayer(playerMenu);
+};
+
+GraveFallGame.scene.Game.prototype.finishActionPreviewPhase = function () {
+    var i;
+
+    this.commandActionsResolved = true;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        this.restorePlayerActionPreviewShake(this.playerMenus[i]);
+    }
+
+    this.clearActionPreviewState();
+
+    if (this.enemyHealthCurrent <= 0) {
+        this.startEnemyDefeatedSequence();
+        return;
+    }
+
+    this.startActionPhase();
+};
+
+GraveFallGame.scene.Game.prototype.updateActionPreviewPhase = function (step) {
+    if (!this.actionPreviewQueue || this.actionPreviewQueue.length <= 0) {
+        this.finishActionPreviewPhase();
+        return;
+    }
+
+    this.actionPreviewTimerMs -= step;
+
+    if (this.actionPreviewTimerMs > 0) {
+        return;
+    }
+
+    if (this.actionPreviewCurrentMenu) {
+        this.restorePlayerActionPreviewShake(this.actionPreviewCurrentMenu);
+    }
+
+    if (this.enemyHealthCurrent <= 0) {
+        this.finishActionPreviewPhase();
+        return;
+    }
+
+    this.actionPreviewIndex++;
+
+    if (this.actionPreviewIndex >= this.actionPreviewQueue.length) {
+        this.finishActionPreviewPhase();
+        return;
+    }
+
+    this.beginActionPreviewStep();
+};
+
 GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
 
-    this.resolveCommandPhaseActions();
+    if (this.commandActionsResolved !== true) {
+        this.resolveCommandPhaseActions();
+        this.commandActionsResolved = true;
+    }
 
     if (typeof this.clearAllHealingStandAnimations === "function") {
         this.clearAllHealingStandAnimations(false);
@@ -764,6 +1016,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     this.playSfx(GraveFallGame.SOUNDS.PHASE_END, 0.5);
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
+    this.commandActionsResolved = false;
     this.clearProjectiles();
     this.setBattleArenaVisible(false);
     this.clearArenaItem();

@@ -38,6 +38,7 @@ GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 GraveFallGame.scene.Game.PHASE_COMMAND = "command";
 GraveFallGame.scene.Game.PHASE_MINIGAME = "minigame";
 GraveFallGame.scene.Game.PHASE_ACTION = "action";
+GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW = "actionPreview";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
 GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED = "enemyDefeated";
 
@@ -455,6 +456,20 @@ GraveFallGame.stopMusic = function (music) {
 
 GraveFallGame.scene.Game.prototype.playSfx = function (soundName, volume, pan, unique) {
     return GraveFallGame.playSound(this.application, soundName, volume, pan, unique);
+};
+
+GraveFallGame.scene.Game.prototype.queueSfx = function (delayMs, soundName, volume, pan, unique) {
+    if (!this.delayedSfxQueue) {
+        this.delayedSfxQueue = [];
+    }
+
+    this.delayedSfxQueue.push({
+        delayMs: Math.max(0, delayMs || 0),
+        soundName: soundName,
+        volume: volume,
+        pan: pan,
+        unique: unique === true
+    });
 };
 
 GraveFallGame.scene.Game.prototype.startDungeonMusic = function () {
