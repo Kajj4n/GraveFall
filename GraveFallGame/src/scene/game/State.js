@@ -12,7 +12,7 @@
  * @classdesc
  * * Game scene.
  */
-GraveFallGame.scene.Game = function (partyMembers) {
+GraveFallGame.scene.Game = function (partyMembers, runPaletteKey) {
 
     //--------------------------------------------------------------------------
     // Super call
@@ -29,6 +29,16 @@ GraveFallGame.scene.Game = function (partyMembers) {
      * @type {Array}
      */
     this.partyMembers = partyMembers || GraveFallGame.scene.Game.PARTY_MEMBERS || [];
+
+    /**
+     * Palette chosen for this started run. It remains stable while the same
+     * Game scene runs so the outside campfire and dungeon always match.
+     *
+     * @type {string}
+     */
+    this.runPaletteKey = GraveFallGame.scene.Game.resolveRunPaletteKey(runPaletteKey);
+    this.runPalette = GraveFallGame.scene.Game.getRunPalette(this.runPaletteKey);
+    GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = this.runPaletteKey;
 };
 
 //------------------------------------------------------------------------------
@@ -163,6 +173,24 @@ GraveFallGame.scene.Game.UI_SKINS = {
             dark: "#463322"
         }
     },
+    outsideCampfireBrown: {
+        panelTop: "#15110D",
+        panelBottom: "#0E0A07",
+        frame: {
+            light: "#765D45",
+            mid: "#4E3926",
+            dark: "#23180F"
+        }
+    },
+    outsideCampfireGrey: {
+        panelTop: "#111111",
+        panelBottom: "#0A0A0A",
+        frame: {
+            light: "#66635F",
+            mid: "#3F3C39",
+            dark: "#1C1A18"
+        }
+    },
     outsideCampfireDark: {
         panelTop: "#15110D",
         panelBottom: "#0E0A07",
@@ -172,6 +200,83 @@ GraveFallGame.scene.Game.UI_SKINS = {
             dark: "#23180F"
         }
     }
+};
+
+// Add future run palettes here. A run chooses one entry once and then uses the
+// matching inside + outside skins until that run ends.
+GraveFallGame.scene.Game.RUN_PALETTES = [
+    {
+        key: "dullBrown",
+        name: "Dull Brown",
+        insideSkin: "dullBrown",
+        outsideSkin: "outsideCampfireBrown"
+    },
+    {
+        key: "dungeonGrey",
+        name: "Dungeon Grey",
+        insideSkin: "dungeonGrey",
+        outsideSkin: "outsideCampfireGrey"
+    }
+];
+
+GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = null;
+
+GraveFallGame.scene.Game.resolveRunPaletteKey = function (key) {
+    var palettes = GraveFallGame.scene.Game.RUN_PALETTES;
+    var i;
+
+    for (i = 0; i < palettes.length; i++) {
+        if (palettes[i].key === key) {
+            return key;
+        }
+    }
+
+    if (GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY) {
+        return GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY;
+    }
+
+    key = GraveFallGame.scene.Game.chooseRunPaletteKey();
+    GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = key;
+
+    return key;
+};
+
+GraveFallGame.scene.Game.chooseRunPaletteKey = function () {
+    var palettes = GraveFallGame.scene.Game.RUN_PALETTES;
+    var index = Math.floor(Math.random() * palettes.length);
+
+    return palettes[Math.max(0, Math.min(palettes.length - 1, index))].key;
+};
+
+GraveFallGame.scene.Game.startNewRunPalette = function () {
+    var key = GraveFallGame.scene.Game.chooseRunPaletteKey();
+
+    GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = key;
+
+    return GraveFallGame.scene.Game.getRunPalette(key);
+};
+
+GraveFallGame.scene.Game.getRunPalette = function (key) {
+    var palettes = GraveFallGame.scene.Game.RUN_PALETTES;
+    var skins = GraveFallGame.scene.Game.UI_SKINS;
+    var palette = palettes[0];
+    var i;
+
+    for (i = 0; i < palettes.length; i++) {
+        if (palettes[i].key === key) {
+            palette = palettes[i];
+            break;
+        }
+    }
+
+    return {
+        key: palette.key,
+        name: palette.name,
+        inside: skins[palette.insideSkin] || skins.dullBrown,
+        outside: skins[palette.outsideSkin] || skins.outsideCampfireBrown || skins.dullBrown,
+        insideSkin: palette.insideSkin,
+        outsideSkin: palette.outsideSkin
+    };
 };
 
 //------------------------------------------------------------------------------
@@ -836,6 +941,8 @@ GraveFallGame.scene.Game.prototype.getProjectilePaletteSwaps = function (targetP
 };
 
 GraveFallGame.scene.Game.prototype.getFramePaletteSwaps = function (uiSkin) {
+    uiSkin = uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+
     return [
         {
             from: GraveFallGame.scene.Game.FRAME_SOURCE.light,
@@ -947,11 +1054,12 @@ GraveFallGame.scene.Game.prototype.createSeparator = function (x, y, width, pale
 
 GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, options) {
     var i;
+    var uiSkin = (options && options.uiSkin) || this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     var defaultClothingPalette = this.getClothingPaletteSwaps(theme);
 
-    parts.menuRoot.backgroundColor = "#090909";
-    parts.menuCharacter.backgroundColor = "#141414";
-    parts.menuActions.backgroundColor = "#101010";
+    parts.menuRoot.backgroundColor = uiSkin.panelBottom;
+    parts.menuCharacter.backgroundColor = uiSkin.panelTop;
+    parts.menuActions.backgroundColor = uiSkin.panelBottom;
     parts.menuAccent.backgroundColor = theme.accent;
     parts.actionAccent.backgroundColor = theme.accentDark;
     parts.selectionBar.backgroundColor = theme.accent;

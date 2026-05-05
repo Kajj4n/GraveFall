@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.Game.prototype.createBattleArena = function () {
-    var uiSkin = GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
     var screenWidth = this.application.screen.width;
     var arenaX = 16;
@@ -34,6 +34,56 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     this.arenaFrame = this.createBoxFrame(arenaX, arenaY, arenaWidth, arenaHeight, framePaletteSwaps);
     this.arenaFrame.visible = false;
     this.stage.addChild(this.arenaFrame);
+};
+
+
+GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, uiSkin, keepTransform) {
+    var oldBackground = this.backgroundBackdrop;
+    var parent;
+    var insertIndex = 0;
+    var newBackground;
+
+    if (!resource || this.backgroundBackdropResource === resource) {
+        return;
+    }
+
+    parent = oldBackground && oldBackground.parent ? oldBackground.parent : this.stage;
+
+    if (oldBackground && oldBackground.parent && typeof oldBackground.parent.getChildIndex === "function") {
+        insertIndex = oldBackground.parent.getChildIndex(oldBackground);
+    }
+
+    newBackground = new rune.display.Sprite(
+        0,
+        0,
+        this.application.screen.width,
+        this.application.screen.height,
+        resource
+    );
+
+    this.applyPaletteSwaps(newBackground, this.getFramePaletteSwaps(uiSkin));
+
+    if (oldBackground && keepTransform === true) {
+        newBackground.x = oldBackground.x;
+        newBackground.y = oldBackground.y;
+        newBackground.scaleX = oldBackground.scaleX;
+        newBackground.scaleY = oldBackground.scaleY;
+        newBackground.alpha = oldBackground.alpha;
+        newBackground.visible = oldBackground.visible;
+    }
+
+    if (oldBackground && oldBackground.parent) {
+        oldBackground.parent.removeChild(oldBackground, true);
+    }
+
+    if (typeof parent.addChildAt === "function") {
+        parent.addChildAt(newBackground, insertIndex);
+    } else {
+        parent.addChild(newBackground);
+    }
+
+    this.backgroundBackdrop = newBackground;
+    this.backgroundBackdropResource = resource;
 };
 
 GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
@@ -586,8 +636,19 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
     }
 
     this.passageTransitionEncounterLoaded = true;
-    this.encounterIndex++;
-    this.loadEnemyEncounter(this.getEnemyTypeForEncounter(this.encounterIndex), true);
+
+    if (this.backgroundBackdropResource !== "Background_Test") {
+        this.setPassageBackground("Background_Test", this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, false);
+    }
+
+    if (this.passageTransitionIsIntro === true) {
+        this.passageTransitionIsIntro = false;
+        this.loadEnemyEncounter(this.currentEnemyType, true);
+    } else {
+        this.encounterIndex++;
+        this.loadEnemyEncounter(this.getEnemyTypeForEncounter(this.encounterIndex), true);
+    }
+
     this.resetPlayersForNewEncounter();
     this.setEnemyUiAlpha(0);
     this.setPlayerTransitionVisibility(false, false);
@@ -605,6 +666,7 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
     }
 
     this.resetPassageCameraTransition();
+    this.startDungeonMusic();
     this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
     this.turnTimerMs = 10000;
     this.lastTurnWarningSecond = null;

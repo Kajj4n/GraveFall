@@ -5,6 +5,11 @@
 GraveFallGame.scene.Game.prototype.init = function () {
     rune.scene.Scene.prototype.init.call(this);
 
+    this.runPaletteKey = GraveFallGame.scene.Game.resolveRunPaletteKey(this.runPaletteKey);
+    this.runPalette = GraveFallGame.scene.Game.getRunPalette(this.runPaletteKey);
+    this.uiSkin = this.runPalette.inside;
+    this.outsideUiSkin = this.runPalette.outside;
+
     this.encounterIndex = 0;
     this.currentEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
     this.actionPhaseTimer = 0;
@@ -76,7 +81,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.passageTransitionFocusX = this.application.screen.width / 2;
     this.passageTransitionFocusY = this.application.screen.height * 0.48;
 
-    this.startDungeonMusic();
+    // Dungeon music starts after the campfire-to-dungeon passage finishes.
 
     this.turnTimer = 600;
     this.turnTimerMs = 10000;
@@ -92,11 +97,12 @@ GraveFallGame.scene.Game.prototype.init = function () {
         0,
         this.application.screen.width,
         this.application.screen.height,
-        "Background_Test"
+        "Outside_Campfire"
     );
+    this.backgroundBackdropResource = "Outside_Campfire";
     this.applyPaletteSwaps(
         this.backgroundBackdrop,
-        this.getFramePaletteSwaps(GraveFallGame.scene.Game.UI_SKINS.dullBrown)
+        this.getFramePaletteSwaps(this.outsideUiSkin)
     );
     this.stage.addChild(this.backgroundBackdrop);
 
@@ -132,7 +138,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyHealthFill.backgroundColor = "#E53935"; 
     this.stage.addChild(this.enemyHealthFill);
 
-    this.enemyHealthFrame = this.createBoxFrame(eBarX, eBarY, eBarWidth, eBarHeight, this.getFramePaletteSwaps(GraveFallGame.scene.Game.UI_SKINS.dullBrown));
+    this.enemyHealthFrame = this.createBoxFrame(eBarX, eBarY, eBarWidth, eBarHeight, this.getFramePaletteSwaps(this.uiSkin));
     this.stage.addChild(this.enemyHealthFrame);
 
     this.enemyHealthText = new rune.text.BitmapField(this.enemyHealthCurrent + "/" + this.enemyHealthMax);
@@ -178,7 +184,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
             controls: partyMember.controls,
             moveControls: partyMember.moveControls,
             attackMinigame: partyMember.attackMinigame,
-            attackDamage: partyMember.attackDamage || 5
+            attackDamage: partyMember.attackDamage || 5,
+            uiSkin: this.uiSkin
         }));
     }
 
@@ -186,7 +193,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
     this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
     this.passageTransitionTimerMs = 0;
-    this.passageTransitionEncounterLoaded = true;
+    this.passageTransitionEncounterLoaded = false;
+    this.passageTransitionIsIntro = true;
     this.passageTransitionCorpseHidden = true;
     this.passageTransitionStepsPlayed = false;
     this.passageTransitionPartyRevealed = false;
@@ -557,6 +565,11 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.projectiles = null;
     this.playerMenus = null;
     this.backgroundBackdrop = null;
+    this.backgroundBackdropResource = null;
+    this.runPalette = null;
+    this.runPaletteKey = null;
+    this.uiSkin = null;
+    this.outsideUiSkin = null;
     this.bossPlaceholder = null;
     this.enemySprite = null;
     this.enemyHealthCurrent = null;
@@ -597,6 +610,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.passageTransitionActionsFadeEndMs = null;
     this.passageTransitionActionsAppearMs = null;
     this.passageTransitionEncounterLoaded = null;
+    this.passageTransitionIsIntro = null;
     this.passageTransitionCorpseHidden = null;
     this.passageTransitionStepsPlayed = null;
     this.passageTransitionPartyRevealed = null;

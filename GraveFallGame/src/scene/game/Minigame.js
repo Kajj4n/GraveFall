@@ -42,7 +42,7 @@ GraveFallGame.scene.Game.prototype.getMinigameDefinition = function (minigameId)
 
 GraveFallGame.scene.Game.prototype.createMinigamePanel = function (menu, title, width, height) {
     var theme = menu.theme || this.getPlayerTheme(0);
-    var uiSkin = GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
     var group = new rune.display.DisplayObjectContainer(0, 0, width, height);
     var bg = new rune.display.Graphic(0, 0, width, height);
@@ -53,8 +53,8 @@ GraveFallGame.scene.Game.prototype.createMinigamePanel = function (menu, title, 
     var frame = this.createBoxFrame(0, 0, width, height, framePaletteSwaps);
     var scoreText = new rune.text.BitmapField("DMG +0");
 
-    bg.backgroundColor = "#090909";
-    innerBg.backgroundColor = "#101010";
+    bg.backgroundColor = uiSkin.panelBottom;
+    innerBg.backgroundColor = uiSkin.panelTop;
     accent.backgroundColor = theme.accentDark;
     timerBack.backgroundColor = "#1A1A1A";
     timerFill.backgroundColor = theme.accent;
