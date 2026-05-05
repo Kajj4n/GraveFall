@@ -106,37 +106,80 @@ GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
     }
 
     this.phase = GraveFallGame.scene.Game.PHASE_GAME_OVER;
-    this.gameOverTimer = 180;
+    this.gameOverTimer = 0; 
     this.playSfx(GraveFallGame.SOUNDS.GAME_OVER, 0.85);
+    
     this.clearProjectiles();
     this.clearArenaItem();
     this.setBattleArenaVisible(false);
-    this.turnTimerText.alpha = 0;
     this.updateAllPlayerDamageStates();
 
-    if (!this.gameOverText) {
-        this.gameOverText = new rune.text.BitmapField("GAME OVER");
-        this.gameOverText.scaleX = 3;
-        this.gameOverText.scaleY = 3;
-        this.gameOverText.x = Math.floor((this.application.screen.width - (9 * 16 * this.gameOverText.scaleX)) / 2);
-        this.gameOverText.y = 24;
-        this.stage.addChild(this.gameOverText);
+    this.setPlayerTransitionVisibility(false, false);
+    this.setEnemyUiAlpha(0);
+    if (this.backgroundBackdrop) this.backgroundBackdrop.visible = false;
+    if (this.turnTimerText) this.turnTimerText.visible = false;
+    if (this.scoreText) this.scoreText.visible = false;
+
+    if (this.scorePopups) {
+        for (var i = 0; i < this.scorePopups.length; i++) {
+            if (this.scorePopups[i].parent) this.scorePopups[i].parent.removeChild(this.scorePopups[i], true);
+        }
+        this.scorePopups = [];
     }
 
+    // CREATE GAME OVER TEXT
+    if (!this.gameOverText) {
+        this.gameOverText = new rune.text.BitmapField("GAME OVER");
+        this.gameOverText.width = 800; // FIX: Prevent clipping
+        this.gameOverText.height = 64; // FIX: Prevent vertical clipping
+        this.gameOverText.scaleX = 4;
+        this.gameOverText.scaleY = 4;
+        this.gameOverText.x = Math.floor((this.application.screen.width / 2) - ((this.gameOverText.text.length * 6 * 4) / 2));
+        this.gameOverText.y = Math.floor(this.application.screen.height / 2) - 80;
+        this.stage.addChild(this.gameOverText);
+    }
     this.gameOverText.visible = true;
     this.gameOverText.alpha = 1;
+
+    // CREATE FINAL SCORE TEXT
+    var finalScoreStr = "FINAL SCORE: " + this.score;
+    if (!this.finalScoreText) {
+        this.finalScoreText = new rune.text.BitmapField(finalScoreStr);
+        this.finalScoreText.width = 800; // FIX: Prevent clipping
+        this.finalScoreText.height = 64; // FIX: Prevent vertical clipping
+        this.finalScoreText.scaleX = 2;
+        this.finalScoreText.scaleY = 2;
+        this.finalScoreText.x = Math.floor((this.application.screen.width / 2) - ((finalScoreStr.length * 6 * 2) / 2));
+        this.finalScoreText.y = Math.floor(this.application.screen.height / 2);
+        this.stage.addChild(this.finalScoreText);
+    }
+    this.finalScoreText.visible = true;
+    this.finalScoreText.alpha = 1;
+
+    // CREATE CONTINUE INSTRUCTION
+    var promptStr = "PRESS [SPACE] TO CONTINUE";
+    if (!this.gameOverInstruction) {
+        this.gameOverInstruction = new rune.text.BitmapField(promptStr);
+        this.gameOverInstruction.width = 800; // FIX: Prevent clipping
+        this.gameOverInstruction.height = 64; // FIX: Prevent vertical clipping
+        this.gameOverInstruction.scaleX = 1.5;
+        this.gameOverInstruction.scaleY = 1.5;
+        this.gameOverInstruction.x = Math.floor((this.application.screen.width / 2) - ((promptStr.length * 6 * 1.5) / 2));
+        this.gameOverInstruction.y = Math.floor(this.application.screen.height / 2) + 60;
+        this.stage.addChild(this.gameOverInstruction);
+    }
+    this.gameOverInstruction.visible = true;
+    this.gameOverInstruction.alpha = 1;
 };
 
 GraveFallGame.scene.Game.prototype.updateGameOver = function () {
-    if (this.gameOverTimer > 0) {
-        this.gameOverTimer--;
+    this.gameOverTimer++;
+    
+    if (this.gameOverInstruction) {
+        this.gameOverInstruction.alpha = (Math.floor(this.gameOverTimer / 30) % 2 === 0) ? 1 : 0;
     }
 
-    if (this.gameOverText) {
-        this.gameOverText.alpha = this.gameOverTimer % 20 < 12 ? 1 : 0.35;
-    }
-
-    if (this.gameOverTimer <= 0) {
+    if (this.keyboard.justPressed("space")) {
         this.application.scenes.load([
             new GraveFallGame.scene.Menu()
         ]);
@@ -331,7 +374,6 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     this.enemySprite.alpha = fadeIn === true ? 0 : 1;
     this.enemySprite.visible = fadeIn !== true;
     
-    // Boss Z-Index Fix
     var insertIndex = 0;
     if (this.backgroundBackdrop && this.backgroundBackdrop.parent === this.stage) {
         insertIndex = this.stage.getChildIndex(this.backgroundBackdrop) + 1;
@@ -344,6 +386,8 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
 GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fadeIn) {
     var enemyConfig;
     var alpha = fadeIn === true ? 0 : 1;
+
+    this.encounterAllyDowned = false;
 
     this.currentEnemyType = enemyType;
     enemyConfig = this.getCurrentEnemyConfig();
@@ -365,7 +409,7 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
         this.playerMenus[i].selectedAction = null;
-        this.playerMenus[i].standActionState = null; // Clean up action state
+        this.playerMenus[i].standActionState = null;
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
         this.playerMenus[i].menuState = "main";
@@ -375,7 +419,6 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
 
     this.updateAllPlayerDamageStates();
 };
-
 
 GraveFallGame.scene.Game.prototype.getPrimaryCamera = function () {
     if (!this.cameras || typeof this.cameras.getCameraAt !== "function") {
@@ -396,7 +439,6 @@ GraveFallGame.scene.Game.prototype.resetPassageCameraTransition = function () {
     var camera = this.getPrimaryCamera();
 
     if (camera && camera.viewport) {
-        // Do not leave Rune's camera canvas resized after the transition.
         if (camera.viewport.zoom !== 1) {
             camera.viewport.zoom = 1;
         }
@@ -436,11 +478,6 @@ GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elap
     var fadeOpacity = 0;
     var scale = 1;
 
-    // Keep the actual camera locked to its native 1:1 render size. The old
-    // transition used CameraViewport.zoom, which resized Rune's camera canvas
-    // and made character sprites look blurry. This transition still gives a
-    // forward passage push, but only by transforming the background art while
-    // the party/enemy sprites are hidden.
     if (camera && camera.viewport) {
         if (camera.viewport.zoom !== 1) {
             camera.viewport.zoom = 1;
@@ -457,8 +494,6 @@ GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elap
     if (elapsedMs >= walkStartMs && elapsedMs < blackStartMs) {
         pushProgress = this.easePassageTransition((elapsedMs - walkStartMs) / Math.max(1, blackStartMs - walkStartMs));
     } else if (elapsedMs >= blackStartMs && elapsedMs < fadeInStartMs) {
-        // Keep the pushed-in background hidden behind a completely black fade,
-        // then snap it back at fadeInStartMs while the screen is still fully black.
         pushProgress = 1;
     }
 
@@ -533,6 +568,13 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     if (typeof this.clearAllHealingStandAnimations === "function") {
         this.clearAllHealingStandAnimations(true);
     }
+
+    // --- SCORE TRIGGER: Defeated Enemies ---
+    this.addScorePopup(1000, "ENEMY DEFEATED");
+    if (this.encounterAllyDowned !== true) {
+        this.addScorePopup(500, "FLAWLESS BATTLE");
+    }
+    // ---------------------------------------
 
     this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
     this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
@@ -735,12 +777,11 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
         this.playerMenus[i].selectedAction = null;
-        this.playerMenus[i].standActionState = null; // Clean up action state
+        this.playerMenus[i].standActionState = null; 
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
         this.playerMenus[i].isDefending = false;
         
-        // Return menu to main state
         this.playerMenus[i].menuState = "main";
         this.updateCharacterMenuVisuals(this.playerMenus[i]);
 
@@ -775,9 +816,6 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function () {
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
 
-    // Projectile art should use the transparent *_T files and the three-color
-    // pink source ramp. Those colors are palette-swapped here into a neutral
-    // white / grey / dark palette at runtime.
     if (options.resource) {
         display = new rune.display.Sprite(options.x, options.y, options.width, options.height, options.resource);
         this.applyPaletteSwaps(

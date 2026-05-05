@@ -28,6 +28,11 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyFadeDurationMs = 1500;
     this.enemyDefeatedTimerMs = 0;
 
+    // --- SCORE SYSTEM ---
+    this.score = 0;
+    this.scorePopups = [];
+    this.encounterAllyDowned = false;
+
     this.passageTransitionTimerMs = 0;
     this.passageTransitionDurationMs = 9550;
     this.passageTransitionCorpseVanishMs = 1100;
@@ -121,6 +126,16 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.createBattleArena();
     this.stage.addChild(this.turnTimerText);
 
+    // --- SCORE UI INIT ---
+    this.scoreText = new rune.text.BitmapField("SCORE: 0");
+    this.scoreText.width = 800;  // FIX: Hardcoded wide width prevents clipping
+    this.scoreText.height = 64;  // FIX: Hardcoded tall height prevents vertical clipping
+    this.scoreText.scaleX = 2;
+    this.scoreText.scaleY = 2;
+    this.scoreText.x = (this.application.screen.width / 2) - ((this.scoreText.text.length * 6 * 2) / 2);
+    this.scoreText.y = 8;
+    this.stage.addChild(this.scoreText);
+
     var partySize = GraveFallGame.scene.Game.PARTY_MEMBERS.length;
 
     for (var partyIndex = 0; partyIndex < partySize; partyIndex++) {
@@ -148,12 +163,11 @@ GraveFallGame.scene.Game.prototype.init = function () {
     }
 
     // --- INIT INTRO TRANSITION ---
-    // Start game sequence natively utilizing the Defeated/Transition logic
     this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
     this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
     this.passageTransitionTimerMs = 0;
-    this.passageTransitionEncounterLoaded = true; // Avoids loading next encounter immediately
-    this.passageTransitionCorpseHidden = true; // Skip hiding corpse
+    this.passageTransitionEncounterLoaded = true;
+    this.passageTransitionCorpseHidden = true;
     this.passageTransitionStepsPlayed = false;
     this.passageTransitionPartyRevealed = false;
     this.passageTransitionActionsShown = false;
@@ -174,8 +188,61 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.updateAllPlayerDamageStates();
     this.setPlayerTransitionVisibility(true, false);
     this.updateEnemyDamageState();
-    this.setEnemyUiAlpha(0); // Ensure it starts completely faded out
+    this.setEnemyUiAlpha(0); 
     this.applyPassageCameraTransition(0);
+};
+
+// --- NEW SCORE HELPER FUNCTIONS ---
+GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text) {
+    if (!this.scorePopups) this.scorePopups = [];
+    
+    var sign = amount > 0 ? "+" : "";
+    var fullText = sign + amount + " " + text;
+    var popup = new rune.text.BitmapField(fullText);
+    popup.width = 800; // FIX: Prevent clipping
+    popup.height = 64; // FIX: Prevent clipping
+    popup.scaleX = 1.5;
+    popup.scaleY = 1.5;
+    popup.x = (this.application.screen.width / 2) - ((fullText.length * 6 * 1.5) / 2);
+    
+    var targetY = 36;
+    if (this.scorePopups.length > 0) {
+        targetY = this.scorePopups[this.scorePopups.length - 1].y + 16;
+    }
+    popup.y = targetY;
+
+    popup.life = 1400; // 1.4 seconds
+    
+    this.stage.addChild(popup);
+    this.scorePopups.push(popup);
+
+    this.score += amount;
+    if (this.score < 0) this.score = 0;
+    this.updateScoreUi();
+};
+
+GraveFallGame.scene.Game.prototype.updateScoreUi = function() {
+    if (this.scoreText) {
+        this.scoreText.text = "SCORE: " + this.score;
+        this.scoreText.x = (this.application.screen.width / 2) - ((this.scoreText.text.length * 6 * 2) / 2);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.updateScorePopups = function(step) {
+    if (!this.scorePopups) return;
+    for (var i = this.scorePopups.length - 1; i >= 0; i--) {
+        var p = this.scorePopups[i];
+        p.life -= step;
+        p.y += (12 * (step / 1000)); 
+        
+        if (p.life <= 400) {
+            p.alpha = Math.max(0, p.life / 400);
+        }
+        if (p.life <= 0) {
+            if (p.parent) p.parent.removeChild(p, true);
+            this.scorePopups.splice(i, 1);
+        }
+    }
 };
 
 GraveFallGame.scene.Game.prototype.update = function (step) {
@@ -187,6 +254,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
     this.updateHealingStandAnimations(step);
+    this.updateScorePopups(step); // --- Hooked in Score UI updating ---
 
     if (this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND) {
         this.commandMenuResetDone = false;
@@ -194,7 +262,6 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     if (this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED && this.enemyFadeTimerMs < this.enemyFadeDurationMs) {
         this.enemyFadeTimerMs += step;
-        
         var fadeAlpha = Math.min(1, this.enemyFadeTimerMs / this.enemyFadeDurationMs);
         this.setEnemyUiAlpha(fadeAlpha);
     }
@@ -343,10 +410,6 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
         playerMenu.healingStandSprite.parent.removeChild(playerMenu.healingStandSprite, true);
     }
 
-    // Rune's DisplayObject.width / height are scaled values. The potion stand
-    // must be created from the unscaled frame size, then given the same scale as
-    // the real stand. Using the scaled width here applies scale twice and shifts
-    // item sprites into the next party slots.
     standFrameWidth = playerMenu.stand.unscaledWidth || 100;
     standFrameHeight = playerMenu.stand.unscaledHeight || 100;
 
@@ -371,8 +434,6 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
         sprite.flippedX = true;
     }
 
-    // Keep the temporary item sprite in the same display-list parent and local
-    // coordinate space as the real stand. Rune x/y are relative to the parent.
     standParent = playerMenu.stand.parent || this.stage;
     standIndex = typeof standParent.getChildIndex === "function" ? standParent.getChildIndex(playerMenu.stand) : -1;
 
@@ -512,6 +573,12 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.passageTransitionBackdropMaxScale = null;
     this.passageTransitionFocusX = null;
     this.passageTransitionFocusY = null;
+
+    // --- SCORE DISPOSE ---
+    this.scoreText = null;
+    this.scorePopups = null;
+    this.finalScoreText = null;
+    this.gameOverInstruction = null;
 
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;

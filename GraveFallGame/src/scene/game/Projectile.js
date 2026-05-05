@@ -429,12 +429,23 @@ GraveFallGame.scene.Game.prototype.playPlaceholderHitSound = function () {
 
 GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
     var wasAlive = playerMenu.healthCurrent > 0;
+    var finalDamage = amount;
 
-    playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent - amount);
+    if (playerMenu.isDefending) {
+        finalDamage = Math.ceil(amount / 2);
+    }
+
+    // --- SCORE TRIGGER: TOOK DAMAGE ---
+    if (finalDamage > 0) {
+        this.addScorePopup(-(finalDamage * 10), "TOOK DAMAGE");
+    }
+    // ----------------------------------
+
+    playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent - finalDamage);
     this.updatePlayerHealthUi(playerMenu);
     playerMenu.hitCooldown = 12;
 
-    this.shakeOnPlayerDamage(amount);
+    this.shakeOnPlayerDamage(finalDamage);
 
     if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION) {
         this.updateAllPlayerDamageStates();
@@ -443,6 +454,10 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     if (playerMenu.healthCurrent <= 0) {
         if (wasAlive) {
             this.playSfx(GraveFallGame.SOUNDS.PLAYER_DOWNED, 0.8);
+            
+            // --- SCORE TRACKER: ALLY DOWNED ---
+            this.encounterAllyDowned = true;
+            // ----------------------------------
         }
 
         playerMenu.battleAvatar.visible = false;
@@ -623,14 +638,12 @@ GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
         if (this.rectsOverlap(playerMenu.battleAvatar, this.arenaItem)) {
             this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.65);
             this.clearArenaItem();
-
-            // 🔥 ADD THIS: reset random spawn delay
             this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
-
             break;
         }
     }
 };
+
 GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
