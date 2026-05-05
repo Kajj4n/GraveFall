@@ -393,6 +393,7 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     var i;
     var menu;
     var healAmount;
+    var wasDowned;
     var healedAny = false;
     var ratio = typeof this.enemyDefeatedHealRatio === "number" ? this.enemyDefeatedHealRatio : 0.08;
 
@@ -403,14 +404,45 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         menu = this.playerMenus[i];
 
-        if (!menu || menu.healthCurrent <= 0 || menu.healthCurrent >= menu.healthMax) {
+        if (!menu || menu.healthMax <= 0 || menu.healthCurrent >= menu.healthMax) {
             continue;
         }
 
         healAmount = Math.max(1, Math.floor(menu.healthMax * ratio));
-        menu.healthCurrent = Math.min(menu.healthMax, menu.healthCurrent + healAmount);
+        wasDowned = menu.healthCurrent <= 0;
+
+        if (wasDowned === true) {
+            // Enemy-clear recovery revives downed players with the same percentage heal,
+            // instead of briefly showing a 0 HP character during the passage transition.
+            menu.healthCurrent = Math.min(menu.healthMax, healAmount);
+            menu.confirmed = false;
+            menu.selectedAction = null;
+            menu.actionPreviewResolved = false;
+            menu.isDefending = false;
+            menu.isBuffed = false;
+            menu.hitCooldown = 0;
+            menu.standActionState = null;
+
+            if (menu.container) {
+                menu.container.y = menu.baseY;
+            }
+
+            if (menu.battleAvatar) {
+                menu.battleAvatar.visible = false;
+                menu.battleAvatar.alpha = 0;
+            }
+
+            if (menu.stand && !menu.healingStandSprite) {
+                menu.stand.visible = true;
+                menu.stand.alpha = 1;
+            }
+        } else {
+            menu.healthCurrent = Math.min(menu.healthMax, menu.healthCurrent + healAmount);
+        }
+
         this.updatePlayerHealthUi(menu);
         this.updatePlayerDamageState(menu, this.areAllPlayersDown());
+        this.updateCharacterMenuVisuals(menu);
         healedAny = true;
     }
 
