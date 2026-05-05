@@ -231,6 +231,35 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (vis
             continue;
         }
 
+        if (menu.hideUntilNextEncounter === true) {
+            if (menu.container) {
+                menu.container.visible = false;
+                menu.container.alpha = 0;
+            }
+
+            if (menu.actionsContainer) {
+                menu.actionsContainer.visible = false;
+                menu.actionsContainer.alpha = 0;
+            }
+
+            if (menu.selectionBar) {
+                menu.selectionBar.visible = false;
+                menu.selectionBar.alpha = 0;
+            }
+
+            if (menu.stand) {
+                menu.stand.visible = false;
+                menu.stand.alpha = 0;
+            }
+
+            if (menu.battleAvatar) {
+                menu.battleAvatar.visible = false;
+                menu.battleAvatar.alpha = 0;
+            }
+
+            continue;
+        }
+
         if (visible !== true && typeof this.clearHealingStandAnimation === "function") {
             this.clearHealingStandAnimation(menu);
         }
@@ -281,6 +310,35 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAl
         menu = this.playerMenus[i];
 
         if (!menu) {
+            continue;
+        }
+
+        if (menu.hideUntilNextEncounter === true) {
+            if (menu.container) {
+                menu.container.visible = false;
+                menu.container.alpha = 0;
+            }
+
+            if (menu.actionsContainer) {
+                menu.actionsContainer.visible = false;
+                menu.actionsContainer.alpha = 0;
+            }
+
+            if (menu.selectionBar) {
+                menu.selectionBar.visible = false;
+                menu.selectionBar.alpha = 0;
+            }
+
+            if (menu.stand) {
+                menu.stand.visible = false;
+                menu.stand.alpha = 0;
+            }
+
+            if (menu.battleAvatar) {
+                menu.battleAvatar.visible = false;
+                menu.battleAvatar.alpha = 0;
+            }
+
             continue;
         }
 
@@ -412,6 +470,8 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
         this.playerMenus[i].confirmed = false;
         this.playerMenus[i].selectedAction = null;
         this.playerMenus[i].standActionState = null;
+        this.playerMenus[i].hideUntilNextEncounter = false;
+        this.playerMenus[i].revivedFromEnemyDefeat = false;
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
         this.playerMenus[i].menuState = "main";
@@ -598,7 +658,9 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
 
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].standActionState = null;
-        this.playerMenus[i].container.y = this.playerMenus[i].baseY;
+        this.playerMenus[i].container.y = this.playerMenus[i].revivedFromEnemyDefeat === true
+            ? this.playerMenus[i].confirmedY
+            : this.playerMenus[i].baseY;
         this.updateCharacterMenuVisuals(this.playerMenus[i]);
     }
 
@@ -626,10 +688,17 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     var playerAlpha;
     var enemyAlpha;
     var actionsAlpha;
+    var outgoingPlayerAlpha;
+    var playerFadeOutEndMs;
+    var walkStartMs;
+    var blackStartMs;
 
     this.enemyDefeatedTimerMs -= step;
     this.passageTransitionTimerMs += step;
     elapsedMs = this.passageTransitionTimerMs;
+    walkStartMs = this.passageTransitionWalkStartMs || 1650;
+    blackStartMs = this.passageTransitionBlackStartMs || 3500;
+    playerFadeOutEndMs = Math.min(blackStartMs, walkStartMs + (this.passageTransitionPlayerFadeOutDurationMs || 450));
     playerFadeStartMs = this.passageTransitionPlayerFadeStartMs || 6850;
     playerFadeEndMs = this.passageTransitionPlayerFadeEndMs || 7600;
     enemyFadeStartMs = this.passageTransitionEnemyFadeStartMs || 7600;
@@ -650,11 +719,22 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
         this.setEnemyUiAlpha(0);
     }
 
-    if (this.passageTransitionStepsPlayed !== true && elapsedMs >= (this.passageTransitionWalkStartMs || 1650)) {
+    if (this.passageTransitionStepsPlayed !== true && elapsedMs >= walkStartMs) {
         this.passageTransitionStepsPlayed = true;
-        this.setPlayerTransitionVisibility(false, false);
-        this.setPlayerTransitionAlpha(0, 0);
         this.playSfx(GraveFallGame.SOUNDS.PASSAGE_STEPS, 0.72);
+    }
+
+    if (this.passageTransitionEncounterLoaded !== true) {
+        if (elapsedMs < walkStartMs) {
+            outgoingPlayerAlpha = 1;
+        } else if (elapsedMs < playerFadeOutEndMs) {
+            outgoingPlayerAlpha = 1 - this.easePassageTransition((elapsedMs - walkStartMs) / Math.max(1, playerFadeOutEndMs - walkStartMs));
+        } else {
+            outgoingPlayerAlpha = 0;
+        }
+
+        this.setPlayerTransitionVisibility(outgoingPlayerAlpha > 0, false);
+        this.setPlayerTransitionAlpha(outgoingPlayerAlpha, 0);
     }
 
     if (elapsedMs >= (this.passageTransitionLoadEncounterMs || 4200)) {

@@ -201,6 +201,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         healingStandSprite: null,
         standActionState: null,
         healingStandTimer: 0,
+        hideUntilNextEncounter: false,
+        revivedFromEnemyDefeat: false,
         menuState: "main"
     };
 
@@ -412,19 +414,36 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
         wasDowned = menu.healthCurrent <= 0;
 
         if (wasDowned === true) {
-            // Enemy-clear recovery revives downed players with the same percentage heal,
-            // instead of briefly showing a 0 HP character during the passage transition.
+            // Enemy-clear recovery revives downed players with the same percentage heal.
+            // Keep them visible in the same tucked/confirmed HUD state as a player
+            // who already took their turn, but do not offer actions until the next fight.
             menu.healthCurrent = Math.min(menu.healthMax, healAmount);
-            menu.confirmed = false;
+            menu.hideUntilNextEncounter = false;
+            menu.revivedFromEnemyDefeat = true;
+            menu.confirmed = true;
             menu.selectedAction = null;
-            menu.actionPreviewResolved = false;
+            menu.actionPreviewResolved = true;
             menu.isDefending = false;
             menu.isBuffed = false;
             menu.hitCooldown = 0;
             menu.standActionState = null;
+            menu.menuState = "main";
+            menu.selectedIndex = 0;
 
             if (menu.container) {
-                menu.container.y = menu.baseY;
+                menu.container.y = menu.confirmedY;
+                menu.container.visible = true;
+                menu.container.alpha = 1;
+            }
+
+            if (menu.actionsContainer) {
+                menu.actionsContainer.visible = false;
+                menu.actionsContainer.alpha = 0;
+            }
+
+            if (menu.selectionBar) {
+                menu.selectionBar.visible = false;
+                menu.selectionBar.alpha = 0;
             }
 
             if (menu.battleAvatar) {
@@ -437,6 +456,8 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
                 menu.stand.alpha = 1;
             }
         } else {
+            menu.hideUntilNextEncounter = false;
+            menu.revivedFromEnemyDefeat = false;
             menu.healthCurrent = Math.min(menu.healthMax, menu.healthCurrent + healAmount);
         }
 
@@ -447,7 +468,7 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     }
 
     if (healedAny === true) {
-        this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.42, 0, true);
+        this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.42);
     }
 };
 
@@ -527,30 +548,30 @@ GraveFallGame.scene.Game.prototype.playActionPreviewSfx = function (playerMenu, 
     if (selectedAction === 0) {
         id = playerMenu && playerMenu.characterId ? playerMenu.characterId : "";
         attackSfx = this.getPlayerAttackPreviewSfx(playerMenu);
-        this.playSfx(attackSfx, id === "ranger" ? 0.6 : 0.68, 0, true);
+        this.playSfx(attackSfx, id === "ranger" ? 0.6 : 0.68);
 
         if (id === "assassin" || (playerMenu && playerMenu.attackMinigame === "timingBar")) {
-            this.queueSfx(120, attackSfx, 0.58, 0, true);
+            this.queueSfx(120, attackSfx, 0.58);
         }
 
         if (didDamage === true) {
-            this.queueSfx(id === "assassin" ? 170 : 70, GraveFallGame.SOUNDS.ENEMY_HIT, 0.54, 0, true);
+            this.queueSfx(id === "assassin" ? 170 : 70, GraveFallGame.SOUNDS.ENEMY_HIT, 0.54);
         }
 
         return;
     }
 
     if (selectedAction === 1 || selectedAction === 12) {
-        this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45, 0, true);
+        this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45);
         return;
     }
 
     if (selectedAction === 2 || selectedAction === 11 || selectedAction === 10) {
-        this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.62, 0, true);
+        this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.62);
         return;
     }
 
-    this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45, 0, true);
+    this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45);
 };
 
 GraveFallGame.scene.Game.prototype.calculatePlayerAttackDamage = function (playerMenu) {
@@ -763,6 +784,8 @@ GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMen
     playerMenu.selectedIndex = 0;
     playerMenu.selectedAction = null;
     playerMenu.standActionState = null; 
+    playerMenu.hideUntilNextEncounter = false;
+    playerMenu.revivedFromEnemyDefeat = false;
     playerMenu.confirmed = false;
     playerMenu.container.y = playerMenu.baseY;
 
