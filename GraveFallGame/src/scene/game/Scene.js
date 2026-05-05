@@ -155,10 +155,11 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.scoreText.y = 8;
     this.stage.addChild(this.scoreText);
 
-    var partySize = GraveFallGame.scene.Game.PARTY_MEMBERS.length;
+    var partyMembers = this.partyMembers || GraveFallGame.scene.Game.PARTY_MEMBERS || [];
+    var partySize = partyMembers.length;
 
     for (var partyIndex = 0; partyIndex < partySize; partyIndex++) {
-        var partyMember = GraveFallGame.scene.Game.PARTY_MEMBERS[partyIndex];
+        var partyMember = partyMembers[partyIndex];
 
         this.playerMenus.push(this.createCharacterMenu({
             characterId: partyMember.id,

@@ -12,7 +12,7 @@
  * @classdesc
  * * Game scene.
  */
-GraveFallGame.scene.Game = function () {
+GraveFallGame.scene.Game = function (partyMembers) {
 
     //--------------------------------------------------------------------------
     // Super call
@@ -22,6 +22,13 @@ GraveFallGame.scene.Game = function () {
      * Calls the constructor method of the super class.
      */
     rune.scene.Scene.call(this);
+
+    /**
+     * Party data passed from the CharacterSelect scene.
+     *
+     * @type {Array}
+     */
+    this.partyMembers = partyMembers || GraveFallGame.scene.Game.PARTY_MEMBERS || [];
 };
 
 //------------------------------------------------------------------------------
@@ -154,6 +161,15 @@ GraveFallGame.scene.Game.UI_SKINS = {
             light: "#B08C68",
             mid: "#7A5B3B",
             dark: "#463322"
+        }
+    },
+    outsideCampfireDark: {
+        panelTop: "#15110D",
+        panelBottom: "#0E0A07",
+        frame: {
+            light: "#765D45",
+            mid: "#4E3926",
+            dark: "#23180F"
         }
     }
 };
