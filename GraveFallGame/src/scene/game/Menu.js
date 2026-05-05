@@ -288,13 +288,44 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
 };
 
 
+GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, targetColor) {
+    var color;
+    var imageData;
+    var data;
+    var i;
+
+    if (!field || !field.canvas || !field.canvas.context || !targetColor) {
+        return;
+    }
+
+    color = rune.color.Color24.fromHex(targetColor);
+
+    // Render the bitmap font once, then recolor its opaque pixels. This keeps the
+    // existing Rune bitmap text while letting each player own their damage color.
+    field.render();
+    imageData = field.canvas.context.getImageData(0, 0, field.canvas.width, field.canvas.height);
+    data = imageData.data;
+
+    for (i = 0; i < data.length; i += 4) {
+        if (data[i + 3] > 0) {
+            data[i] = color.r.value;
+            data[i + 1] = color.g.value;
+            data[i + 2] = color.b.value;
+        }
+    }
+
+    field.canvas.context.putImageData(imageData, 0, 0);
+    field.restoreCache();
+};
+
 GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, playerColor) {
     var text;
     var popup;
-    var enemyCenterX;
-    var enemyTopY;
+    var healthTextWidth;
+    var popupWidth;
+    var barRight;
 
-    if (!this.enemySprite || amount <= 0) {
+    if (!this.enemySprite || !this.enemyHealthText || amount <= 0) {
         return;
     }
 
@@ -304,19 +335,25 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
 
     text = "-" + Math.floor(amount);
     popup = new rune.text.BitmapField(text);
-    popup.width = 180;
-    popup.height = 48;
+    popup.autoSize = true;
     popup.scaleX = 2;
     popup.scaleY = 2;
     popup.life = 720;
     popup.startLife = popup.life;
+    popup.floatSpeed = 8;
 
-    enemyCenterX = this.enemySprite.x + ((this.enemySprite.width * this.enemySprite.scaleX) / 2);
-    enemyTopY = this.enemySprite.y + 16;
+    healthTextWidth = this.enemyHealthText.text.length * 6 * (this.enemyHealthText.scaleX || 1);
+    popupWidth = text.length * 6 * popup.scaleX;
+    barRight = (typeof this.enemyHealthBarX === "number" ? this.enemyHealthBarX : 0) + (this.enemyHealthBarWidth || 300);
 
-    popup.x = Math.round(enemyCenterX - ((text.length * 6 * popup.scaleX) / 2));
-    popup.y = Math.round(enemyTopY - 26 - (this.damagePopups.length * 14));
+    popup.x = Math.round(this.enemyHealthText.x + healthTextWidth + 8);
+    popup.y = Math.round(this.enemyHealthText.y - 1 - (this.damagePopups.length * 13));
 
+    if (popup.x + popupWidth > barRight - 6) {
+        popup.x = Math.round(this.enemyHealthText.x - popupWidth - 8);
+    }
+
+    this.tintBitmapFieldText(popup, playerColor || "#FFFFFF");
     this.stage.addChild(popup);
     this.damagePopups.push(popup);
 };
@@ -324,6 +361,62 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
 GraveFallGame.scene.Game.prototype.setEnemyPreviewFlash = function (durationMs) {
     this.enemyPreviewFlashTimerMs = Math.max(this.enemyPreviewFlashTimerMs || 0, durationMs || 260);
     this.enemyPreviewFlashDurationMs = Math.max(this.enemyPreviewFlashDurationMs || 0, durationMs || 260);
+};
+
+GraveFallGame.scene.Game.prototype.startEnemyDamagePreviewShake = function (durationMs, amountX, amountY) {
+    if (!this.enemySprite) {
+        return;
+    }
+
+    if (typeof this.enemyPreviewBaseX !== "number") {
+        this.enemyPreviewBaseX = this.enemySprite.x;
+        this.enemyPreviewBaseY = this.enemySprite.y;
+    }
+
+    this.enemyPreviewShakeTimerMs = Math.max(this.enemyPreviewShakeTimerMs || 0, durationMs || 300);
+    this.enemyPreviewShakeDurationMs = Math.max(this.enemyPreviewShakeDurationMs || 0, durationMs || 300);
+    this.enemyPreviewShakeAmountX = amountX || 8;
+    this.enemyPreviewShakeAmountY = amountY || 5;
+};
+
+GraveFallGame.scene.Game.prototype.restoreEnemyDamagePreviewShake = function () {
+    if (this.enemySprite && typeof this.enemyPreviewBaseX === "number") {
+        this.enemySprite.x = this.enemyPreviewBaseX;
+        this.enemySprite.y = this.enemyPreviewBaseY;
+    }
+
+    this.enemyPreviewShakeTimerMs = 0;
+    this.enemyPreviewShakeDurationMs = 0;
+};
+
+GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
+    var i;
+    var menu;
+    var healAmount;
+    var healedAny = false;
+    var ratio = typeof this.enemyDefeatedHealRatio === "number" ? this.enemyDefeatedHealRatio : 0.08;
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu || menu.healthCurrent <= 0 || menu.healthCurrent >= menu.healthMax) {
+            continue;
+        }
+
+        healAmount = Math.max(1, Math.floor(menu.healthMax * ratio));
+        menu.healthCurrent = Math.min(menu.healthMax, menu.healthCurrent + healAmount);
+        this.updatePlayerHealthUi(menu);
+        this.updatePlayerDamageState(menu, this.areAllPlayersDown());
+        healedAny = true;
+    }
+
+    if (healedAny === true) {
+        this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.42, 0, true);
+    }
 };
 
 GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (selectedAction) {
@@ -463,6 +556,7 @@ GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playe
             this.applyDamageToEnemy(totalDmg, playerMenu.theme.accent, true);
             this.createEnemyDamagePopup(totalDmg, playerMenu.theme.accent);
             this.setEnemyPreviewFlash(300);
+            this.startEnemyDamagePreviewShake(300, 8, 5);
             this.shakeCamera(160, 4, 3, true);
         }
     } else if (playerMenu.selectedAction === 1) {
@@ -706,35 +800,6 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
             }
 
             this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
-
-            if (playerMenu.selectedAction === 10) {
-                if (typeof this.startHealingStandAnimation === "function") {
-                    this.startHealingStandAnimation(playerMenu);
-                }
-
-                var j, target;
-                for (j = 0; j < this.playerMenus.length; j++) {
-                    target = this.playerMenus[j];
-
-                    if (target.healthCurrent <= 0) {
-                        var reviveAmount = Math.floor(target.healthMax * 0.15);
-                        target.healthCurrent = Math.max(1, reviveAmount);
-
-                        this.updatePlayerHealthUi(target);
-                        this.updatePlayerDamageState(target, this.areAllPlayersDown());
-
-                        target.confirmed = false;
-                        target.selectedAction = null;
-                        target.standActionState = null; 
-                        target.container.y = target.baseY;
-
-                        if (target.stand) {
-                            target.stand.visible = true;
-                            target.stand.alpha = 1;
-                        }
-                    }
-                }
-            }
 
             this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
         }

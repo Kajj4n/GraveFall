@@ -370,6 +370,8 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     this.enemySprite.scaleY = 3.2;
     this.enemySprite.x = (this.application.screen.width / 1) - ((this.enemySprite.width * this.enemySprite.scaleX) / 1.28);
     this.enemySprite.y = 180;
+    this.enemyPreviewBaseX = this.enemySprite.x;
+    this.enemyPreviewBaseY = this.enemySprite.y;
     this.setDamageStateGroupState(this.enemySprite, "hp100");
     this.enemySprite.alpha = fadeIn === true ? 0 : 1;
     this.enemySprite.visible = fadeIn !== true;
@@ -570,6 +572,7 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     }
 
     this.clearActionPreviewState();
+    this.applyEnemyDefeatedRecovery();
 
     // --- SCORE TRIGGER: Defeated Enemies ---
     this.addScorePopup(1000, "ENEMY DEFEATED");
@@ -755,7 +758,7 @@ GraveFallGame.scene.Game.prototype.updateActionPreviewEffects = function (step) 
         for (i = this.damagePopups.length - 1; i >= 0; i--) {
             popup = this.damagePopups[i];
             popup.life -= step;
-            popup.y -= 22 * (step / 1000);
+            popup.y -= (popup.floatSpeed || 22) * (step / 1000);
 
             if (popup.life < 240) {
                 popup.alpha = Math.max(0, popup.life / 240);
@@ -781,6 +784,25 @@ GraveFallGame.scene.Game.prototype.updateActionPreviewEffects = function (step) 
 
         if (this.enemyPreviewFlashTimerMs <= 0 && this.enemySprite && this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
             this.enemySprite.alpha = 1;
+        }
+    }
+
+    if (this.enemySprite && this.enemyPreviewShakeTimerMs > 0) {
+        if (typeof this.enemyPreviewBaseX !== "number") {
+            this.enemyPreviewBaseX = this.enemySprite.x;
+            this.enemyPreviewBaseY = this.enemySprite.y;
+        }
+
+        this.enemyPreviewShakeTimerMs -= step;
+        shakeRatio = this.enemyPreviewShakeDurationMs > 0 ? this.enemyPreviewShakeTimerMs / this.enemyPreviewShakeDurationMs : 0;
+        shakeX = (Math.random() < 0.5 ? -1 : 1) * Math.ceil((this.enemyPreviewShakeAmountX || 8) * Math.max(0, shakeRatio));
+        shakeY = (Math.random() < 0.5 ? -1 : 1) * Math.ceil((this.enemyPreviewShakeAmountY || 5) * Math.max(0, shakeRatio));
+
+        if (this.enemyPreviewShakeTimerMs > 0) {
+            this.enemySprite.x = this.enemyPreviewBaseX + shakeX;
+            this.enemySprite.y = this.enemyPreviewBaseY + shakeY;
+        } else {
+            this.restoreEnemyDamagePreviewShake();
         }
     }
 
@@ -824,6 +846,7 @@ GraveFallGame.scene.Game.prototype.clearActionPreviewState = function () {
     this.actionPreviewStepStarted = false;
     this.enemyPreviewFlashTimerMs = 0;
     this.enemyPreviewFlashDurationMs = 0;
+    this.restoreEnemyDamagePreviewShake();
 
     if (this.enemySprite && this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
         this.enemySprite.alpha = 1;
