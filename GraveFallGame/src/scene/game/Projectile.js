@@ -441,7 +441,7 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
 
     // --- SCORE TRIGGER: TOOK DAMAGE ---
     if (finalDamage > 0) {
-        this.changeScore(-(finalDamage * 10));
+        this.addScorePopup(-(finalDamage * 10), "TOOK DAMAGE");
     }
     // ----------------------------------
 

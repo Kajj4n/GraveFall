@@ -293,9 +293,8 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         title: "WARRIOR: MASH",
         setup: "setupButtonMashMinigame",
         update: "updateButtonMashMinigame",
-        pressesPerDamage: 3,
-        maxUsefulPresses: 12,
-        gateBonusDamage: 2
+        damagePerCycle: 8,
+        maxUsefulPresses: 18
     },
     buttonSequence: {
         id: "buttonSequence",
@@ -335,13 +334,11 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
 // Sprite names the minigames will try to use if those resources are baked into
 // Requests.js later. Until then, runtime Graphics are used as placeholders.
 GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
-    { name: "MG_Ranger_Target", size: "112x40", purpose: "Ranger aiming board / wide target sprite" },
     { name: "MG_Ranger_Bullseye", size: "16x16", purpose: "Center scoring mark / bullseye for the ranger target" },
     { name: "MG_Ranger_Reticle", size: "16x16", purpose: "Moving ranger reticle / crosshair" },
     { name: "MG_Rogue_Bar_Back", size: "196x20", purpose: "Rogue horizontal timing bar background" },
     { name: "MG_Rogue_HitZone", size: "20x28", purpose: "Rogue center hit-zone marker" },
     { name: "MG_Rogue_Timing_Block", size: "14x24", purpose: "Rogue moving timing rectangle" },
-    { name: "MG_Button_Mash_Icon", size: "64x64", purpose: "Optional warrior mash prompt icon" },
     { name: "MG_Sequence_Slot", size: "42x42", purpose: "Optional wizard sequence slot frame" }
 ];
 

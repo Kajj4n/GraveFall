@@ -234,24 +234,34 @@ GraveFallGame.scene.Game.prototype.changeScore = function(amount) {
 
 GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text) {
     if (!this.scorePopups) this.scorePopups = [];
-    
+
     var sign = amount > 0 ? "+" : "";
     var fullText = sign + amount + " " + text;
     var popup = new rune.text.BitmapField(fullText);
-    popup.width = 800; // FIX: Prevent clipping
-    popup.height = 64; // FIX: Prevent clipping
-    popup.scaleX = 1.5;
-    popup.scaleY = 1.5;
-    popup.x = (this.application.screen.width / 2) - ((fullText.length * 6 * 1.5) / 2);
-    
-    var targetY = 36;
-    if (this.scorePopups.length > 0) {
-        targetY = this.scorePopups[this.scorePopups.length - 1].y + 16;
-    }
-    popup.y = targetY;
+    var popupScale = amount < 0 ? 1.65 : 1.5;
+    var targetY = 38;
 
-    popup.life = 1400; // 1.4 seconds
-    
+    popup.width = 900; // Prevent clipping on longer reason strings.
+    popup.height = 72;
+    popup.scaleX = popupScale;
+    popup.scaleY = popupScale;
+    popup.x = (this.application.screen.width / 2) - ((fullText.length * 6 * popupScale) / 2);
+
+    if (this.scorePopups.length > 0) {
+        targetY = this.scorePopups[this.scorePopups.length - 1].y + 24;
+    }
+
+    if (targetY > 128) {
+        targetY = 38;
+    }
+
+    popup.y = targetY;
+    popup.life = 1700;
+
+    if (typeof this.tintBitmapFieldText === "function") {
+        this.tintBitmapFieldText(popup, amount < 0 ? "#FF7777" : "#FFE680");
+    }
+
     this.stage.addChild(popup);
     this.scorePopups.push(popup);
 

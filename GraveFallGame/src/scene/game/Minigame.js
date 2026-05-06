@@ -207,6 +207,22 @@ GraveFallGame.scene.Game.prototype.getButtonIconForDirection = function (directi
     return "A_Button_Icon_T";
 };
 
+GraveFallGame.scene.Game.prototype.getButtonLabelForDirection = function (direction) {
+    if (direction === "up") {
+        return "Y";
+    }
+
+    if (direction === "left") {
+        return "X";
+    }
+
+    if (direction === "right") {
+        return "B";
+    }
+
+    return "A";
+};
+
 GraveFallGame.scene.Game.prototype.createMinigameIcon = function (resource, x, y, scale) {
     var icon = new rune.display.Sprite(x, y, 100, 100, resource);
 
@@ -267,52 +283,70 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptIcon = function (menu, res
     }
 
     icon = this.createMinigameIcon(resource, x, y, scale);
-    this.applyMonochromeIconColor(icon, menu.theme.accentLight);
+    this.applyMonochromeIconColor(icon, menu.theme.accent);
     minigame.buttonIcon = icon;
-    minigame.group.addChildAt(icon, 1);
+    minigame.group.addChild(icon);
 
     return icon;
 };
 
-GraveFallGame.scene.Game.prototype.setButtonMashGate = function (menu) {
+GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (direction) {
+    return this.getButtonIconForDirection(direction);
+};
+
+GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (menu) {
+    if (!menu || !menu.minigame) {
+        return null;
+    }
+
+    return this.getPressedMinigameDirection(menu);
+};
+
+GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
     var minigame = menu.minigame;
+    var previous;
     var direction;
 
     if (!minigame) {
         return;
     }
 
+    previous = minigame.currentMashDirection;
     direction = this.randomMinigameDirection();
-    minigame.awaitingGate = true;
-    minigame.gateDirection = direction;
-    minigame.mashFill.scaleX = 1;
 
-    this.setButtonMashPromptIcon(menu, this.getButtonIconForDirection(direction), 101, 43, 0.55);
-    this.setMinigameFeedback(menu, "PRESS " + direction.toUpperCase());
+    if (direction === previous) {
+        direction = this.randomMinigameDirection();
+    }
+
+    minigame.currentMashDirection = direction;
+    this.setButtonMashPromptIcon(menu, this.getButtonMashIconResource(direction), 101, 43, 0.55);
+    this.setMinigameFeedback(menu, "MASH " + this.getButtonLabelForDirection(direction));
 };
 
-GraveFallGame.scene.Game.prototype.clearButtonMashGate = function (menu) {
+GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
     var minigame = menu.minigame;
+    var bonus;
 
     if (!minigame) {
         return;
     }
 
-    minigame.awaitingGate = false;
-    minigame.gateDirection = null;
+    bonus = minigame.damagePerCycle || 8;
+    minigame.storedDamage += bonus;
     minigame.pressCount = 0;
     minigame.mashFill.scaleX = 0;
 
-    this.setButtonMashPromptIcon(menu, minigame.defaultButtonResource, 101, 43, 0.55);
+    this.setMinigameFeedback(menu, "MAX +" + bonus);
+    this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45);
+    this.rollButtonMashButton(menu);
 };
 
 GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
-    var prompt = new rune.text.BitmapField("MASH, THEN MATCH");
+    var prompt = new rune.text.BitmapField("MASH SHOWN");
     var barBack = new rune.display.Graphic(36, 92, 184, 8);
     var barFill = new rune.display.Graphic(36, 92, 184, 8);
     var feedback = this.createHiddenMinigameFeedbackText(102);
-    var defaultButtonResource = this.resourceExists("MG_Button_Mash_Icon") ? "MG_Button_Mash_Icon" : "A_Button_Icon_T";
 
     barBack.backgroundColor = "#171717";
     barFill.backgroundColor = menu.theme.accent;
@@ -339,21 +373,17 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
         definition: definition,
         storedDamage: 0,
         pressCount: 0,
-        totalPressCount: 0,
-        maxUsefulPresses: definition.maxUsefulPresses || 12,
-        pressesPerDamage: definition.pressesPerDamage || 3,
-        gateBonusDamage: definition.gateBonusDamage || 2,
-        awaitingGate: false,
-        gateDirection: null,
-        defaultButtonResource: defaultButtonResource,
+        maxUsefulPresses: definition.maxUsefulPresses || 18,
+        damagePerCycle: definition.damagePerCycle || 8,
+        currentMashDirection: null,
         group: group,
         mashFill: barFill,
         buttonIcon: null,
         feedbackText: feedback
     };
 
-    this.setButtonMashPromptIcon(menu, defaultButtonResource, 101, 43, 0.55);
     this.stage.addChild(group);
+    this.rollButtonMashButton(menu);
 };
 
 GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
@@ -362,40 +392,19 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
     var pressedDirection;
 
     minigame = menu.minigame;
+    pressedDirection = this.getPressedButtonMashDirection(menu);
 
-    if (minigame.awaitingGate === true) {
-        pressedDirection = this.getPressedMinigameDirection(menu);
-
-        if (pressedDirection === minigame.gateDirection) {
-            minigame.storedDamage += minigame.gateBonusDamage;
-            this.clearButtonMashGate(menu);
-            this.setMinigameFeedback(menu, "BONUS +" + minigame.gateBonusDamage);
-            this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.42);
-        } else if (pressedDirection) {
-            this.setMinigameFeedback(menu, "WRONG");
-            this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
-        } else if (this.keyboard.justPressed(menu.controls.confirm)) {
-            this.setMinigameFeedback(menu, "MATCH BUTTON");
-            this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.24);
-        }
-
-        return;
-    }
-
-    if (this.keyboard.justPressed(menu.controls.confirm)) {
+    if (pressedDirection === minigame.currentMashDirection) {
         minigame.pressCount += 1;
-        minigame.totalPressCount += 1;
-
-        if (minigame.totalPressCount % minigame.pressesPerDamage === 0) {
-            minigame.storedDamage += 1;
-            this.setMinigameFeedback(menu, "+1");
-        }
-
-        this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.28);
+        this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.32);
 
         if (minigame.pressCount >= minigame.maxUsefulPresses) {
-            this.setButtonMashGate(menu);
+            this.completeButtonMashCycle(menu);
+            return;
         }
+    } else if (pressedDirection) {
+        this.setMinigameFeedback(menu, "MASH " + this.getButtonLabelForDirection(minigame.currentMashDirection));
+        this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.22);
     }
 
     ratio = Math.min(1, minigame.pressCount / minigame.maxUsefulPresses);
@@ -558,14 +567,16 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
 GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("HIT THE TARGET");
-    var target = this.createOptionalMinigameSprite("MG_Ranger_Target", 72, 46, 112, 40, "#202020");
+    var target = new rune.display.Graphic(72, 46, 112, 40);
     var bullseye = this.createThemedMinigameSprite(["MG_Ranger_Bullseye_T", "MG_Ranger_Bullseye"], 120, 58, 16, 16, menu.theme.accentDark, menu.theme.accentDark);
     var centerDot = new rune.display.Graphic(126, 64, 4, 4);
     var reticle = this.createThemedMinigameSprite(["MG_Ranger_Reticle_T", "MG_Ranger_Reticle"], 120, 58, 16, 16, menu.theme.accentLight, menu.theme.accentLight);
     var feedback = this.createHiddenMinigameFeedbackText(102);
 
+    target.backgroundColor = "#191919";
+    target.alpha = 1;
     centerDot.backgroundColor = menu.theme.accent;
-    reticle.alpha = 0.85;
+    reticle.alpha = 0.95;
 
     prompt.autoSize = true;
     prompt.scaleX = 2;

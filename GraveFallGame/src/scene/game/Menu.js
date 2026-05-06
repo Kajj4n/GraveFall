@@ -289,7 +289,7 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
     var wasAlive = this.enemyHealthCurrent > 0;
 
     if (amount > 0) {
-        this.changeScore(amount * 10);
+        this.addScorePopup(amount * 10, "DAMAGE DEALT");
     }
 
     this.enemyHealthCurrent = Math.max(0, this.enemyHealthCurrent - amount);
@@ -342,74 +342,19 @@ GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, target
     field.restoreCache();
 };
 
-GraveFallGame.scene.Game.POPUP_DIGIT_PATTERNS = {
-    "0": ["111", "101", "101", "101", "111"],
-    "1": ["010", "110", "010", "010", "111"],
-    "2": ["111", "001", "111", "100", "111"],
-    "3": ["111", "001", "111", "001", "111"],
-    "4": ["101", "101", "111", "001", "001"],
-    "5": ["111", "100", "111", "001", "111"],
-    "6": ["111", "100", "111", "101", "111"],
-    "7": ["111", "001", "010", "010", "010"],
-    "8": ["111", "101", "111", "101", "111"],
-    "9": ["111", "101", "111", "001", "111"],
-    "-": ["000", "000", "111", "000", "000"],
-    "+": ["000", "010", "111", "010", "000"]
-};
-
-GraveFallGame.scene.Game.prototype.createPlainColoredPopupText = function (text, color, pixelSize) {
-    var patterns = GraveFallGame.scene.Game.POPUP_DIGIT_PATTERNS;
-    var spacing;
-    var charWidth;
-    var charHeight;
-    var width;
-    var height;
-    var popup;
-    var i;
-    var row;
-    var col;
-    var pattern;
-    var block;
-
-    text = String(text);
-    pixelSize = pixelSize || 4;
-    spacing = pixelSize;
-    charWidth = 3 * pixelSize;
-    charHeight = 5 * pixelSize;
-    width = (text.length * charWidth) + (Math.max(0, text.length - 1) * spacing);
-    height = charHeight;
-    popup = new rune.display.DisplayObjectContainer(0, 0, width, height);
-    popup.visualWidth = width;
-
-    for (i = 0; i < text.length; i++) {
-        pattern = patterns[text.charAt(i)] || patterns["0"];
-
-        for (row = 0; row < pattern.length; row++) {
-            for (col = 0; col < pattern[row].length; col++) {
-                if (pattern[row].charAt(col) === "1") {
-                    block = new rune.display.Graphic((i * (charWidth + spacing)) + (col * pixelSize), row * pixelSize, pixelSize, pixelSize);
-                    block.backgroundColor = color;
-                    popup.addChild(block);
-                }
-            }
-        }
-    }
-
-    return popup;
-};
-
-
 GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, playerColor) {
     var text;
     var popup;
-    var healthTextWidth;
     var popupWidth;
-    var barRight;
     var popupColor;
     var popupAmount;
+    var enemyWidth;
+    var enemyHeight;
+    var maxX;
+    var maxY;
     var i;
 
-    if (!this.enemySprite || !this.enemyHealthText || amount <= 0) {
+    if (!this.enemySprite || amount <= 0) {
         return;
     }
 
@@ -427,23 +372,28 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     }
 
     text = "-" + popupAmount;
-    popup = this.createPlainColoredPopupText(text, popupColor, 4);
-    popup.life = 720;
+    popup = new rune.text.BitmapField(text);
+    popup.autoSize = true;
+    popup.scaleX = 3;
+    popup.scaleY = 3;
+    popup.life = 900;
     popup.startLife = popup.life;
-    popup.floatSpeed = 10;
+    popup.floatSpeed = 18;
     popup.damageAmount = popupAmount;
     popup.playerColor = popupColor;
 
-    healthTextWidth = this.enemyHealthText.text.length * 6 * (this.enemyHealthText.scaleX || 1);
-    popupWidth = popup.visualWidth || (text.length * 16);
-    barRight = (typeof this.enemyHealthBarX === "number" ? this.enemyHealthBarX : 0) + (this.enemyHealthBarWidth || 300);
+    this.tintBitmapFieldText(popup, popupColor);
 
-    popup.x = Math.round(this.enemyHealthText.x + healthTextWidth + 8);
-    popup.y = Math.round(this.enemyHealthText.y - 4 - (this.damagePopups.length * 22));
+    enemyWidth = (this.enemySprite.width || 80) * (this.enemySprite.scaleX || 1);
+    enemyHeight = (this.enemySprite.height || 80) * (this.enemySprite.scaleY || 1);
+    popupWidth = text.length * 6 * (popup.scaleX || 1);
+    maxX = this.application.screen.width - popupWidth - 16;
+    maxY = this.application.screen.height - 96;
 
-    if (popup.x + popupWidth > barRight - 6) {
-        popup.x = Math.round(this.enemyHealthText.x - popupWidth - 8);
-    }
+    popup.x = Math.round(this.enemySprite.x + (enemyWidth * 0.58));
+    popup.y = Math.round(this.enemySprite.y + (enemyHeight * 0.42) - (this.damagePopups.length * 34));
+    popup.x = Math.max(16, Math.min(maxX, popup.x));
+    popup.y = Math.max(72, Math.min(maxY, popup.y));
 
     this.stage.addChild(popup);
     this.damagePopups.push(popup);
