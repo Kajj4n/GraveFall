@@ -441,13 +441,17 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
 
     // --- SCORE TRIGGER: TOOK DAMAGE ---
     if (finalDamage > 0) {
-        this.addScorePopup(-(finalDamage * 10), "TOOK DAMAGE");
+        this.changeScore(-(finalDamage * 10));
     }
     // ----------------------------------
 
     playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent - finalDamage);
     this.updatePlayerHealthUi(playerMenu);
     playerMenu.hitCooldown = 12;
+
+    if (finalDamage > 0) {
+        this.spawnPlayerDamageParticles(playerMenu, finalDamage);
+    }
 
     this.shakeOnPlayerDamage(finalDamage);
 

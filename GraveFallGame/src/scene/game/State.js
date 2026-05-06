@@ -811,6 +811,8 @@ GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseRe
 
         { state: "itemAttack", resource: this.resolveExistingResource([prefix + "_Item_Attack", prefix + "_Idle_Stance"], baseResource) },
         { state: "itemDefend", resource: this.resolveExistingResource([prefix + "_Item_Defend", prefix + "_Idle_Stance"], baseResource) },
+        { state: "itemPotion", resource: this.resolveExistingResource([prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
+        { state: "itemSpeedPotion", resource: this.resolveExistingResource([prefix + "_Item_Speed_Potion", downedPrefix + "_Item_Speed_Potion", prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
 
         { state: "knockedOut", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) },
         { state: "dead", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) }

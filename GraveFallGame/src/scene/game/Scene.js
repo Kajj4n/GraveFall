@@ -226,6 +226,12 @@ GraveFallGame.scene.Game.prototype.init = function () {
 };
 
 // --- NEW SCORE HELPER FUNCTIONS ---
+GraveFallGame.scene.Game.prototype.changeScore = function(amount) {
+    this.score += amount;
+    if (this.score < 0) this.score = 0;
+    this.updateScoreUi();
+};
+
 GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text) {
     if (!this.scorePopups) this.scorePopups = [];
     
@@ -249,9 +255,7 @@ GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text) {
     this.stage.addChild(popup);
     this.scorePopups.push(popup);
 
-    this.score += amount;
-    if (this.score < 0) this.score = 0;
-    this.updateScoreUi();
+    this.changeScore(amount);
 };
 
 GraveFallGame.scene.Game.prototype.updateScoreUi = function() {

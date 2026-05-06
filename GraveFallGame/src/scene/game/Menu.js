@@ -289,11 +289,15 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
     var wasAlive = this.enemyHealthCurrent > 0;
 
     if (amount > 0) {
-        this.addScorePopup(amount * 10, "DAMAGE DEALT", playerColor);
+        this.changeScore(amount * 10);
     }
 
     this.enemyHealthCurrent = Math.max(0, this.enemyHealthCurrent - amount);
     this.updateEnemyDamageState();
+
+    if (amount > 0 && wasAlive) {
+        this.spawnEnemyDamageParticles(amount);
+    }
 
     this.updateEnemyHealthBarUi();
 
@@ -344,6 +348,9 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     var healthTextWidth;
     var popupWidth;
     var barRight;
+    var popupColor;
+    var popupAmount;
+    var i;
 
     if (!this.enemySprite || !this.enemyHealthText || amount <= 0) {
         return;
@@ -353,27 +360,38 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
         this.damagePopups = [];
     }
 
-    text = "-" + Math.floor(amount);
+    popupAmount = Math.floor(amount);
+    popupColor = playerColor || "#FFFFFF";
+
+    for (i = this.damagePopups.length - 1; i >= 0; i--) {
+        if (this.damagePopups[i].damageAmount === popupAmount && this.damagePopups[i].playerColor === popupColor && this.damagePopups[i].life > 660) {
+            return;
+        }
+    }
+
+    text = "-" + popupAmount;
     popup = new rune.text.BitmapField(text);
     popup.autoSize = true;
     popup.scaleX = 2;
     popup.scaleY = 2;
     popup.life = 720;
     popup.startLife = popup.life;
-    popup.floatSpeed = 8;
+    popup.floatSpeed = 10;
+    popup.damageAmount = popupAmount;
+    popup.playerColor = popupColor;
 
     healthTextWidth = this.enemyHealthText.text.length * 6 * (this.enemyHealthText.scaleX || 1);
     popupWidth = text.length * 6 * popup.scaleX;
     barRight = (typeof this.enemyHealthBarX === "number" ? this.enemyHealthBarX : 0) + (this.enemyHealthBarWidth || 300);
 
     popup.x = Math.round(this.enemyHealthText.x + healthTextWidth + 8);
-    popup.y = Math.round(this.enemyHealthText.y - 1 - (this.damagePopups.length * 13));
+    popup.y = Math.round(this.enemyHealthText.y - 4 - (this.damagePopups.length * 24));
 
     if (popup.x + popupWidth > barRight - 6) {
         popup.x = Math.round(this.enemyHealthText.x - popupWidth - 8);
     }
 
-    this.tintBitmapFieldText(popup, playerColor || "#FFFFFF");
+    this.tintBitmapFieldText(popup, popupColor);
     this.stage.addChild(popup);
     this.damagePopups.push(popup);
 };
@@ -499,7 +517,15 @@ GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (select
         return "itemAttack";
     }
 
-    if (selectedAction === 1 || selectedAction === 2 || selectedAction === 12 || selectedAction === 10 || selectedAction === 13) {
+    if (selectedAction === 10) {
+        return "itemPotion";
+    }
+
+    if (selectedAction === 13) {
+        return "itemSpeedPotion";
+    }
+
+    if (selectedAction === 1 || selectedAction === 2 || selectedAction === 12) {
         return "itemDefend";
     }
 
@@ -757,6 +783,107 @@ GraveFallGame.scene.Game.BUFF_CONFIGS = {
     heal: { icon: "Health_Up_Icon_T", itemIcon: "Health_Up_Buff_Icon_T" }
 };
 
+GraveFallGame.scene.Game.prototype.darkenHexColor = function (hexColor, multiplier) {
+    var hex = (hexColor || "#FFFFFF").replace("#", "");
+    var factor = typeof multiplier === "number" ? multiplier : 0.45;
+    var r;
+    var g;
+    var b;
+
+    if (hex.length === 3) {
+        hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+    }
+
+    if (hex.length !== 6) {
+        return "#555555";
+    }
+
+    r = Math.max(0, Math.min(255, Math.round(parseInt(hex.substring(0, 2), 16) * factor)));
+    g = Math.max(0, Math.min(255, Math.round(parseInt(hex.substring(2, 4), 16) * factor)));
+    b = Math.max(0, Math.min(255, Math.round(parseInt(hex.substring(4, 6), 16) * factor)));
+
+    function pair(value) {
+        var out = value.toString(16).toUpperCase();
+        return out.length < 2 ? "0" + out : out;
+    }
+
+    return "#" + pair(r) + pair(g) + pair(b);
+};
+
+GraveFallGame.scene.Game.prototype.getBuffEffectColors = function (playerMenu) {
+    var theme = playerMenu && playerMenu.theme ? playerMenu.theme : null;
+    var paletteIndex = playerMenu && typeof playerMenu.partyRenderIndex === "number" ? (playerMenu.partyRenderIndex % 4) : -1;
+    var palette = null;
+    var primary = theme ? (theme.accentLight || theme.accent || "#FFFFFF") : "#FFFFFF";
+
+    if (paletteIndex === 0) {
+        palette = { primary: "#FF8A80", secondary: "#FF5252", tertiary: "#D50000" };
+    } else if (paletteIndex === 1) {
+        palette = { primary: "#80D8FF", secondary: "#00B0FF", tertiary: "#2962FF" };
+    } else if (paletteIndex === 2) {
+        palette = { primary: "#FFFF8D", secondary: "#FFEA00", tertiary: "#FFC400" };
+    } else if (paletteIndex === 3) {
+        palette = { primary: "#CCFF90", secondary: "#76FF03", tertiary: "#2E7D32" };
+    }
+
+    if (!palette) {
+        palette = {
+            primary: primary,
+            secondary: theme ? (theme.accent || primary) : primary,
+            tertiary: theme && theme.accentDark ? theme.accentDark : "#FFFFFF"
+        };
+    }
+
+    return {
+        primary: palette.primary,
+        dark: palette.secondary,
+        darker: palette.tertiary
+    };
+};
+
+GraveFallGame.scene.Game.prototype.getPlayerDamageEffectColors = function (playerMenu) {
+    var colors = this.getBuffEffectColors(playerMenu);
+
+    return [
+        this.darkenHexColor(colors.darker, 0.9),
+        colors.darker,
+        colors.dark,
+        colors.primary
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getStageAnchorForNode = function (node, xRatio, yRatio) {
+    var scaleX;
+    var scaleY;
+    var width;
+    var height;
+    var anchor = { x: 0, y: 0 };
+    var parent;
+    var offsetX = 0;
+    var offsetY = 0;
+
+    if (!node) {
+        return anchor;
+    }
+
+    scaleX = Math.abs(node.scaleX || 1);
+    scaleY = Math.abs(node.scaleY || 1);
+    width = (node.unscaledWidth || node.width || 100) * scaleX;
+    height = (node.unscaledHeight || node.height || 100) * scaleY;
+
+    parent = node.parent;
+    while (parent && parent !== this.stage) {
+        offsetX += parent.x || 0;
+        offsetY += parent.y || 0;
+        parent = parent.parent;
+    }
+
+    anchor.x = offsetX + node.x + (width * (typeof xRatio === "number" ? xRatio : 0.5));
+    anchor.y = offsetY + node.y + (height * (typeof yRatio === "number" ? yRatio : 0.5));
+
+    return anchor;
+};
+
 GraveFallGame.scene.Game.prototype.getLivingPlayerMenus = function () {
     var targets = [];
     var i;
@@ -994,17 +1121,9 @@ GraveFallGame.scene.Game.prototype.applyRandomPermanentItemBuff = function (sour
 
 GraveFallGame.scene.Game.prototype.getBuffEffectAnchor = function (playerMenu) {
     var node;
-    var scaleX;
-    var scaleY;
-    var width;
-    var height;
-    var anchor = { x: 0, y: 0 };
-    var parent;
-    var offsetX = 0;
-    var offsetY = 0;
 
     if (!playerMenu) {
-        return anchor;
+        return { x: 0, y: 0 };
     }
 
     node = playerMenu.stand;
@@ -1013,26 +1132,11 @@ GraveFallGame.scene.Game.prototype.getBuffEffectAnchor = function (playerMenu) {
         node = playerMenu.battleAvatar;
     }
 
-    if (!node) {
-        return anchor;
-    }
+    return this.getStageAnchorForNode(node, 0.5, 0.45);
+};
 
-    scaleX = Math.abs(node.scaleX || 1);
-    scaleY = Math.abs(node.scaleY || 1);
-    width = (node.unscaledWidth || node.width || 100) * scaleX;
-    height = (node.unscaledHeight || node.height || 100) * scaleY;
-
-    parent = node.parent;
-    while (parent && parent !== this.stage) {
-        offsetX += parent.x || 0;
-        offsetY += parent.y || 0;
-        parent = parent.parent;
-    }
-
-    anchor.x = offsetX + node.x + (width * 0.5);
-    anchor.y = offsetY + node.y + (height * 0.45);
-
-    return anchor;
+GraveFallGame.scene.Game.prototype.getEnemyEffectAnchor = function () {
+    return this.getStageAnchorForNode(this.enemySprite, 0.5, 0.5);
 };
 
 GraveFallGame.scene.Game.prototype.spawnPartyBuffEffect = function (buffType, targets, durationMs) {
@@ -1048,7 +1152,7 @@ GraveFallGame.scene.Game.prototype.spawnPartyBuffEffect = function (buffType, ta
 };
 
 GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMenu, buffType, durationMs) {
-    var color;
+    var colors;
     var iconResource;
     var anchor;
     var icon;
@@ -1060,6 +1164,7 @@ GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMe
     var distance;
     var speed;
     var scale;
+    var particleColor;
 
     if (!playerMenu || !this.stage) {
         return;
@@ -1069,17 +1174,17 @@ GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMe
         this.buffVisualEffects = [];
     }
 
-    color = playerMenu.theme ? playerMenu.theme.accentLight : "#FFFFFF";
+    colors = this.getBuffEffectColors(playerMenu);
     iconResource = this.getBuffIconResource(buffType);
     anchor = this.getBuffEffectAnchor(playerMenu);
 
     icon = new rune.display.Sprite(0, 0, 100, 100, iconResource);
-    icon.scaleX = 0.5;
-    icon.scaleY = 0.5;
-    icon.x = Math.round(anchor.x - 25);
-    icon.y = Math.round(anchor.y - 25);
-    icon.alpha = 0.95;
-    this.applyMonochromeIconColor(icon, color);
+    icon.scaleX = 0.7;
+    icon.scaleY = 0.7;
+    icon.x = Math.round(anchor.x - 35);
+    icon.y = Math.round(anchor.y - 88);
+    icon.alpha = 1;
+    this.applyMonochromeIconColor(icon, colors.primary);
     this.stage.addChild(icon);
 
     effect = {
@@ -1088,33 +1193,34 @@ GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMe
         life: durationMs || 1000,
         maxLife: durationMs || 1000,
         centerX: anchor.x,
-        centerY: anchor.y,
+        centerY: anchor.y - 42,
         buffType: buffType
     };
 
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < 14; i++) {
         particleResource = i % 2 === 0 ? "Buff_Up_Particle_T" : "Sparkle_Particle_T";
         particle = new rune.display.Sprite(0, 0, 16, 16, particleResource);
         angle = Math.random() * Math.PI * 2;
-        distance = this.randomRange ? this.randomRange(8, 34) : (8 + Math.random() * 26);
-        speed = this.randomRange ? this.randomRange(0.008, 0.035) : (0.008 + Math.random() * 0.027);
-        scale = this.randomRange ? this.randomRange(0.3, 0.72) : (0.3 + Math.random() * 0.42);
+        distance = this.randomRange ? this.randomRange(10, 28) : (10 + Math.random() * 18);
+        speed = this.randomRange ? this.randomRange(0.007, 0.02) : (0.007 + Math.random() * 0.013);
+        scale = this.randomRange ? this.randomRange(0.32, 0.7) : (0.32 + Math.random() * 0.38);
+        particleColor = i % 3 === 0 ? colors.darker : (i % 2 === 0 ? colors.primary : colors.dark);
 
         particle.scaleX = scale;
         particle.scaleY = scale;
         particle.x = Math.round(anchor.x + Math.cos(angle) * distance);
         particle.y = Math.round(anchor.y + Math.sin(angle) * distance);
         particle.vx = Math.cos(angle) * speed;
-        particle.vy = Math.sin(angle) * speed - (this.randomRange ? this.randomRange(0.008, 0.03) : (0.008 + Math.random() * 0.022));
+        particle.vy = Math.sin(angle) * speed - (this.randomRange ? this.randomRange(0.003, 0.01) : (0.003 + Math.random() * 0.007));
         particle.wobble = Math.random() * Math.PI * 2;
-        particle.wobbleSpeed = this.randomRange ? this.randomRange(0.025, 0.075) : (0.025 + Math.random() * 0.05);
-        particle.wobbleAmount = this.randomRange ? this.randomRange(0.06, 0.18) : (0.06 + Math.random() * 0.12);
+        particle.wobbleSpeed = this.randomRange ? this.randomRange(0.015, 0.04) : (0.015 + Math.random() * 0.025);
+        particle.wobbleAmount = this.randomRange ? this.randomRange(0.02, 0.07) : (0.02 + Math.random() * 0.05);
         particle.rotation = Math.random() * Math.PI * 2;
-        particle.rotationSpeed = (Math.random() < 0.5 ? -1 : 1) * (this.randomRange ? this.randomRange(0.0015, 0.006) : (0.0015 + Math.random() * 0.0045));
+        particle.rotationSpeed = (Math.random() < 0.5 ? -1 : 1) * (this.randomRange ? this.randomRange(0.002, 0.007) : (0.002 + Math.random() * 0.005));
         particle.life = durationMs || 1000;
         particle.maxLife = durationMs || 1000;
-        particle.alpha = 0.65 + Math.random() * 0.35;
-        this.applyMonochromeIconColor(particle, color);
+        particle.alpha = 0.82 + Math.random() * 0.16;
+        this.applyMonochromeIconColor(particle, particleColor);
         this.stage.addChild(particle);
         effect.particles.push(particle);
     }
@@ -1123,7 +1229,7 @@ GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMe
 };
 
 GraveFallGame.scene.Game.prototype.spawnItemPickupEffect = function (playerMenu, buffType, durationMs) {
-    var color;
+    var colors;
     var anchor;
     var effect;
     var particle;
@@ -1142,7 +1248,7 @@ GraveFallGame.scene.Game.prototype.spawnItemPickupEffect = function (playerMenu,
         this.buffVisualEffects = [];
     }
 
-    color = playerMenu.theme ? playerMenu.theme.accentLight : "#FFFFFF";
+    colors = this.getBuffEffectColors(playerMenu);
     anchor = this.getBuffEffectAnchor(playerMenu);
     effect = {
         icon: null,
@@ -1154,29 +1260,29 @@ GraveFallGame.scene.Game.prototype.spawnItemPickupEffect = function (playerMenu,
         buffType: buffType || "pickup"
     };
 
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 10; i++) {
         particleResource = i % 2 === 0 ? "Sparkle_Particle_T" : "Buff_Up_Particle_T";
         particle = new rune.display.Sprite(0, 0, 16, 16, particleResource);
         angle = Math.random() * Math.PI * 2;
-        distance = this.randomRange ? this.randomRange(4, 22) : (4 + Math.random() * 18);
-        speed = this.randomRange ? this.randomRange(0.006, 0.026) : (0.006 + Math.random() * 0.02);
-        scale = this.randomRange ? this.randomRange(0.22, 0.52) : (0.22 + Math.random() * 0.3);
+        distance = this.randomRange ? this.randomRange(6, 18) : (6 + Math.random() * 12);
+        speed = this.randomRange ? this.randomRange(0.006, 0.016) : (0.006 + Math.random() * 0.01);
+        scale = this.randomRange ? this.randomRange(0.24, 0.5) : (0.24 + Math.random() * 0.26);
 
         particle.scaleX = scale;
         particle.scaleY = scale;
         particle.x = Math.round(anchor.x + Math.cos(angle) * distance);
         particle.y = Math.round(anchor.y + Math.sin(angle) * distance);
         particle.vx = Math.cos(angle) * speed;
-        particle.vy = Math.sin(angle) * speed - (this.randomRange ? this.randomRange(0.004, 0.018) : (0.004 + Math.random() * 0.014));
+        particle.vy = Math.sin(angle) * speed - (this.randomRange ? this.randomRange(0.002, 0.007) : (0.002 + Math.random() * 0.005));
         particle.wobble = Math.random() * Math.PI * 2;
-        particle.wobbleSpeed = this.randomRange ? this.randomRange(0.02, 0.055) : (0.02 + Math.random() * 0.035);
-        particle.wobbleAmount = this.randomRange ? this.randomRange(0.04, 0.12) : (0.04 + Math.random() * 0.08);
+        particle.wobbleSpeed = this.randomRange ? this.randomRange(0.012, 0.03) : (0.012 + Math.random() * 0.018);
+        particle.wobbleAmount = this.randomRange ? this.randomRange(0.015, 0.05) : (0.015 + Math.random() * 0.035);
         particle.rotation = Math.random() * Math.PI * 2;
-        particle.rotationSpeed = (Math.random() < 0.5 ? -1 : 1) * (this.randomRange ? this.randomRange(0.001, 0.004) : (0.001 + Math.random() * 0.003));
+        particle.rotationSpeed = (Math.random() < 0.5 ? -1 : 1) * (this.randomRange ? this.randomRange(0.0015, 0.006) : (0.0015 + Math.random() * 0.0045));
         particle.life = durationMs || 650;
         particle.maxLife = durationMs || 650;
-        particle.alpha = 0.55 + Math.random() * 0.35;
-        this.applyMonochromeIconColor(particle, color);
+        particle.alpha = 0.75 + Math.random() * 0.18;
+        this.applyMonochromeIconColor(particle, i % 2 === 0 ? colors.dark : colors.primary);
         this.stage.addChild(particle);
         effect.particles.push(particle);
     }
@@ -1184,6 +1290,133 @@ GraveFallGame.scene.Game.prototype.spawnItemPickupEffect = function (playerMenu,
     this.buffVisualEffects.push(effect);
 };
 
+
+GraveFallGame.scene.Game.prototype.spawnParticleBurstAt = function (centerX, centerY, options) {
+    var effect;
+    var i;
+    var particle;
+    var colors;
+    var particleColor;
+    var particleResource;
+    var angle;
+    var distance;
+    var speed;
+    var scale;
+    var count;
+    var durationMs;
+
+    if (!this.stage) {
+        return;
+    }
+
+    if (!this.buffVisualEffects) {
+        this.buffVisualEffects = [];
+    }
+
+    options = options || {};
+    colors = options.colors || ["#FFFFFF"];
+    count = options.count || 8;
+    durationMs = options.durationMs || 420;
+
+    effect = {
+        icon: null,
+        particles: [],
+        life: durationMs,
+        maxLife: durationMs,
+        centerX: centerX,
+        centerY: centerY,
+        buffType: options.effectType || "burst"
+    };
+
+    for (i = 0; i < count; i++) {
+        particleResource = i % 2 === 0 ? (options.primaryResource || "Buff_Up_Particle_T") : (options.secondaryResource || options.primaryResource || "Sparkle_Particle_T");
+        particle = new rune.display.Sprite(0, 0, 16, 16, particleResource);
+        angle = (options.directional === true ? (-0.7 + Math.random() * 1.4) : (Math.random() * Math.PI * 2));
+        distance = this.randomRange ? this.randomRange(options.minDistance || 1, options.maxDistance || 10) : ((options.minDistance || 1) + Math.random() * ((options.maxDistance || 10) - (options.minDistance || 1)));
+        speed = this.randomRange ? this.randomRange(options.minSpeed || 0.004, options.maxSpeed || 0.02) : ((options.minSpeed || 0.004) + Math.random() * ((options.maxSpeed || 0.02) - (options.minSpeed || 0.004)));
+        scale = this.randomRange ? this.randomRange(options.minScale || 0.12, options.maxScale || 0.28) : ((options.minScale || 0.12) + Math.random() * ((options.maxScale || 0.28) - (options.minScale || 0.12)));
+        particleColor = colors[i % colors.length];
+
+        particle.scaleX = scale;
+        particle.scaleY = scale;
+        particle.x = Math.round(centerX + Math.cos(angle) * distance);
+        particle.y = Math.round(centerY + Math.sin(angle) * distance);
+        particle.vx = Math.cos(angle) * speed;
+        particle.vy = Math.sin(angle) * speed + (options.baseVy || 0);
+
+        if (options.directional === true) {
+            particle.vx += options.forwardX || 0;
+            particle.vy += options.forwardY || 0;
+        }
+
+        particle.wobble = Math.random() * Math.PI * 2;
+        particle.wobbleSpeed = this.randomRange ? this.randomRange(0.008, 0.022) : (0.008 + Math.random() * 0.014);
+        particle.wobbleAmount = this.randomRange ? this.randomRange(0.01, 0.035) : (0.01 + Math.random() * 0.025);
+        particle.rotation = Math.random() * Math.PI * 2;
+        particle.rotationSpeed = (Math.random() < 0.5 ? -1 : 1) * (this.randomRange ? this.randomRange(0.002, 0.009) : (0.002 + Math.random() * 0.007));
+        particle.life = durationMs;
+        particle.maxLife = durationMs;
+        particle.alpha = 0.78 + Math.random() * 0.18;
+        this.applyMonochromeIconColor(particle, particleColor);
+        this.stage.addChild(particle);
+        effect.particles.push(particle);
+    }
+
+    this.buffVisualEffects.push(effect);
+};
+
+GraveFallGame.scene.Game.prototype.spawnEnemyDamageParticles = function (amount) {
+    var anchor = this.getEnemyEffectAnchor();
+    var count = Math.max(22, Math.min(44, Math.floor((amount || 0) * 1.05) + 18));
+
+    this.spawnParticleBurstAt(anchor.x, anchor.y + 16, {
+        effectType: "enemyHit",
+        colors: ["#4A0404", "#7A1111", "#A81818", "#D62D2D", "#FF5252"],
+        count: count,
+        durationMs: 680,
+        minDistance: 2,
+        maxDistance: 34,
+        minSpeed: 0.012,
+        maxSpeed: 0.055,
+        minScale: 0.34,
+        maxScale: 0.84,
+        directional: false,
+        baseVy: -0.002,
+        primaryResource: "Sparkle_Particle_T",
+        secondaryResource: "Sparkle_Particle_T"
+    });
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlayerDamageParticles = function (playerMenu, amount) {
+    var anchor;
+    var count;
+    var colors;
+
+    if (!playerMenu) {
+        return;
+    }
+
+    anchor = this.getBuffEffectAnchor(playerMenu);
+    colors = this.getPlayerDamageEffectColors(playerMenu);
+    count = Math.max(12, Math.min(24, Math.floor((amount || 0) * 0.7) + 8));
+
+    this.spawnParticleBurstAt(anchor.x, anchor.y + 8, {
+        effectType: "playerHit",
+        colors: colors,
+        count: count,
+        durationMs: 560,
+        minDistance: 1,
+        maxDistance: 24,
+        minSpeed: 0.008,
+        maxSpeed: 0.038,
+        minScale: 0.24,
+        maxScale: 0.62,
+        directional: false,
+        baseVy: -0.001,
+        primaryResource: "Sparkle_Particle_T",
+        secondaryResource: "Sparkle_Particle_T"
+    });
+};
 
 GraveFallGame.scene.Game.prototype.updateBuffVisualEffects = function (step) {
     var i;
@@ -1205,7 +1438,7 @@ GraveFallGame.scene.Game.prototype.updateBuffVisualEffects = function (step) {
         if (effect.icon) {
             effect.icon.y -= 0.012 * step;
             effect.icon.alpha = Math.min(1, ratio * 1.4) * (0.75 + Math.random() * 0.25);
-            effect.icon.scaleX = 0.5 + ((1 - ratio) * 0.12);
+            effect.icon.scaleX = 0.66 + ((1 - ratio) * 0.16);
             effect.icon.scaleY = effect.icon.scaleX;
         }
 
