@@ -258,10 +258,8 @@ GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text) {
     popup.y = targetY;
     popup.life = 1700;
 
-    if (typeof this.tintBitmapFieldText === "function") {
-        this.tintBitmapFieldText(popup, amount < 0 ? "#FF7777" : "#FFE680");
-    }
-
+    // Leave score/highscore popups in Rune's default BitmapField styling. The
+    // default small font includes its readable pale text and black backdrop.
     this.stage.addChild(popup);
     this.scorePopups.push(popup);
 

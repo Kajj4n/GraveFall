@@ -312,11 +312,12 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
 };
 
 
-GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, targetColor) {
+GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, targetColor, stripBackdrop) {
     var color;
     var imageData;
     var data;
     var i;
+    var isBackdropPixel;
 
     if (!field || !field.canvas || !field.canvas.context || !targetColor) {
         return;
@@ -324,17 +325,24 @@ GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, target
 
     color = rune.color.Color24.fromHex(targetColor);
 
-    // Render the bitmap font once, then recolor its opaque pixels. This keeps the
-    // existing Rune bitmap text while letting each player own their damage color.
+    // Rune's default BitmapField font bakes the black number backdrop into the
+    // font texture. For enemy hit numbers we remove those dark pixels before
+    // tinting, but score popups are left untouched so they keep Rune's default.
     field.render();
     imageData = field.canvas.context.getImageData(0, 0, field.canvas.width, field.canvas.height);
     data = imageData.data;
 
     for (i = 0; i < data.length; i += 4) {
         if (data[i + 3] > 0) {
-            data[i] = color.r.value;
-            data[i + 1] = color.g.value;
-            data[i + 2] = color.b.value;
+            isBackdropPixel = stripBackdrop === true && data[i] < 24 && data[i + 1] < 24 && data[i + 2] < 24;
+
+            if (isBackdropPixel) {
+                data[i + 3] = 0;
+            } else {
+                data[i] = color.r.value;
+                data[i + 1] = color.g.value;
+                data[i + 2] = color.b.value;
+            }
         }
     }
 
@@ -348,10 +356,15 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     var popupWidth;
     var popupColor;
     var popupAmount;
-    var enemyWidth;
-    var enemyHeight;
+    var enemyLeft;
+    var enemyRight;
+    var enemyMidY;
+    var popupHeight;
+    var minX;
     var maxX;
+    var minY;
     var maxY;
+    var sidePadding;
     var i;
 
     if (!this.enemySprite || amount <= 0) {
@@ -382,18 +395,31 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     popup.damageAmount = popupAmount;
     popup.playerColor = popupColor;
 
-    this.tintBitmapFieldText(popup, popupColor);
+    this.tintBitmapFieldText(popup, popupColor, true);
 
-    enemyWidth = (this.enemySprite.width || 80) * (this.enemySprite.scaleX || 1);
-    enemyHeight = (this.enemySprite.height || 80) * (this.enemySprite.scaleY || 1);
+    enemyLeft = this.getStageAnchorForNode(this.enemySprite, 0, 0.5).x;
+    enemyRight = this.getStageAnchorForNode(this.enemySprite, 1, 0.5).x;
+    enemyMidY = this.getStageAnchorForNode(this.enemySprite, 0.5, 0.44).y;
     popupWidth = text.length * 6 * (popup.scaleX || 1);
+    popupHeight = 8 * (popup.scaleY || 1);
+    sidePadding = 6;
+    minX = 16;
     maxX = this.application.screen.width - popupWidth - 16;
-    maxY = this.application.screen.height - 96;
+    minY = 48;
+    maxY = this.application.screen.height - popupHeight - 48;
 
-    popup.x = Math.round(this.enemySprite.x + (enemyWidth * 0.58));
-    popup.y = Math.round(this.enemySprite.y + (enemyHeight * 0.42) - (this.damagePopups.length * 34));
-    popup.x = Math.max(16, Math.min(maxX, popup.x));
-    popup.y = Math.max(72, Math.min(maxY, popup.y));
+    // Keep the damage number visually attached to the enemy instead of drifting
+    // to the screen edge. Since the enemy usually stands on the right side, put
+    // the popup just to its left; if an enemy appears on the left, use its right.
+    if (enemyRight + sidePadding + popupWidth <= maxX) {
+        popup.x = Math.round(enemyRight + sidePadding);
+    } else {
+        popup.x = Math.round(enemyLeft - popupWidth - sidePadding);
+    }
+
+    popup.y = Math.round(enemyMidY - (popupHeight / 2) - (this.damagePopups.length * 30));
+    popup.x = Math.max(minX, Math.min(maxX, popup.x));
+    popup.y = Math.max(minY, Math.min(maxY, popup.y));
 
     this.stage.addChild(popup);
     this.damagePopups.push(popup);
