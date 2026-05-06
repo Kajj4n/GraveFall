@@ -216,7 +216,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
     }
 
     this.updateAllPlayerDamageStates();
-    this.setPlayerTransitionVisibility(true, false);
+    this.setPlayerTransitionVisibility(false, false);
+    this.setPlayerTransitionAlpha(0, 0);
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(0); 
     this.applyPassageCameraTransition(0);

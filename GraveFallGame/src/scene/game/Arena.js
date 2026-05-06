@@ -788,7 +788,9 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     }
 
     if (this.passageTransitionEncounterLoaded !== true) {
-        if (elapsedMs < walkStartMs) {
+        if (this.passageTransitionIsIntro === true) {
+            outgoingPlayerAlpha = 0;
+        } else if (elapsedMs < walkStartMs) {
             outgoingPlayerAlpha = 1;
         } else if (elapsedMs < playerFadeOutEndMs) {
             outgoingPlayerAlpha = 1 - this.easePassageTransition((elapsedMs - walkStartMs) / Math.max(1, playerFadeOutEndMs - walkStartMs));

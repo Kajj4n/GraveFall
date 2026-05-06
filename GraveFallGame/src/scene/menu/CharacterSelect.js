@@ -23,6 +23,9 @@ GraveFallGame.scene.CharacterSelect = function () {
     this.classNodes = [];
     this.layoutSlots = [];
     this.layoutTweenDuration = 420;
+    this.enterTransition = null;
+    this.enterSlideDuration = 560;
+    this.enterFadeDuration = 460;
     this.runPaletteKey = null;
     this.runPalette = null;
     this.backgroundSkin = GraveFallGame.scene.Game.UI_SKINS.outsideCampfireBrown || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -116,6 +119,11 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
 
 GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
+
+    if (this.enterTransition) {
+        this.updateEnterTransition(step);
+        return;
+    }
 
     var allJoinedConfirmed = true;
     var anyJoined = this.players.length > 0;
@@ -212,7 +220,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
         this.centerText(this.instructionText, this.application.screen.width / 2, 2);
 
         if (this.countdownTimer <= 0) {
-            this.startGame();
+            this.beginEnterTransition();
         }
     } else {
         this.countdownTimer = undefined;
@@ -690,6 +698,252 @@ GraveFallGame.scene.CharacterSelect.prototype.rebuildClassLayout = function (ani
     for (i = 0; i < this.classNodes.length; i++) {
         node = this.classNodes[i];
         this.setNodeTargetSlot(node, slotByClassIndex[i], animate === true);
+    }
+};
+
+
+GraveFallGame.scene.CharacterSelect.prototype.easeTransition = function (progress) {
+    progress = Math.max(0, Math.min(1, progress || 0));
+
+    if (rune.tween && rune.tween.Cubic && rune.tween.Cubic.easeInOut) {
+        return rune.tween.Cubic.easeInOut(progress, 0, 1, 1);
+    }
+
+    return progress * progress * (3 - (2 * progress));
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.getSelectedPlayersInRenderOrder = function () {
+    var selectedPlayers = [];
+    var controllerIndex;
+    var p;
+    var player;
+
+    for (controllerIndex = 0; controllerIndex < this.controllers.length; controllerIndex++) {
+        player = null;
+
+        for (p = 0; p < this.players.length; p++) {
+            if (this.players[p].controller.id === this.controllers[controllerIndex].id) {
+                player = this.players[p];
+                break;
+            }
+        }
+
+        if (player && player.confirmed === true) {
+            selectedPlayers.push({
+                player: player,
+                controllerIndex: controllerIndex
+            });
+        }
+    }
+
+    return selectedPlayers;
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.beginEnterTransition = function () {
+    var selectedPlayers;
+    var partySize;
+    var screenWidth;
+    var menuWidth = 320;
+    var members = [];
+    var fadeNodes = [];
+    var selectedNodeIndices = {};
+    var i;
+    var selection;
+    var player;
+    var node;
+    var targetX;
+    var targetFlip;
+    var renderIndex;
+
+    if (this.enterTransition) {
+        return;
+    }
+
+    selectedPlayers = this.getSelectedPlayersInRenderOrder();
+    partySize = selectedPlayers.length;
+
+    if (partySize <= 0) {
+        this.startGame();
+        return;
+    }
+
+    screenWidth = this.application && this.application.screen ? this.application.screen.width : 1280;
+
+    if (this.instructionText) {
+        this.instructionText.text = "ENTERING DUNGEON";
+        this.centerText(this.instructionText, screenWidth / 2, 2);
+    }
+
+    for (i = 0; i < selectedPlayers.length; i++) {
+        selection = selectedPlayers[i];
+        player = selection.player;
+        node = this.classNodes[player.classIndex];
+
+        if (!node) {
+            continue;
+        }
+
+        selectedNodeIndices[player.classIndex] = true;
+        renderIndex = i;
+        targetX = GraveFallGame.scene.Game.getPartyMenuX(renderIndex, partySize, menuWidth, screenWidth);
+        targetFlip = GraveFallGame.scene.Game.getPartyMemberFlippedX(renderIndex, partySize);
+
+        node.layoutAnimating = false;
+        node.targetX = targetX;
+        node.cardX = targetX;
+        node.centerX = targetX + (node.cardWidth / 2);
+        node.spriteX = this.getSpriteXForCardX(node, targetX);
+
+        if (node.sprite) {
+            this.setDamageStateGroupFlippedX(node.sprite, targetFlip);
+        }
+
+        members.push({
+            node: node,
+            startX: (typeof node.visualX === "number") ? node.visualX : (node.panel ? node.panel.x : targetX),
+            targetX: targetX
+        });
+    }
+
+    for (i = 0; i < this.classNodes.length; i++) {
+        node = this.classNodes[i];
+
+        if (!node) {
+            continue;
+        }
+
+        node.layoutAnimating = false;
+        fadeNodes.push({
+            node: node,
+            selected: selectedNodeIndices[i] === true,
+            panelAlpha: node.panel ? node.panel.alpha : 1,
+            spriteAlpha: node.sprite ? node.sprite.alpha : 1
+        });
+    }
+
+    this.enterTransition = {
+        phase: "slide",
+        elapsed: 0,
+        slideDuration: this.enterSlideDuration || 560,
+        fadeDuration: this.enterFadeDuration || 460,
+        members: members,
+        fadeNodes: fadeNodes
+    };
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.updateEnterTransition = function (step) {
+    var transition = this.enterTransition;
+    var progress;
+    var eased;
+    var i;
+    var item;
+    var node;
+    var nextX;
+    var alpha;
+    var fadeAlpha;
+
+    if (!transition) {
+        return;
+    }
+
+    transition.elapsed += step;
+
+    if (transition.phase === "slide") {
+        progress = Math.min(1, transition.elapsed / Math.max(1, transition.slideDuration));
+        eased = this.easeTransition(progress);
+
+        for (i = 0; i < transition.members.length; i++) {
+            item = transition.members[i];
+            node = item.node;
+            nextX = item.startX + ((item.targetX - item.startX) * eased);
+            this.applyNodeVisualX(node, nextX);
+        }
+
+        for (i = 0; i < transition.fadeNodes.length; i++) {
+            item = transition.fadeNodes[i];
+
+            if (item.selected === true) {
+                continue;
+            }
+
+            fadeAlpha = 1 - eased;
+            node = item.node;
+
+            if (node.panel) {
+                node.panel.alpha = item.panelAlpha * fadeAlpha;
+            }
+
+            if (node.sprite) {
+                node.sprite.alpha = item.spriteAlpha * fadeAlpha;
+            }
+        }
+
+        if (progress >= 1) {
+            for (i = 0; i < transition.members.length; i++) {
+                item = transition.members[i];
+                this.applyNodeVisualX(item.node, item.targetX);
+            }
+
+            transition.phase = "fade";
+            transition.elapsed = 0;
+        }
+
+        return;
+    }
+
+    if (transition.phase === "fade") {
+        progress = Math.min(1, transition.elapsed / Math.max(1, transition.fadeDuration));
+        eased = this.easeTransition(progress);
+        alpha = 1 - eased;
+
+        for (i = 0; i < transition.fadeNodes.length; i++) {
+            item = transition.fadeNodes[i];
+            node = item.node;
+            fadeAlpha = item.selected === true ? alpha : 0;
+
+            if (node.panel) {
+                node.panel.alpha = item.panelAlpha * fadeAlpha;
+            }
+
+            if (node.sprite) {
+                node.sprite.alpha = item.spriteAlpha * fadeAlpha;
+            }
+        }
+
+        if (this.titleText) {
+            this.titleText.alpha = alpha;
+        }
+
+        if (this.instructionText) {
+            this.instructionText.alpha = alpha;
+        }
+
+        if (progress >= 1) {
+            for (i = 0; i < transition.fadeNodes.length; i++) {
+                item = transition.fadeNodes[i];
+                node = item.node;
+
+                if (node.panel) {
+                    node.panel.alpha = 0;
+                }
+
+                if (node.sprite) {
+                    node.sprite.alpha = 0;
+                }
+            }
+
+            if (this.titleText) {
+                this.titleText.alpha = 0;
+            }
+
+            if (this.instructionText) {
+                this.instructionText.alpha = 0;
+            }
+
+            this.startGame();
+        }
+
+        return;
     }
 };
 
