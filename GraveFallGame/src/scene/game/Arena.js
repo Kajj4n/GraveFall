@@ -525,6 +525,10 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
         this.playerMenus[i].revivedFromEnemyDefeat = false;
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
+        this.playerMenus[i].isDefending = false;
+        this.playerMenus[i].temporaryDefenseBuff = false;
+        this.playerMenus[i].temporarySpeedBuff = false;
+        this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
         this.playerMenus[i].menuState = "main";
         this.updateCharacterMenuVisuals(this.playerMenus[i]);
         this.deactivateBattleAvatar(this.playerMenus[i]);
@@ -1084,7 +1088,7 @@ GraveFallGame.scene.Game.prototype.beginActionPreviewStep = function () {
     this.actionPreviewTimerMs = this.getActionPreviewDuration(playerMenu.selectedAction);
     this.actionPreviewStepStarted = true;
 
-    standState = this.getActionPreviewStandState(playerMenu.selectedAction);
+    standState = this.getActionPreviewStandState(playerMenu.selectedAction, playerMenu);
     playerMenu.standActionState = standState;
     this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
     this.startPlayerActionPreviewShake(playerMenu, playerMenu.selectedAction);
@@ -1173,6 +1177,7 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].container.y = this.playerMenus[i].confirmedY;
         this.playerMenus[i].hitCooldown = 0;
+        this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
         this.activateBattleAvatar(this.playerMenus[i]);
     }
 };
@@ -1202,6 +1207,9 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
         this.playerMenus[i].isDefending = false;
+        this.playerMenus[i].temporaryDefenseBuff = false;
+        this.playerMenus[i].temporarySpeedBuff = false;
+        this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
         
         this.playerMenus[i].menuState = "main";
         this.updateCharacterMenuVisuals(this.playerMenus[i]);

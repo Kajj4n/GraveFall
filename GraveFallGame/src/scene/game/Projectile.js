@@ -431,8 +431,12 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     var wasAlive = playerMenu.healthCurrent > 0;
     var finalDamage = amount;
 
-    if (playerMenu.isDefending) {
-        finalDamage = Math.ceil(amount / 2);
+    if (playerMenu.isDefending || playerMenu.temporaryDefenseBuff === true) {
+        finalDamage = Math.ceil(finalDamage * 0.5);
+    }
+
+    if (playerMenu.permanentDefenseBonus > 0) {
+        finalDamage = Math.ceil(finalDamage * Math.max(0.5, 1 - (playerMenu.permanentDefenseBonus * 0.08)));
     }
 
     // --- SCORE TRIGGER: TOOK DAMAGE ---
@@ -444,6 +448,10 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent - finalDamage);
     this.updatePlayerHealthUi(playerMenu);
     playerMenu.hitCooldown = 12;
+
+    if (finalDamage > 0) {
+        this.spawnPlayerDamageParticles(playerMenu, finalDamage);
+    }
 
     this.shakeOnPlayerDamage(finalDamage);
 
@@ -594,13 +602,16 @@ GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
 GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
     var inner = this.getArenaInnerBounds();
     var itemScale = 0.45;
-    var item = new rune.display.Sprite(0, 0, 100, 100, "Item_Icon_T");
+    var itemTypes = ["maxHp", "attack", "defense", "speed"];
+    var itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+    var item = new rune.display.Sprite(0, 0, 100, 100, this.getItemIconResource(itemType));
     var maxX;
     var maxY;
 
     item.scaleX = itemScale;
     item.scaleY = itemScale;
     this.applyMonochromeIconColor(item, "#FFFFFF");
+    item.buffType = itemType;
 
     maxX = inner.x + inner.width - (item.width * item.scaleX);
     maxY = inner.y + inner.height - (item.height * item.scaleY);
@@ -637,6 +648,8 @@ GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
 
         if (this.rectsOverlap(playerMenu.battleAvatar, this.arenaItem)) {
             this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.65);
+            this.givePlayerItem(playerMenu, this.arenaItem.buffType || "attack");
+            this.spawnItemPickupEffect(playerMenu, this.arenaItem.buffType || "attack", 650);
             this.clearArenaItem();
             this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
             break;

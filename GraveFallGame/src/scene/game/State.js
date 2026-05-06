@@ -293,8 +293,8 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         title: "WARRIOR: MASH",
         setup: "setupButtonMashMinigame",
         update: "updateButtonMashMinigame",
-        damagePerPress: 1,
-        maxUsefulPresses: 36
+        damagePerCycle: 8,
+        maxUsefulPresses: 18
     },
     buttonSequence: {
         id: "buttonSequence",
@@ -314,7 +314,9 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         perfectDamage: 5,
         goodDamage: 3,
         okDamage: 1,
-        shotCooldownMs: 280
+        shotCooldownMs: 280,
+        settleDurationMs: 850,
+        resetDistance: 62
     },
     timingBar: {
         id: "timingBar",
@@ -332,13 +334,11 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
 // Sprite names the minigames will try to use if those resources are baked into
 // Requests.js later. Until then, runtime Graphics are used as placeholders.
 GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
-    { name: "MG_Ranger_Target", size: "112x40", purpose: "Ranger aiming board / wide target sprite" },
     { name: "MG_Ranger_Bullseye", size: "16x16", purpose: "Center scoring mark / bullseye for the ranger target" },
     { name: "MG_Ranger_Reticle", size: "16x16", purpose: "Moving ranger reticle / crosshair" },
     { name: "MG_Rogue_Bar_Back", size: "196x20", purpose: "Rogue horizontal timing bar background" },
     { name: "MG_Rogue_HitZone", size: "20x28", purpose: "Rogue center hit-zone marker" },
     { name: "MG_Rogue_Timing_Block", size: "14x24", purpose: "Rogue moving timing rectangle" },
-    { name: "MG_Button_Mash_Icon", size: "64x64", purpose: "Optional warrior mash prompt icon" },
     { name: "MG_Sequence_Slot", size: "42x42", purpose: "Optional wizard sequence slot frame" }
 ];
 
@@ -811,6 +811,9 @@ GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseRe
 
         { state: "itemAttack", resource: this.resolveExistingResource([prefix + "_Item_Attack", prefix + "_Idle_Stance"], baseResource) },
         { state: "itemDefend", resource: this.resolveExistingResource([prefix + "_Item_Defend", prefix + "_Idle_Stance"], baseResource) },
+        { state: "itemPotion", resource: this.resolveExistingResource([prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
+        { state: "itemSpeedPotion", resource: this.resolveExistingResource([prefix + "_Item_Speed_Potion", downedPrefix + "_Item_Speed_Potion", prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
+        { state: "buff", resource: this.resolveExistingResource([prefix + "_Buff_Stance", prefix + "_Item_Defend", prefix + "_Idle_Stance"], baseResource) },
 
         { state: "knockedOut", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) },
         { state: "dead", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) }

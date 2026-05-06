@@ -166,6 +166,31 @@ GraveFallGame.scene.Game.prototype.createOptionalMinigameSprite = function (reso
     return display;
 };
 
+GraveFallGame.scene.Game.prototype.createThemedMinigameSprite = function (resourceNames, x, y, width, height, fallbackColor, targetColor) {
+    var i;
+    var resourceName = null;
+    var display;
+
+    if (typeof resourceNames === "string") {
+        resourceNames = [resourceNames];
+    }
+
+    for (i = 0; i < resourceNames.length; i++) {
+        if (this.resourceExists(resourceNames[i])) {
+            resourceName = resourceNames[i];
+            break;
+        }
+    }
+
+    display = this.createOptionalMinigameSprite(resourceName || resourceNames[0], x, y, width, height, fallbackColor);
+
+    if (resourceName && targetColor) {
+        this.applyMonochromeIconColor(display, targetColor);
+    }
+
+    return display;
+};
+
 GraveFallGame.scene.Game.prototype.getButtonIconForDirection = function (direction) {
     if (direction === "up") {
         return "Y_Button_Icon_T";
@@ -180,6 +205,22 @@ GraveFallGame.scene.Game.prototype.getButtonIconForDirection = function (directi
     }
 
     return "A_Button_Icon_T";
+};
+
+GraveFallGame.scene.Game.prototype.getButtonLabelForDirection = function (direction) {
+    if (direction === "up") {
+        return "Y";
+    }
+
+    if (direction === "left") {
+        return "X";
+    }
+
+    if (direction === "right") {
+        return "B";
+    }
+
+    return "A";
 };
 
 GraveFallGame.scene.Game.prototype.createMinigameIcon = function (resource, x, y, scale) {
@@ -229,12 +270,80 @@ GraveFallGame.scene.Game.prototype.setupPlayerMinigame = function (menu) {
     this.layoutPlayerMinigame(menu);
 };
 
+GraveFallGame.scene.Game.prototype.setButtonMashPromptIcon = function (menu, resource, x, y, scale) {
+    var minigame = menu.minigame;
+    var icon;
+
+    if (!minigame || !minigame.group) {
+        return null;
+    }
+
+    if (minigame.buttonIcon && minigame.buttonIcon.parent) {
+        minigame.buttonIcon.parent.removeChild(minigame.buttonIcon, true);
+    }
+
+    icon = this.createMinigameIcon(resource, x, y, scale);
+    this.applyMonochromeIconColor(icon, menu.theme.accent);
+    minigame.buttonIcon = icon;
+    minigame.group.addChild(icon);
+
+    return icon;
+};
+
+GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (direction) {
+    return this.getButtonIconForDirection(direction);
+};
+
+GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (menu) {
+    if (!menu || !menu.minigame) {
+        return null;
+    }
+
+    return this.getPressedMinigameDirection(menu);
+};
+
+GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
+    var minigame = menu.minigame;
+    var previous;
+    var direction;
+
+    if (!minigame) {
+        return;
+    }
+
+    previous = minigame.currentMashDirection;
+    direction = this.randomMinigameDirection();
+
+    if (direction === previous) {
+        direction = this.randomMinigameDirection();
+    }
+
+    minigame.currentMashDirection = direction;
+    this.setButtonMashPromptIcon(menu, this.getButtonMashIconResource(direction), 101, 43, 0.55);
+    this.setMinigameFeedback(menu, "MASH " + this.getButtonLabelForDirection(direction));
+};
+
+GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
+    var minigame = menu.minigame;
+    var bonus;
+
+    if (!minigame) {
+        return;
+    }
+
+    bonus = minigame.damagePerCycle || 8;
+    minigame.storedDamage += bonus;
+    minigame.pressCount = 0;
+    minigame.mashFill.scaleX = 0;
+
+    this.setMinigameFeedback(menu, "MAX +" + bonus);
+    this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45);
+    this.rollButtonMashButton(menu);
+};
+
 GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
-    var prompt = new rune.text.BitmapField("MASH THE BUTTON");
-    var icon = this.resourceExists("MG_Button_Mash_Icon") ?
-        new rune.display.Sprite(96, 42, 64, 64, "MG_Button_Mash_Icon") :
-        this.createMinigameIcon("A_Button_Icon_T", 101, 43, 0.55);
+    var prompt = new rune.text.BitmapField("MASH SHOWN");
     var barBack = new rune.display.Graphic(36, 92, 184, 8);
     var barFill = new rune.display.Graphic(36, 92, 184, 8);
     var feedback = this.createHiddenMinigameFeedbackText(102);
@@ -253,10 +362,7 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
     feedback.scaleY = 1;
     this.centerMinigameText(feedback, group.width, 102);
 
-    this.applyMonochromeIconColor(icon, menu.theme.accentLight);
-
     group.addChild(prompt);
-    group.addChild(icon);
     group.addChild(barBack);
     group.addChild(barFill);
     group.addChild(feedback);
@@ -267,33 +373,42 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
         definition: definition,
         storedDamage: 0,
         pressCount: 0,
-        maxUsefulPresses: definition.maxUsefulPresses || 36,
+        maxUsefulPresses: definition.maxUsefulPresses || 18,
+        damagePerCycle: definition.damagePerCycle || 8,
+        currentMashDirection: null,
         group: group,
         mashFill: barFill,
+        buttonIcon: null,
         feedbackText: feedback
     };
 
     this.stage.addChild(group);
+    this.rollButtonMashButton(menu);
 };
 
 GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
     var minigame;
     var ratio;
+    var pressedDirection;
 
     minigame = menu.minigame;
+    pressedDirection = this.getPressedButtonMashDirection(menu);
 
-    if (this.keyboard.justPressed(menu.controls.confirm)) {
+    if (pressedDirection === minigame.currentMashDirection) {
         minigame.pressCount += 1;
-        minigame.storedDamage += minigame.definition.damagePerPress || 1;
         this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.32);
+
+        if (minigame.pressCount >= minigame.maxUsefulPresses) {
+            this.completeButtonMashCycle(menu);
+            return;
+        }
+    } else if (pressedDirection) {
+        this.setMinigameFeedback(menu, "MASH " + this.getButtonLabelForDirection(minigame.currentMashDirection));
+        this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.22);
     }
 
     ratio = Math.min(1, minigame.pressCount / minigame.maxUsefulPresses);
     minigame.mashFill.scaleX = ratio;
-
-    if (ratio >= 1) {
-        this.setMinigameFeedback(menu, "MAX");
-    }
 };
 
 GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
@@ -452,14 +567,16 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
 GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("HIT THE TARGET");
-    var target = this.createOptionalMinigameSprite("MG_Ranger_Target", 72, 46, 112, 40, "#202020");
-    var bullseye = this.createOptionalMinigameSprite("MG_Ranger_Bullseye", 120, 58, 16, 16, menu.theme.accentDark);
+    var target = new rune.display.Graphic(72, 46, 112, 40);
+    var bullseye = this.createThemedMinigameSprite(["MG_Ranger_Bullseye_T", "MG_Ranger_Bullseye"], 120, 58, 16, 16, menu.theme.accentDark, menu.theme.accentDark);
     var centerDot = new rune.display.Graphic(126, 64, 4, 4);
-    var reticle = this.createOptionalMinigameSprite("MG_Ranger_Reticle", 120, 58, 16, 16, menu.theme.accentLight);
+    var reticle = this.createThemedMinigameSprite(["MG_Ranger_Reticle_T", "MG_Ranger_Reticle"], 120, 58, 16, 16, menu.theme.accentLight, menu.theme.accentLight);
     var feedback = this.createHiddenMinigameFeedbackText(102);
 
+    target.backgroundColor = "#191919";
+    target.alpha = 1;
     centerDot.backgroundColor = menu.theme.accent;
-    reticle.alpha = 0.85;
+    reticle.alpha = 0.95;
 
     prompt.autoSize = true;
     prompt.scaleX = 2;
@@ -495,11 +612,29 @@ GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, 
         jitterY: 0,
         jitterTimer: 0,
         hitCooldown: 0,
+        resetForce: 1,
+        resetAngle: Math.random() * Math.PI * 2,
+        settleDurationMs: definition.settleDurationMs || 850,
+        resetDistance: definition.resetDistance || 62,
         reticle: reticle,
         feedbackText: feedback
     };
 
     this.stage.addChild(group);
+};
+
+GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
+    var minigame = menu.minigame;
+
+    if (!minigame) {
+        return;
+    }
+
+    minigame.resetForce = 1;
+    minigame.resetAngle = Math.random() * Math.PI * 2;
+    minigame.jitterTimer = 220 + Math.random() * 180;
+    minigame.jitterX = -18 + Math.random() * 36;
+    minigame.jitterY = -10 + Math.random() * 20;
 };
 
 GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu, step) {
@@ -512,11 +647,16 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     var dy;
     var distance;
     var bonus;
+    var confirmPressed;
+    var resetOffsetX;
+    var resetOffsetY;
 
     minigame = menu.minigame;
     minigame.time += step;
     minigame.jitterTimer -= step;
     minigame.hitCooldown -= step;
+    minigame.resetForce = Math.max(0, minigame.resetForce - (step / (minigame.settleDurationMs || 850)));
+    confirmPressed = this.keyboard.justPressed(menu.controls.confirm);
 
     if (minigame.jitterTimer <= 0) {
         minigame.jitterTimer = 160 + Math.random() * 260;
@@ -525,9 +665,11 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     }
 
     t = minigame.time / 1000;
-    radius = 28;
-    rx = minigame.centerX + Math.sin(t * 5.2) * radius + Math.sin(t * 13.1) * 10 + minigame.jitterX;
-    ry = minigame.centerY + Math.cos(t * 4.1) * 8 + Math.sin(t * 9.7) * 5 + minigame.jitterY;
+    radius = 26 * (0.35 + (minigame.resetForce * 0.65));
+    resetOffsetX = Math.cos(minigame.resetAngle) * (minigame.resetDistance || 62) * minigame.resetForce;
+    resetOffsetY = Math.sin(minigame.resetAngle) * (minigame.resetDistance || 62) * 0.55 * minigame.resetForce;
+    rx = minigame.centerX + Math.sin(t * 5.2) * radius + Math.sin(t * 13.1) * 10 + minigame.jitterX + resetOffsetX;
+    ry = minigame.centerY + Math.cos(t * 4.1) * 8 + Math.sin(t * 9.7) * 5 + minigame.jitterY + resetOffsetY;
 
     rx = Math.max(minigame.targetX + 4, Math.min(minigame.targetX + minigame.targetWidth - 20, rx));
     ry = Math.max(minigame.targetY + 4, Math.min(minigame.targetY + minigame.targetHeight - 20, ry));
@@ -535,7 +677,7 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     minigame.reticle.x = rx;
     minigame.reticle.y = ry;
 
-    if (minigame.hitCooldown <= 0 && this.keyboard.justPressed(menu.controls.confirm)) {
+    if (confirmPressed && minigame.hitCooldown <= 0) {
         dx = (rx + 8) - minigame.centerX;
         dy = (ry + 8) - minigame.centerY;
         distance = Math.sqrt((dx * dx) + (dy * dy));
@@ -558,6 +700,10 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
         minigame.hitCooldown = minigame.definition.shotCooldownMs || 280;
         this.playSfx(bonus > 0 ? GraveFallGame.SOUNDS.UI_CONFIRM : GraveFallGame.SOUNDS.UI_BACK, 0.38);
     }
+
+    if (confirmPressed) {
+        this.resetTargetReticleAim(menu);
+    }
 };
 
 GraveFallGame.scene.Game.prototype.resetTimingBlock = function (menu) {
@@ -572,9 +718,9 @@ GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, defi
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("TIME THE STRIKE");
     var bar = this.createOptionalMinigameSprite("MG_Rogue_Bar_Back", 30, 58, 196, 20, "#191919");
-    var hitZone = this.createOptionalMinigameSprite("MG_Rogue_HitZone", 118, 54, 20, 28, menu.theme.accentDark);
+    var hitZone = this.createThemedMinigameSprite(["MG_Rogue_HitZone_T", "MG_Rogue_HitZone"], 118, 54, 20, 28, menu.theme.accentDark, menu.theme.accentDark);
     var centerLine = new rune.display.Graphic(127, 52, 2, 32);
-    var block = this.createOptionalMinigameSprite("MG_Rogue_Timing_Block", 30, 56, 14, 24, menu.theme.accentLight);
+    var block = this.createThemedMinigameSprite(["MG_Rogue_Timing_Block_T", "MG_Rogue_Timing_Block"], 30, 56, 14, 24, menu.theme.accentLight, menu.theme.accentLight);
     var feedback = this.createHiddenMinigameFeedbackText(102);
 
     centerLine.backgroundColor = menu.theme.accent;

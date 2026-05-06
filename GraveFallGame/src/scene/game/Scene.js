@@ -19,6 +19,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.projectiles = [];
     this.playerMenus = [];
     this.damagePopups = [];
+    this.buffVisualEffects = [];
     this.delayedSfxQueue = [];
     this.actionPreviewQueue = [];
     this.actionPreviewIndex = 0;
@@ -205,6 +206,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     
     this.clearProjectiles();
     this.clearArenaItem();
+    this.clearBuffVisualEffects();
     this.setBattleArenaVisible(false);
     this.turnTimerText.visible = false;
     this.turnTimerText.alpha = 0;
@@ -224,32 +226,44 @@ GraveFallGame.scene.Game.prototype.init = function () {
 };
 
 // --- NEW SCORE HELPER FUNCTIONS ---
-GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text) {
-    if (!this.scorePopups) this.scorePopups = [];
-    
-    var sign = amount > 0 ? "+" : "";
-    var fullText = sign + amount + " " + text;
-    var popup = new rune.text.BitmapField(fullText);
-    popup.width = 800; // FIX: Prevent clipping
-    popup.height = 64; // FIX: Prevent clipping
-    popup.scaleX = 1.5;
-    popup.scaleY = 1.5;
-    popup.x = (this.application.screen.width / 2) - ((fullText.length * 6 * 1.5) / 2);
-    
-    var targetY = 36;
-    if (this.scorePopups.length > 0) {
-        targetY = this.scorePopups[this.scorePopups.length - 1].y + 16;
-    }
-    popup.y = targetY;
-
-    popup.life = 1400; // 1.4 seconds
-    
-    this.stage.addChild(popup);
-    this.scorePopups.push(popup);
-
+GraveFallGame.scene.Game.prototype.changeScore = function(amount) {
     this.score += amount;
     if (this.score < 0) this.score = 0;
     this.updateScoreUi();
+};
+
+GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text) {
+    if (!this.scorePopups) this.scorePopups = [];
+
+    var sign = amount > 0 ? "+" : "";
+    var fullText = sign + amount + " " + text;
+    var popup = new rune.text.BitmapField(fullText);
+    var popupScale = amount < 0 ? 1.65 : 1.5;
+    var targetY = 38;
+
+    popup.width = 900; // Prevent clipping on longer reason strings.
+    popup.height = 72;
+    popup.scaleX = popupScale;
+    popup.scaleY = popupScale;
+    popup.x = (this.application.screen.width / 2) - ((fullText.length * 6 * popupScale) / 2);
+
+    if (this.scorePopups.length > 0) {
+        targetY = this.scorePopups[this.scorePopups.length - 1].y + 24;
+    }
+
+    if (targetY > 128) {
+        targetY = 38;
+    }
+
+    popup.y = targetY;
+    popup.life = 1700;
+
+    // Leave score/highscore popups in Rune's default BitmapField styling. The
+    // default small font includes its readable pale text and black backdrop.
+    this.stage.addChild(popup);
+    this.scorePopups.push(popup);
+
+    this.changeScore(amount);
 };
 
 GraveFallGame.scene.Game.prototype.updateScoreUi = function() {
@@ -285,6 +299,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
     this.updateHealingStandAnimations(step);
+    this.updateBuffVisualEffects(step);
     this.updateScorePopups(step); // --- Hooked in Score UI updating ---
     this.updateActionPreviewEffects(step);
 
@@ -558,6 +573,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.stopDungeonMusic();
     this.clearProjectiles();
     this.clearArenaItem();
+    this.clearBuffVisualEffects();
 
     if (this.playerMenus) {
         for (i = 0; i < this.playerMenus.length; i++) {
@@ -566,6 +582,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     }
 
     this.projectiles = null;
+    this.buffVisualEffects = null;
     this.playerMenus = null;
     this.backgroundBackdrop = null;
     this.backgroundBackdropResource = null;
