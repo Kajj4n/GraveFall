@@ -19,6 +19,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.projectiles = [];
     this.playerMenus = [];
     this.damagePopups = [];
+    this.buffVisualEffects = [];
     this.delayedSfxQueue = [];
     this.actionPreviewQueue = [];
     this.actionPreviewIndex = 0;
@@ -205,6 +206,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     
     this.clearProjectiles();
     this.clearArenaItem();
+    this.clearBuffVisualEffects();
     this.setBattleArenaVisible(false);
     this.turnTimerText.visible = false;
     this.turnTimerText.alpha = 0;
@@ -285,6 +287,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
     this.updateHealingStandAnimations(step);
+    this.updateBuffVisualEffects(step);
     this.updateScorePopups(step); // --- Hooked in Score UI updating ---
     this.updateActionPreviewEffects(step);
 
@@ -558,6 +561,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.stopDungeonMusic();
     this.clearProjectiles();
     this.clearArenaItem();
+    this.clearBuffVisualEffects();
 
     if (this.playerMenus) {
         for (i = 0; i < this.playerMenus.length; i++) {
@@ -566,6 +570,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     }
 
     this.projectiles = null;
+    this.buffVisualEffects = null;
     this.playerMenus = null;
     this.backgroundBackdrop = null;
     this.backgroundBackdropResource = null;

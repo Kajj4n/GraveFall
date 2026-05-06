@@ -55,15 +55,17 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var buffIcon = new rune.display.Sprite(180, 10, 100, 100, "Buff_Icon_T");
     var itemIcon = new rune.display.Sprite(255, 10, 100, 100, "Item_Icon_T");
 
-    var healthItemIcon = new rune.display.Sprite(actionPositions[0], 10, 100, 100, "Health_Up_Icon_T");
-    var sharpItemIcon = new rune.display.Sprite(actionPositions[1], 10, 100, 100, "Attack_Up_Icon_T");
-    var shieldItemIcon = new rune.display.Sprite(actionPositions[2], 10, 100, 100, "Defence_Up_Icon_T");
-    var returnItemIcon = new rune.display.Sprite(actionPositions[3], 10, 100, 100, "Back_Arrow_Icon_T");
+    var itemActionPositions = [6, 70, 134, 198, 262];
+    var healthItemIcon = new rune.display.Sprite(itemActionPositions[0], 10, 100, 100, "Health_Up_Buff_Icon_T");
+    var sharpItemIcon = new rune.display.Sprite(itemActionPositions[1], 10, 100, 100, "Attack_Up_Buff_Icon_T");
+    var shieldItemIcon = new rune.display.Sprite(itemActionPositions[2], 10, 100, 100, "Defence_Up_Buff_Icon_T");
+    var speedItemIcon = new rune.display.Sprite(itemActionPositions[3], 10, 100, 100, "Speed_Up_Buff_Icon_T");
+    var returnItemIcon = new rune.display.Sprite(itemActionPositions[4], 10, 100, 100, "Back_Arrow_Icon_T");
 
-    var itemIconsArray = [healthItemIcon, sharpItemIcon, shieldItemIcon, returnItemIcon];
+    var itemIconsArray = [healthItemIcon, sharpItemIcon, shieldItemIcon, speedItemIcon, returnItemIcon];
     for (var i = 0; i < itemIconsArray.length; i++) {
-        itemIconsArray[i].scaleX = 0.6;
-        itemIconsArray[i].scaleY = 0.6;
+        itemIconsArray[i].scaleX = 0.52;
+        itemIconsArray[i].scaleY = 0.52;
         itemIconsArray[i].visible = false;
         this.applyMonochromeIconColor(itemIconsArray[i], options.playerTheme.accentLight);
         characterMenuActions.addChild(itemIconsArray[i]);
@@ -166,6 +168,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         actions: [fightIcon, defendIcon, buffIcon, itemIcon],
         itemIcons: itemIconsArray,
         actionPositions: actionPositions,
+        itemActionPositions: itemActionPositions,
         selectionBar: actionSelectionBar,
         healthBarBackground: characterHealthBarBackground,
         healthBarFill: characterHealthBar,
@@ -191,9 +194,22 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         partySize: typeof options.partySize === "number" ? options.partySize : 1,
         flipStandX: shouldFlip,
         attackMinigame: options.attackMinigame || GraveFallGame.scene.Game.DEFAULT_ATTACK_MINIGAME,
+        baseMoveSpeed: 4,
         moveSpeed: 4,
         attackDamage: options.attackDamage || 5,
         attackDamageBonus: 0,
+        permanentAttackBonus: 0,
+        permanentDefenseBonus: 0,
+        permanentSpeedBonus: 0,
+        itemInventory: {
+            maxHp: 0,
+            attack: 0,
+            defense: 0,
+            speed: 0
+        },
+        temporaryDefenseBuff: false,
+        temporarySpeedBuff: false,
+        temporaryAttackBuff: false,
         hitCooldown: 0,
         isDefending: false,
         isBuffed: false,
@@ -247,6 +263,8 @@ GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMen
     for (var j = 0; j < playerMenu.itemIcons.length; j++) {
         playerMenu.itemIcons[j].alpha = downed ? 0.45 : 1;
     }
+
+    this.updateCharacterMenuVisuals(playerMenu);
 };
 
 GraveFallGame.scene.Game.prototype.updateAllPlayerDamageStates = function () {
@@ -425,6 +443,10 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
             menu.actionPreviewResolved = true;
             menu.isDefending = false;
             menu.isBuffed = false;
+            menu.temporaryDefenseBuff = false;
+            menu.temporarySpeedBuff = false;
+            menu.temporaryAttackBuff = false;
+            menu.moveSpeed = this.calculateEffectiveMoveSpeed(menu);
             menu.hitCooldown = 0;
             menu.standActionState = null;
             menu.menuState = "main";
@@ -473,11 +495,11 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
 };
 
 GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (selectedAction) {
-    if (selectedAction === 0 || selectedAction === 2 || selectedAction === 11) {
+    if (selectedAction === 0 || selectedAction === 11) {
         return "itemAttack";
     }
 
-    if (selectedAction === 1 || selectedAction === 12) {
+    if (selectedAction === 1 || selectedAction === 2 || selectedAction === 12 || selectedAction === 10 || selectedAction === 13) {
         return "itemDefend";
     }
 
@@ -485,15 +507,15 @@ GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (select
 };
 
 GraveFallGame.scene.Game.prototype.getActionPreviewDuration = function (selectedAction) {
-    if (selectedAction === 1 || selectedAction === 12) {
-        return 1000;
+    if (selectedAction === 1 || selectedAction === 2 || selectedAction === 10 || selectedAction === 12 || selectedAction === 13) {
+        return 1100;
     }
 
     if (selectedAction === 0) {
         return 760;
     }
 
-    return 900;
+    return 950;
 };
 
 GraveFallGame.scene.Game.prototype.startPlayerActionPreviewShake = function (playerMenu, selectedAction) {
@@ -506,10 +528,10 @@ GraveFallGame.scene.Game.prototype.startPlayerActionPreviewShake = function (pla
         playerMenu.previewStandBaseY = playerMenu.stand.y;
     }
 
-    playerMenu.previewShakeTimerMs = selectedAction === 1 || selectedAction === 12 ? 420 : 300;
+    playerMenu.previewShakeTimerMs = selectedAction === 1 || selectedAction === 2 || selectedAction === 10 || selectedAction === 12 || selectedAction === 13 ? 420 : 300;
     playerMenu.previewShakeDurationMs = playerMenu.previewShakeTimerMs;
-    playerMenu.previewShakeAmountX = selectedAction === 1 || selectedAction === 12 ? 3 : 8;
-    playerMenu.previewShakeAmountY = selectedAction === 1 || selectedAction === 12 ? 2 : 5;
+    playerMenu.previewShakeAmountX = selectedAction === 1 || selectedAction === 2 || selectedAction === 10 || selectedAction === 12 || selectedAction === 13 ? 3 : 8;
+    playerMenu.previewShakeAmountY = selectedAction === 1 || selectedAction === 2 || selectedAction === 10 || selectedAction === 12 || selectedAction === 13 ? 2 : 5;
 };
 
 GraveFallGame.scene.Game.prototype.restorePlayerActionPreviewShake = function (playerMenu) {
@@ -561,12 +583,12 @@ GraveFallGame.scene.Game.prototype.playActionPreviewSfx = function (playerMenu, 
         return;
     }
 
-    if (selectedAction === 1 || selectedAction === 12) {
+    if (selectedAction === 1) {
         this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45);
         return;
     }
 
-    if (selectedAction === 2 || selectedAction === 11 || selectedAction === 10) {
+    if (selectedAction === 2 || selectedAction === 10 || selectedAction === 11 || selectedAction === 12 || selectedAction === 13) {
         this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.62);
         return;
     }
@@ -575,13 +597,14 @@ GraveFallGame.scene.Game.prototype.playActionPreviewSfx = function (playerMenu, 
 };
 
 GraveFallGame.scene.Game.prototype.calculatePlayerAttackDamage = function (playerMenu) {
-    var baseDmg = playerMenu.attackDamage || 5;
+    var baseDmg = (playerMenu.attackDamage || 5) + (playerMenu.permanentAttackBonus || 0);
     var bonusDmg = (playerMenu.attackDamageBonus || 0) * 1;
     var totalDmg = baseDmg + bonusDmg;
 
-    if (playerMenu.isBuffed) {
-        totalDmg *= 2;
+    if (playerMenu.isBuffed || playerMenu.temporaryAttackBuff) {
+        totalDmg = Math.ceil(totalDmg * 1.5);
         playerMenu.isBuffed = false;
+        playerMenu.temporaryAttackBuff = false;
     }
 
     playerMenu.attackDamageBonus = 0;
@@ -589,9 +612,6 @@ GraveFallGame.scene.Game.prototype.calculatePlayerAttackDamage = function (playe
 };
 
 GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playerMenu) {
-    var j;
-    var target;
-    var healAmount;
     var totalDmg;
     var didDamage = false;
 
@@ -615,41 +635,22 @@ GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playe
     } else if (playerMenu.selectedAction === 1) {
         playerMenu.isDefending = true;
     } else if (playerMenu.selectedAction === 2) {
-        playerMenu.isBuffed = true;
+        this.applyClassBuffForPlayer(playerMenu);
     } else if (playerMenu.selectedAction === 10) {
-        if (typeof this.startHealingStandAnimation === "function") {
-            this.startHealingStandAnimation(playerMenu);
-        }
-
-        for (j = 0; j < this.playerMenus.length; j++) {
-            target = this.playerMenus[j];
-            healAmount = Math.max(1, Math.floor(target.healthMax * 0.10));
-
-            if (target.healthCurrent <= 0) {
-                target.healthCurrent = healAmount;
-                target.confirmed = false;
-                target.selectedAction = null;
-                target.isDefending = false;
-                target.isBuffed = false;
-                target.hitCooldown = 0;
-            } else {
-                target.healthCurrent = Math.min(target.healthMax, target.healthCurrent + healAmount);
-            }
-
-            this.updatePlayerHealthUi(target);
-            this.updatePlayerDamageState(target, this.areAllPlayersDown());
+        if (this.consumePlayerItem(playerMenu, "maxHp")) {
+            this.applyPermanentItemBuff("maxHp", playerMenu);
         }
     } else if (playerMenu.selectedAction === 11) {
-        for (j = 0; j < this.playerMenus.length; j++) {
-            if (this.playerMenus[j].healthCurrent > 0) {
-                this.playerMenus[j].isBuffed = true;
-            }
+        if (this.consumePlayerItem(playerMenu, "attack")) {
+            this.applyPermanentItemBuff("attack", playerMenu);
         }
     } else if (playerMenu.selectedAction === 12) {
-        for (j = 0; j < this.playerMenus.length; j++) {
-            if (this.playerMenus[j].healthCurrent > 0) {
-                this.playerMenus[j].isDefending = true;
-            }
+        if (this.consumePlayerItem(playerMenu, "defense")) {
+            this.applyPermanentItemBuff("defense", playerMenu);
+        }
+    } else if (playerMenu.selectedAction === 13) {
+        if (this.consumePlayerItem(playerMenu, "speed")) {
+            this.applyPermanentItemBuff("speed", playerMenu);
         }
     }
 
@@ -658,99 +659,33 @@ GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playe
 };
 
 GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
-    var i, j, playerMenu, target;
-    var baseDmg, bonusDmg, totalDmg;
+    var i;
 
     if (this.enemyHealthCurrent <= 0) {
         return;
     }
 
     for (i = 0; i < this.playerMenus.length; i++) {
-        playerMenu = this.playerMenus[i];
-
-        if (playerMenu.healthCurrent <= 0) continue;
-
-        playerMenu.isDefending = false;
-
-        // FIGHT
-        if (playerMenu.selectedAction === 0) {
-            baseDmg = playerMenu.attackDamage || 5;
-            bonusDmg = (playerMenu.attackDamageBonus || 0) * 1; 
-            totalDmg = baseDmg + bonusDmg;
-
-            if (playerMenu.isBuffed) {
-                totalDmg *= 2; 
-                playerMenu.isBuffed = false;
-            }
-            
-            // Pass the player's specific color over to attribute the score
-            this.applyDamageToEnemy(totalDmg, playerMenu.theme.accent);
-            playerMenu.attackDamageBonus = 0; 
-        }
-        
-        // DEFEND
-        else if (playerMenu.selectedAction === 1) {
-            playerMenu.isDefending = true;
-            this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.4);
-        }
-        
-        // BUFF
-        else if (playerMenu.selectedAction === 2) {
-            playerMenu.isBuffed = true;
-            this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.6);
-        }
-        
-        // --- ITEM: HEALTH POTION ---
-        else if (playerMenu.selectedAction === 10) {
-            for (j = 0; j < this.playerMenus.length; j++) {
-                target = this.playerMenus[j];
-
-                var healAmount = Math.max(1, Math.floor(target.healthMax * 0.10));
-
-                if (target.healthCurrent <= 0) {
-                    target.healthCurrent = healAmount;
-                    target.confirmed = false;
-                    target.selectedAction = null;
-                    target.isDefending = false;
-                    target.isBuffed = false;
-                    target.hitCooldown = 0;
-                } else {
-                    target.healthCurrent = Math.min(target.healthMax, target.healthCurrent + healAmount);
-                }
-
-                this.updatePlayerHealthUi(target);
-                this.updatePlayerDamageState(target, this.areAllPlayersDown());
-            }
-
-            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.7);
-        }
-
-        // --- ITEM: SHARPENING TOOL ---
-        else if (playerMenu.selectedAction === 11) {
-            for (j = 0; j < this.playerMenus.length; j++) {
-                if (this.playerMenus[j].healthCurrent > 0) {
-                    this.playerMenus[j].isBuffed = true;
-                }
-            }
-            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.7);
-        }
-
-        // --- ITEM: SHIELD BARRIER ---
-        else if (playerMenu.selectedAction === 12) {
-            for (j = 0; j < this.playerMenus.length; j++) {
-                if (this.playerMenus[j].healthCurrent > 0) {
-                    this.playerMenus[j].isDefending = true;
-                }
-            }
-            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.7);
+        if (this.playerMenus[i] && this.playerMenus[i].healthCurrent > 0) {
+            this.applyCommandActionForPlayer(this.playerMenus[i]);
         }
     }
 };
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
     var i;
-    var activeIcons = playerMenu.menuState === "main" ? playerMenu.actions : playerMenu.itemIcons;
-    var inactiveIcons = playerMenu.menuState === "main" ? playerMenu.itemIcons : playerMenu.actions;
+    var isItemMenu = playerMenu.menuState === "items";
+    var activeIcons = isItemMenu ? playerMenu.itemIcons : playerMenu.actions;
+    var inactiveIcons = isItemMenu ? playerMenu.actions : playerMenu.itemIcons;
+    var positions = isItemMenu ? playerMenu.itemActionPositions : playerMenu.actionPositions;
+    var iconScale = isItemMenu ? 0.52 : 0.6;
+    var downed = playerMenu.healthCurrent <= 0;
+    var enabled;
+    var buffType;
+
+    if (!downed && !this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
+        playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, playerMenu.selectedIndex, 1);
+    }
 
     for (i = 0; i < inactiveIcons.length; i++) {
         inactiveIcons[i].visible = false;
@@ -758,16 +693,31 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 
     for (i = 0; i < activeIcons.length; i++) {
         activeIcons[i].visible = true;
-        if (i === playerMenu.selectedIndex) {
-            activeIcons[i].scaleX = 0.6;
-            activeIcons[i].scaleY = 0.6;
-        } else {
-            activeIcons[i].scaleX = 0.6;
-            activeIcons[i].scaleY = 0.6;
+        activeIcons[i].scaleX = iconScale;
+        activeIcons[i].scaleY = iconScale;
+        enabled = !downed && this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, i);
+
+        if (isItemMenu && i < GraveFallGame.scene.Game.ITEM_BUFF_TYPES.length) {
+            buffType = this.getItemBuffTypeForIndex(i);
+            enabled = !downed && this.getPlayerItemCount(playerMenu, buffType) > 0;
         }
+
+        activeIcons[i].alpha = enabled ? 1 : 0.28;
     }
 
-    playerMenu.selectionBar.x = playerMenu.actionPositions[playerMenu.selectedIndex];
+    if (!isItemMenu && activeIcons[3]) {
+        activeIcons[3].alpha = (!downed && this.getPlayerTotalItemCount(playerMenu) > 0) ? 1 : 0.28;
+    }
+
+    if (isItemMenu && activeIcons[activeIcons.length - 1]) {
+        activeIcons[activeIcons.length - 1].alpha = downed ? 0.28 : 1;
+    }
+
+    if (typeof playerMenu.selectionBar.width === "number") {
+        playerMenu.selectionBar.width = isItemMenu ? 50 : 60;
+    }
+
+    playerMenu.selectionBar.x = positions[playerMenu.selectedIndex] || positions[0];
     playerMenu.selectionBar.visible = playerMenu.healthCurrent > 0;
 };
 
@@ -797,7 +747,536 @@ GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMen
     this.updateCharacterMenuVisuals(playerMenu);
 };
 
+GraveFallGame.scene.Game.ITEM_BUFF_TYPES = ["maxHp", "attack", "defense", "speed"];
+
+GraveFallGame.scene.Game.BUFF_CONFIGS = {
+    defense: { icon: "Defence_Up_Icon_T", itemIcon: "Defence_Up_Buff_Icon_T" },
+    attack: { icon: "Attack_Up_Icon_T", itemIcon: "Attack_Up_Buff_Icon_T" },
+    speed: { icon: "Speed_Up_Icon_T", itemIcon: "Speed_Up_Buff_Icon_T" },
+    maxHp: { icon: "Health_Up_Icon_T", itemIcon: "Health_Up_Buff_Icon_T" },
+    heal: { icon: "Health_Up_Icon_T", itemIcon: "Health_Up_Buff_Icon_T" }
+};
+
+GraveFallGame.scene.Game.prototype.getLivingPlayerMenus = function () {
+    var targets = [];
+    var i;
+
+    if (!this.playerMenus) {
+        return targets;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        if (this.playerMenus[i] && this.playerMenus[i].healthCurrent > 0) {
+            targets.push(this.playerMenus[i]);
+        }
+    }
+
+    return targets;
+};
+
+GraveFallGame.scene.Game.prototype.getBuffIconResource = function (buffType) {
+    var config = GraveFallGame.scene.Game.BUFF_CONFIGS[buffType] || GraveFallGame.scene.Game.BUFF_CONFIGS.attack;
+    return config.icon;
+};
+
+GraveFallGame.scene.Game.prototype.getItemIconResource = function (buffType) {
+    var config = GraveFallGame.scene.Game.BUFF_CONFIGS[buffType] || GraveFallGame.scene.Game.BUFF_CONFIGS.attack;
+    return config.itemIcon || config.icon;
+};
+
+GraveFallGame.scene.Game.prototype.getItemBuffTypeForIndex = function (index) {
+    return GraveFallGame.scene.Game.ITEM_BUFF_TYPES[index] || null;
+};
+
+GraveFallGame.scene.Game.prototype.getPlayerItemCount = function (playerMenu, buffType) {
+    if (!playerMenu || !playerMenu.itemInventory || !buffType) {
+        return 0;
+    }
+
+    return Math.max(0, playerMenu.itemInventory[buffType] || 0);
+};
+
+GraveFallGame.scene.Game.prototype.getPlayerTotalItemCount = function (playerMenu) {
+    var itemTypes = GraveFallGame.scene.Game.ITEM_BUFF_TYPES;
+    var total = 0;
+    var i;
+
+    if (!playerMenu || !playerMenu.itemInventory) {
+        return 0;
+    }
+
+    for (i = 0; i < itemTypes.length; i++) {
+        total += this.getPlayerItemCount(playerMenu, itemTypes[i]);
+    }
+
+    return total;
+};
+
+GraveFallGame.scene.Game.prototype.givePlayerItem = function (playerMenu, buffType) {
+    if (!playerMenu || !buffType) {
+        return false;
+    }
+
+    if (!playerMenu.itemInventory) {
+        playerMenu.itemInventory = { maxHp: 0, attack: 0, defense: 0, speed: 0 };
+    }
+
+    playerMenu.itemInventory[buffType] = this.getPlayerItemCount(playerMenu, buffType) + 1;
+    this.updateCharacterMenuVisuals(playerMenu);
+    return true;
+};
+
+GraveFallGame.scene.Game.prototype.consumePlayerItem = function (playerMenu, buffType) {
+    if (!playerMenu || !buffType || this.getPlayerItemCount(playerMenu, buffType) <= 0) {
+        return false;
+    }
+
+    playerMenu.itemInventory[buffType]--;
+    this.updateCharacterMenuVisuals(playerMenu);
+    return true;
+};
+
+GraveFallGame.scene.Game.prototype.isMenuIndexSelectable = function (playerMenu, menuState, index) {
+    var buffType;
+
+    if (!playerMenu || playerMenu.healthCurrent <= 0) {
+        return false;
+    }
+
+    if (menuState === "items") {
+        if (index === playerMenu.itemIcons.length - 1) {
+            return true;
+        }
+
+        buffType = this.getItemBuffTypeForIndex(index);
+        return this.getPlayerItemCount(playerMenu, buffType) > 0;
+    }
+
+    if (index === 3) {
+        return this.getPlayerTotalItemCount(playerMenu) > 0;
+    }
+
+    return index >= 0 && index < playerMenu.actions.length;
+};
+
+GraveFallGame.scene.Game.prototype.findSelectableMenuIndex = function (playerMenu, menuState, startIndex, direction) {
+    var count = menuState === "items" ? playerMenu.itemIcons.length : playerMenu.actions.length;
+    var index = startIndex;
+    var i;
+
+    if (count <= 0) {
+        return 0;
+    }
+
+    direction = direction < 0 ? -1 : 1;
+
+    for (i = 0; i < count; i++) {
+        index = (index + count) % count;
+
+        if (this.isMenuIndexSelectable(playerMenu, menuState, index)) {
+            return index;
+        }
+
+        index += direction;
+    }
+
+    return 0;
+};
+
+GraveFallGame.scene.Game.prototype.calculateEffectiveMoveSpeed = function (playerMenu) {
+    var speed = (playerMenu && playerMenu.baseMoveSpeed) || 4;
+
+    if (!playerMenu) {
+        return speed;
+    }
+
+    speed += playerMenu.permanentSpeedBonus || 0;
+
+    if (playerMenu.temporarySpeedBuff === true) {
+        speed += 1.6;
+    }
+
+    return Math.max(2, speed);
+};
+
+GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMenu) {
+    var id = playerMenu && playerMenu.characterId ? playerMenu.characterId : "";
+    var targets = this.getLivingPlayerMenus();
+    var i;
+    var target;
+    var healAmount;
+
+    if (!playerMenu) {
+        return;
+    }
+
+    if (id === "fighter" || id.indexOf("fighter_") === 0 || playerMenu.attackMinigame === "buttonMash") {
+        for (i = 0; i < targets.length; i++) {
+            targets[i].temporaryDefenseBuff = true;
+            targets[i].isDefending = true;
+        }
+        this.spawnPartyBuffEffect("defense", targets, 1050);
+        return;
+    }
+
+    if (id === "assassin" || id.indexOf("assassin_") === 0 || id.indexOf("rogue_") === 0 || playerMenu.attackMinigame === "timingBar") {
+        for (i = 0; i < targets.length; i++) {
+            targets[i].temporarySpeedBuff = true;
+            targets[i].moveSpeed = this.calculateEffectiveMoveSpeed(targets[i]);
+        }
+        this.spawnPartyBuffEffect("speed", targets, 1050);
+        return;
+    }
+
+    if (id === "wizard" || id.indexOf("wizard_") === 0 || playerMenu.attackMinigame === "buttonSequence") {
+        for (i = 0; i < targets.length; i++) {
+            target = targets[i];
+            healAmount = Math.max(1, Math.floor(target.healthMax * 0.05));
+            target.healthCurrent = Math.min(target.healthMax, target.healthCurrent + healAmount);
+            this.updatePlayerHealthUi(target);
+            this.updatePlayerDamageState(target, this.areAllPlayersDown());
+        }
+        this.spawnPartyBuffEffect("heal", targets, 1050);
+        return;
+    }
+
+    if (id === "ranger" || id.indexOf("ranger_") === 0 || playerMenu.attackMinigame === "targetReticle") {
+        for (i = 0; i < targets.length; i++) {
+            targets[i].temporaryAttackBuff = true;
+            targets[i].isBuffed = true;
+        }
+        this.spawnPartyBuffEffect("attack", targets, 1050);
+        return;
+    }
+
+    playerMenu.temporaryAttackBuff = true;
+    playerMenu.isBuffed = true;
+    this.spawnPartyBuffEffect("attack", [playerMenu], 1050);
+};
+
+GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, sourceMenu) {
+    var targets = this.getLivingPlayerMenus();
+    var i;
+    var target;
+    var amount;
+
+    if (targets.length <= 0) {
+        return;
+    }
+
+    for (i = 0; i < targets.length; i++) {
+        target = targets[i];
+
+        if (buffType === "maxHp") {
+            amount = Math.max(4, Math.ceil(target.healthMax * 0.08));
+            target.healthMax += amount;
+            target.healthCurrent = Math.min(target.healthMax, target.healthCurrent + amount);
+            this.updatePlayerHealthUi(target);
+            this.updatePlayerDamageState(target, this.areAllPlayersDown());
+        } else if (buffType === "attack") {
+            target.permanentAttackBonus = (target.permanentAttackBonus || 0) + 1;
+        } else if (buffType === "defense") {
+            target.permanentDefenseBonus = Math.min(5, (target.permanentDefenseBonus || 0) + 1);
+        } else if (buffType === "speed") {
+            target.permanentSpeedBonus = Math.min(3, (target.permanentSpeedBonus || 0) + 0.4);
+            target.moveSpeed = this.calculateEffectiveMoveSpeed(target);
+        }
+    }
+
+    this.spawnPartyBuffEffect(buffType, targets, 1200);
+};
+
+GraveFallGame.scene.Game.prototype.applyRandomPermanentItemBuff = function (sourceMenu) {
+    var buffs = ["maxHp", "attack", "defense", "speed"];
+    var buffType = buffs[Math.floor(Math.random() * buffs.length)];
+    this.applyPermanentItemBuff(buffType, sourceMenu);
+};
+
+GraveFallGame.scene.Game.prototype.getBuffEffectAnchor = function (playerMenu) {
+    var node;
+    var scaleX;
+    var scaleY;
+    var width;
+    var height;
+    var anchor = { x: 0, y: 0 };
+    var parent;
+    var offsetX = 0;
+    var offsetY = 0;
+
+    if (!playerMenu) {
+        return anchor;
+    }
+
+    node = playerMenu.stand;
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_ACTION && playerMenu.battleAvatar && playerMenu.battleAvatar.visible === true) {
+        node = playerMenu.battleAvatar;
+    }
+
+    if (!node) {
+        return anchor;
+    }
+
+    scaleX = Math.abs(node.scaleX || 1);
+    scaleY = Math.abs(node.scaleY || 1);
+    width = (node.unscaledWidth || node.width || 100) * scaleX;
+    height = (node.unscaledHeight || node.height || 100) * scaleY;
+
+    parent = node.parent;
+    while (parent && parent !== this.stage) {
+        offsetX += parent.x || 0;
+        offsetY += parent.y || 0;
+        parent = parent.parent;
+    }
+
+    anchor.x = offsetX + node.x + (width * 0.5);
+    anchor.y = offsetY + node.y + (height * 0.45);
+
+    return anchor;
+};
+
+GraveFallGame.scene.Game.prototype.spawnPartyBuffEffect = function (buffType, targets, durationMs) {
+    var i;
+
+    if (!targets || targets.length <= 0) {
+        return;
+    }
+
+    for (i = 0; i < targets.length; i++) {
+        this.spawnBuffEffectForPlayer(targets[i], buffType, durationMs || 1000);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMenu, buffType, durationMs) {
+    var color;
+    var iconResource;
+    var anchor;
+    var icon;
+    var effect;
+    var i;
+    var particle;
+    var particleResource;
+    var angle;
+    var distance;
+    var speed;
+    var scale;
+
+    if (!playerMenu || !this.stage) {
+        return;
+    }
+
+    if (!this.buffVisualEffects) {
+        this.buffVisualEffects = [];
+    }
+
+    color = playerMenu.theme ? playerMenu.theme.accentLight : "#FFFFFF";
+    iconResource = this.getBuffIconResource(buffType);
+    anchor = this.getBuffEffectAnchor(playerMenu);
+
+    icon = new rune.display.Sprite(0, 0, 100, 100, iconResource);
+    icon.scaleX = 0.5;
+    icon.scaleY = 0.5;
+    icon.x = Math.round(anchor.x - 25);
+    icon.y = Math.round(anchor.y - 25);
+    icon.alpha = 0.95;
+    this.applyMonochromeIconColor(icon, color);
+    this.stage.addChild(icon);
+
+    effect = {
+        icon: icon,
+        particles: [],
+        life: durationMs || 1000,
+        maxLife: durationMs || 1000,
+        centerX: anchor.x,
+        centerY: anchor.y,
+        buffType: buffType
+    };
+
+    for (i = 0; i < 10; i++) {
+        particleResource = i % 2 === 0 ? "Buff_Up_Particle_T" : "Sparkle_Particle_T";
+        particle = new rune.display.Sprite(0, 0, 16, 16, particleResource);
+        angle = Math.random() * Math.PI * 2;
+        distance = this.randomRange ? this.randomRange(8, 34) : (8 + Math.random() * 26);
+        speed = this.randomRange ? this.randomRange(0.008, 0.035) : (0.008 + Math.random() * 0.027);
+        scale = this.randomRange ? this.randomRange(0.3, 0.72) : (0.3 + Math.random() * 0.42);
+
+        particle.scaleX = scale;
+        particle.scaleY = scale;
+        particle.x = Math.round(anchor.x + Math.cos(angle) * distance);
+        particle.y = Math.round(anchor.y + Math.sin(angle) * distance);
+        particle.vx = Math.cos(angle) * speed;
+        particle.vy = Math.sin(angle) * speed - (this.randomRange ? this.randomRange(0.008, 0.03) : (0.008 + Math.random() * 0.022));
+        particle.wobble = Math.random() * Math.PI * 2;
+        particle.wobbleSpeed = this.randomRange ? this.randomRange(0.025, 0.075) : (0.025 + Math.random() * 0.05);
+        particle.wobbleAmount = this.randomRange ? this.randomRange(0.06, 0.18) : (0.06 + Math.random() * 0.12);
+        particle.rotation = Math.random() * Math.PI * 2;
+        particle.rotationSpeed = (Math.random() < 0.5 ? -1 : 1) * (this.randomRange ? this.randomRange(0.0015, 0.006) : (0.0015 + Math.random() * 0.0045));
+        particle.life = durationMs || 1000;
+        particle.maxLife = durationMs || 1000;
+        particle.alpha = 0.65 + Math.random() * 0.35;
+        this.applyMonochromeIconColor(particle, color);
+        this.stage.addChild(particle);
+        effect.particles.push(particle);
+    }
+
+    this.buffVisualEffects.push(effect);
+};
+
+GraveFallGame.scene.Game.prototype.spawnItemPickupEffect = function (playerMenu, buffType, durationMs) {
+    var color;
+    var anchor;
+    var effect;
+    var particle;
+    var particleResource;
+    var angle;
+    var distance;
+    var speed;
+    var scale;
+    var i;
+
+    if (!playerMenu || !this.stage) {
+        return;
+    }
+
+    if (!this.buffVisualEffects) {
+        this.buffVisualEffects = [];
+    }
+
+    color = playerMenu.theme ? playerMenu.theme.accentLight : "#FFFFFF";
+    anchor = this.getBuffEffectAnchor(playerMenu);
+    effect = {
+        icon: null,
+        particles: [],
+        life: durationMs || 650,
+        maxLife: durationMs || 650,
+        centerX: anchor.x,
+        centerY: anchor.y,
+        buffType: buffType || "pickup"
+    };
+
+    for (i = 0; i < 8; i++) {
+        particleResource = i % 2 === 0 ? "Sparkle_Particle_T" : "Buff_Up_Particle_T";
+        particle = new rune.display.Sprite(0, 0, 16, 16, particleResource);
+        angle = Math.random() * Math.PI * 2;
+        distance = this.randomRange ? this.randomRange(4, 22) : (4 + Math.random() * 18);
+        speed = this.randomRange ? this.randomRange(0.006, 0.026) : (0.006 + Math.random() * 0.02);
+        scale = this.randomRange ? this.randomRange(0.22, 0.52) : (0.22 + Math.random() * 0.3);
+
+        particle.scaleX = scale;
+        particle.scaleY = scale;
+        particle.x = Math.round(anchor.x + Math.cos(angle) * distance);
+        particle.y = Math.round(anchor.y + Math.sin(angle) * distance);
+        particle.vx = Math.cos(angle) * speed;
+        particle.vy = Math.sin(angle) * speed - (this.randomRange ? this.randomRange(0.004, 0.018) : (0.004 + Math.random() * 0.014));
+        particle.wobble = Math.random() * Math.PI * 2;
+        particle.wobbleSpeed = this.randomRange ? this.randomRange(0.02, 0.055) : (0.02 + Math.random() * 0.035);
+        particle.wobbleAmount = this.randomRange ? this.randomRange(0.04, 0.12) : (0.04 + Math.random() * 0.08);
+        particle.rotation = Math.random() * Math.PI * 2;
+        particle.rotationSpeed = (Math.random() < 0.5 ? -1 : 1) * (this.randomRange ? this.randomRange(0.001, 0.004) : (0.001 + Math.random() * 0.003));
+        particle.life = durationMs || 650;
+        particle.maxLife = durationMs || 650;
+        particle.alpha = 0.55 + Math.random() * 0.35;
+        this.applyMonochromeIconColor(particle, color);
+        this.stage.addChild(particle);
+        effect.particles.push(particle);
+    }
+
+    this.buffVisualEffects.push(effect);
+};
+
+
+GraveFallGame.scene.Game.prototype.updateBuffVisualEffects = function (step) {
+    var i;
+    var j;
+    var effect;
+    var particle;
+    var ratio;
+    var flicker;
+
+    if (!this.buffVisualEffects) {
+        return;
+    }
+
+    for (i = this.buffVisualEffects.length - 1; i >= 0; i--) {
+        effect = this.buffVisualEffects[i];
+        effect.life -= step;
+        ratio = effect.maxLife > 0 ? Math.max(0, effect.life / effect.maxLife) : 0;
+
+        if (effect.icon) {
+            effect.icon.y -= 0.012 * step;
+            effect.icon.alpha = Math.min(1, ratio * 1.4) * (0.75 + Math.random() * 0.25);
+            effect.icon.scaleX = 0.5 + ((1 - ratio) * 0.12);
+            effect.icon.scaleY = effect.icon.scaleX;
+        }
+
+        for (j = effect.particles.length - 1; j >= 0; j--) {
+            particle = effect.particles[j];
+            particle.life -= step;
+            particle.wobble += particle.wobbleSpeed;
+            particle.x += (particle.vx * step) + Math.sin(particle.wobble) * (particle.wobbleAmount || 0.12);
+            particle.y += particle.vy * step;
+
+            if (typeof particle.rotation === "number") {
+                particle.rotation += (particle.rotationSpeed || 0) * step;
+            }
+
+            flicker = 0.45 + Math.random() * 0.55;
+            particle.alpha = Math.min(1, ratio * 1.8) * flicker;
+
+            if (particle.life <= 0 && particle.parent) {
+                particle.parent.removeChild(particle, true);
+                effect.particles.splice(j, 1);
+            }
+        }
+
+        if (effect.life <= 0) {
+            if (effect.icon && effect.icon.parent) {
+                effect.icon.parent.removeChild(effect.icon, true);
+            }
+
+            for (j = effect.particles.length - 1; j >= 0; j--) {
+                if (effect.particles[j].parent) {
+                    effect.particles[j].parent.removeChild(effect.particles[j], true);
+                }
+            }
+
+            this.buffVisualEffects.splice(i, 1);
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.clearBuffVisualEffects = function () {
+    var i;
+    var j;
+    var effect;
+
+    if (!this.buffVisualEffects) {
+        return;
+    }
+
+    for (i = this.buffVisualEffects.length - 1; i >= 0; i--) {
+        effect = this.buffVisualEffects[i];
+
+        if (effect.icon && effect.icon.parent) {
+            effect.icon.parent.removeChild(effect.icon, true);
+        }
+
+        for (j = 0; j < effect.particles.length; j++) {
+            if (effect.particles[j].parent) {
+                effect.particles[j].parent.removeChild(effect.particles[j], true);
+            }
+        }
+    }
+
+    this.buffVisualEffects = [];
+};
+
+
 GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMenu) {
+    var direction;
+    var previousIndex;
+    var buffType;
+
     if (playerMenu.healthCurrent <= 0) {
         playerMenu.confirmed = true;
         playerMenu.selectedAction = null;
@@ -812,47 +1291,50 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         return;
     }
 
-    if (this.keyboard.justPressed(playerMenu.controls.left)) {
-        playerMenu.selectedIndex--;
-
-        if (playerMenu.selectedIndex < 0) {
-            playerMenu.selectedIndex = playerMenu.actions.length - 1; 
-        }
-
-        this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.4);
+    if (!this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
+        playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, playerMenu.selectedIndex, 1);
     }
 
-    if (this.keyboard.justPressed(playerMenu.controls.right)) {
-        playerMenu.selectedIndex++;
+    if (this.keyboard.justPressed(playerMenu.controls.left) || this.keyboard.justPressed(playerMenu.controls.right)) {
+        direction = this.keyboard.justPressed(playerMenu.controls.left) ? -1 : 1;
+        previousIndex = playerMenu.selectedIndex;
+        playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, playerMenu.selectedIndex + direction, direction);
 
-        if (playerMenu.selectedIndex >= playerMenu.actions.length) {
-            playerMenu.selectedIndex = 0;
+        if (playerMenu.selectedIndex !== previousIndex) {
+            this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.4);
         }
-
-        this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.4);
     }
 
     if (this.keyboard.justPressed(playerMenu.controls.confirm)) {
+        if (!this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
+            this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
+            this.updateCharacterMenuVisuals(playerMenu);
+            return;
+        }
+
         if (playerMenu.menuState === "main" && playerMenu.selectedIndex === 3) {
             playerMenu.menuState = "items";
-            playerMenu.selectedIndex = 0;
+            playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, "items", 0, 1);
             this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
-        } else if (playerMenu.menuState === "items" && playerMenu.selectedIndex === 3) {
+        } else if (playerMenu.menuState === "items" && playerMenu.selectedIndex === playerMenu.itemIcons.length - 1) {
             playerMenu.menuState = "main";
             playerMenu.selectedIndex = 3;
             this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
         } else {
+            if (playerMenu.menuState === "items") {
+                buffType = this.getItemBuffTypeForIndex(playerMenu.selectedIndex);
+
+                if (this.getPlayerItemCount(playerMenu, buffType) <= 0) {
+                    this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
+                    this.updateCharacterMenuVisuals(playerMenu);
+                    return;
+                }
+            }
+
             playerMenu.selectedAction = playerMenu.menuState === "main" ? playerMenu.selectedIndex : 10 + playerMenu.selectedIndex;
             playerMenu.confirmed = true;
             playerMenu.container.y = playerMenu.confirmedY;
-
-            if (playerMenu.selectedAction === 0 || playerMenu.selectedAction === 11) {
-                playerMenu.standActionState = "itemAttack"; 
-            } else if (playerMenu.selectedAction === 1 || playerMenu.selectedAction === 12) {
-                playerMenu.standActionState = "itemDefend"; 
-            } else {
-                playerMenu.standActionState = null;
-            }
+            playerMenu.standActionState = this.getActionPreviewStandState(playerMenu.selectedAction);
 
             this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
 
