@@ -257,11 +257,13 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     var hpLabelText;
     var hpValueText;
     var statusText;
+    var statusNumberText;
     var node;
     var spriteScale = 2.05;
     var textScale = 1.55;
     var nameY = 12;
     var hpY = 36;
+    var numberYAdjust = -2;
 
     panel = new rune.display.DisplayObjectContainer(x, y, width, height);
     panel.backgroundColor = this.selectionSkin.panelTop;
@@ -292,17 +294,26 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     hpValueText.scaleX = textScale;
     hpValueText.scaleY = textScale;
     hpValueText.x = 132;
-    hpValueText.y = hpY;
+    hpValueText.y = hpY + numberYAdjust;
     panel.addChild(hpValueText);
 
     statusText = new rune.text.BitmapField("");
-    statusText.width = 108;
+    statusText.width = 66;
     statusText.scaleX = textScale;
     statusText.scaleY = textScale;
     statusText.x = 202;
     statusText.y = nameY;
     statusText.visible = false;
     panel.addChild(statusText);
+
+    statusNumberText = new rune.text.BitmapField("");
+    statusNumberText.width = 18;
+    statusNumberText.scaleX = textScale;
+    statusNumberText.scaleY = textScale;
+    statusNumberText.x = 267;
+    statusNumberText.y = nameY + numberYAdjust;
+    statusNumberText.visible = false;
+    panel.addChild(statusNumberText);
 
     frame = this.createBoxFrame(0, 0, width, height, framePaletteSwaps);
     panel.addChild(frame);
@@ -326,8 +337,11 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
         menuAccent: menuAccent,
         frame: frame,
         statusText: statusText,
+        statusNumberText: statusNumberText,
         statusBaseX: 202,
+        statusNumberBaseX: 267,
         statusY: nameY,
+        statusNumberY: nameY + numberYAdjust,
         statusScale: textScale,
         portrait: null,
         sprite: null,
@@ -436,8 +450,14 @@ GraveFallGame.scene.CharacterSelect.prototype.applyClassNodeChrome = function (n
         node.menuAccent.backgroundColor = tintTheme.accent;
     }
 
-    if (node.statusText && !theme) {
-        node.statusText.visible = false;
+    if (!theme) {
+        if (node.statusText) {
+            node.statusText.visible = false;
+        }
+
+        if (node.statusNumberText) {
+            node.statusNumberText.visible = false;
+        }
     }
 };
 
@@ -587,6 +607,8 @@ GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
 GraveFallGame.scene.CharacterSelect.prototype.updatePlayerCursor = function (player) {
     var node = this.classNodes[player.classIndex];
     var theme = GraveFallGame.scene.Game.PLAYER_THEMES[player.controller.themeIndex];
+    var status;
+    var statusParts;
 
     if (!node) {
         return;
@@ -599,7 +621,25 @@ GraveFallGame.scene.CharacterSelect.prototype.updatePlayerCursor = function (pla
     }
 
     if (node.statusText) {
-        node.statusText.text = player.confirmed ? "READY" : (player.controller.label || player.controller.id);
+        status = player.confirmed ? "READY" : (player.controller.label || player.controller.id);
+
+        if (!player.confirmed && node.statusNumberText && status.indexOf(" ") >= 0) {
+            statusParts = status.split(" ");
+            node.statusText.text = statusParts[0];
+            node.statusNumberText.text = statusParts[1] || "";
+            node.statusNumberText.visible = node.statusNumberText.text.length > 0;
+            node.statusNumberText.x = node.statusNumberBaseX || 267;
+            node.statusNumberText.y = node.statusNumberY || 10;
+            node.statusNumberText.scaleX = node.statusScale || 1.35;
+            node.statusNumberText.scaleY = node.statusScale || 1.35;
+        } else {
+            node.statusText.text = status;
+
+            if (node.statusNumberText) {
+                node.statusNumberText.visible = false;
+            }
+        }
+
         node.statusText.visible = true;
         node.statusText.x = node.statusBaseX || 202;
         node.statusText.y = node.statusY || 38;
