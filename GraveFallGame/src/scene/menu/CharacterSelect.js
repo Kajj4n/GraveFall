@@ -21,6 +21,8 @@ GraveFallGame.scene.CharacterSelect = function () {
     this.players = [];
     this.countdownTimer = undefined;
     this.classNodes = [];
+    this.layoutSlots = [];
+    this.layoutTweenDuration = 420;
     this.runPaletteKey = null;
     this.runPalette = null;
     this.backgroundSkin = GraveFallGame.scene.Game.UI_SKINS.outsideCampfireBrown || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -97,6 +99,7 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     this.stage.addChild(this.instructionText);
 
     this.classNodes = [];
+    this.layoutSlots = [];
     templates = GraveFallGame.scene.Game.CLASS_TEMPLATES;
     menuWidth = 320;
     menuHeight = 70;
@@ -104,6 +107,7 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     menuY = screenHeight - menuHeight;
 
     for (i = 0; i < templates.length; i++) {
+        this.layoutSlots.push(startX + (i * menuWidth));
         this.createClassCard(templates[i], startX + (i * menuWidth), menuY, menuWidth, menuHeight, i);
     }
 
@@ -186,6 +190,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
                     player.confirmed = true;
                     node.lockedBy = player;
                     this.updatePlayerCursor(player);
+                    this.rebuildClassLayout(true);
                     GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.6);
                 } else {
                     GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_BACK, 0.4);
@@ -213,6 +218,8 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
         this.countdownTimer = undefined;
         this.updateInstructionText(anyJoined, allJoinedConfirmed);
     }
+
+    this.updateClassLayoutAnimations(step);
 
     if (this.keyboard.justPressed("escape")) {
         this.application.scenes.load([new GraveFallGame.scene.Menu()]);
@@ -324,6 +331,13 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
         cardWidth: width,
         cardHeight: height,
         centerX: x + (width / 2),
+        visualX: x,
+        targetX: x,
+        layoutStartX: x,
+        layoutElapsed: 0,
+        layoutDuration: 0,
+        layoutAnimating: false,
+        layoutSlotIndex: index || 0,
         portraitX: 10,
         portraitY: 3,
         portraitSize: 74,
@@ -400,7 +414,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (
 
     flipped = node.template.flipStandX === true;
     sprite = this.createDamageStateGroup(
-        node.spriteX,
+        this.getSpriteXForCardX(node, (typeof node.visualX === "number") ? node.visualX : node.cardX),
         node.spriteY,
         100,
         100,
@@ -497,6 +511,7 @@ GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (nod
     node.portrait = portrait;
     node.icon = icon;
     node.sprite = sprite;
+    this.applyNodeVisualX(node, (typeof node.visualX === "number") ? node.visualX : node.cardX);
     node.lockedBy = lockedBy || null;
 };
 
@@ -506,6 +521,176 @@ GraveFallGame.scene.CharacterSelect.prototype.restoreClassNodeVisual = function 
     }
 
     this.setClassNodeVisual(node, null, null);
+};
+
+//------------------------------------------------------------------------------
+// Layout and transition helpers
+//------------------------------------------------------------------------------
+
+GraveFallGame.scene.CharacterSelect.prototype.getControllerOrderIndex = function (ctrl) {
+    var i;
+
+    if (!ctrl) {
+        return 0;
+    }
+
+    for (i = 0; i < this.controllers.length; i++) {
+        if (this.controllers[i].id === ctrl.id) {
+            return i;
+        }
+    }
+
+    return 0;
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.getSpriteXForCardX = function (node, cardX) {
+    if (!node) {
+        return 0;
+    }
+
+    return Math.round(cardX + (node.cardWidth / 2) - ((100 * node.spriteScale) / 2));
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.applyNodeVisualX = function (node, visualX) {
+    if (!node) {
+        return;
+    }
+
+    node.visualX = visualX;
+
+    if (node.panel) {
+        node.panel.x = Math.round(visualX);
+    }
+
+    if (node.sprite) {
+        node.sprite.x = this.getSpriteXForCardX(node, visualX);
+    }
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.setNodeTargetSlot = function (node, slotIndex, animate) {
+    var targetX;
+
+    if (!node || !this.layoutSlots || this.layoutSlots.length === 0) {
+        return;
+    }
+
+    slotIndex = Math.max(0, Math.min(this.layoutSlots.length - 1, slotIndex));
+    targetX = this.layoutSlots[slotIndex];
+
+    node.layoutSlotIndex = slotIndex;
+    node.cardX = targetX;
+    node.centerX = targetX + (node.cardWidth / 2);
+    node.spriteX = this.getSpriteXForCardX(node, targetX);
+    node.targetX = targetX;
+
+    if (!animate || Math.abs((node.visualX || 0) - targetX) < 1) {
+        node.layoutAnimating = false;
+        node.layoutElapsed = 0;
+        node.layoutDuration = 0;
+        node.layoutStartX = targetX;
+        this.applyNodeVisualX(node, targetX);
+        return;
+    }
+
+    node.layoutAnimating = true;
+    node.layoutElapsed = 0;
+    node.layoutDuration = this.layoutTweenDuration || 420;
+    node.layoutStartX = (typeof node.visualX === "number") ? node.visualX : (node.panel ? node.panel.x : targetX);
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.updateClassLayoutAnimations = function (step) {
+    var i;
+    var node;
+    var progress;
+    var eased;
+    var nextX;
+
+    if (!this.classNodes) {
+        return;
+    }
+
+    for (i = 0; i < this.classNodes.length; i++) {
+        node = this.classNodes[i];
+
+        if (!node || node.layoutAnimating !== true) {
+            continue;
+        }
+
+        node.layoutElapsed += step;
+        progress = Math.min(1, node.layoutElapsed / Math.max(1, node.layoutDuration));
+
+        if (rune.tween && rune.tween.Cubic && rune.tween.Cubic.easeInOut) {
+            eased = rune.tween.Cubic.easeInOut(progress, 0, 1, 1);
+        } else {
+            eased = progress * progress * (3 - (2 * progress));
+        }
+
+        nextX = node.layoutStartX + ((node.targetX - node.layoutStartX) * eased);
+        this.applyNodeVisualX(node, nextX);
+
+        if (progress >= 1) {
+            node.layoutAnimating = false;
+            this.applyNodeVisualX(node, node.targetX);
+        }
+    }
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.rebuildClassLayout = function (animate) {
+    var slotByClassIndex = {};
+    var usedSlots = [];
+    var confirmedPlayers = [];
+    var openSlots = [];
+    var i;
+    var p;
+    var player;
+    var playerSlot;
+    var node;
+    var classIndex;
+
+    if (!this.classNodes || this.classNodes.length === 0) {
+        return;
+    }
+
+    for (i = 0; i < this.players.length; i++) {
+        player = this.players[i];
+
+        if (player && player.confirmed === true) {
+            confirmedPlayers.push(player);
+        }
+    }
+
+    confirmedPlayers.sort(function (a, b) {
+        return this.getControllerOrderIndex(a.controller) - this.getControllerOrderIndex(b.controller);
+    }.bind(this));
+
+    for (i = 0; i < confirmedPlayers.length; i++) {
+        player = confirmedPlayers[i];
+        playerSlot = this.getControllerOrderIndex(player.controller);
+        playerSlot = Math.max(0, Math.min(this.classNodes.length - 1, playerSlot));
+
+        slotByClassIndex[player.classIndex] = playerSlot;
+        usedSlots[playerSlot] = true;
+    }
+
+    for (i = 0; i < this.classNodes.length; i++) {
+        if (usedSlots[i] !== true) {
+            openSlots.push(i);
+        }
+    }
+
+    p = 0;
+
+    for (classIndex = 0; classIndex < this.classNodes.length; classIndex++) {
+        if (typeof slotByClassIndex[classIndex] !== "number") {
+            slotByClassIndex[classIndex] = openSlots[p];
+            p++;
+        }
+    }
+
+    for (i = 0; i < this.classNodes.length; i++) {
+        node = this.classNodes[i];
+        this.setNodeTargetSlot(node, slotByClassIndex[i], animate === true);
+    }
 };
 
 //------------------------------------------------------------------------------
@@ -664,52 +849,56 @@ GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (
 
 GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
     var activeParty = [];
-    var numPlayers;
-    var menuWidth;
-    var startX;
+    var menuWidth = 320;
+    var controllerIndex;
     var i;
     var p;
+    var player;
     var tmpl;
     var member;
 
-    for (i = 0; i < this.players.length; i++) {
-        p = this.players[i];
-        tmpl = this.classNodes[p.classIndex].template;
+    for (controllerIndex = 0; controllerIndex < this.controllers.length; controllerIndex++) {
+        player = null;
+
+        for (p = 0; p < this.players.length; p++) {
+            if (this.players[p].controller.id === this.controllers[controllerIndex].id) {
+                player = this.players[p];
+                break;
+            }
+        }
+
+        if (!player) {
+            continue;
+        }
+
+        tmpl = this.classNodes[player.classIndex].template;
 
         member = {
-            id: tmpl.id + "_" + i,
+            id: tmpl.id + "_" + controllerIndex,
             name: tmpl.name,
             portrait: tmpl.portrait,
             classIcon: tmpl.classIcon,
             stand: tmpl.stand,
             hpCurrent: tmpl.hpMax,
             hpMax: tmpl.hpMax,
-            themeIndex: p.controller.themeIndex,
+            themeIndex: player.controller.themeIndex,
             attackMinigame: tmpl.attackMinigame,
-            controls: p.controller.controls,
-            moveControls: p.controller.moveControls,
-            flipStandX: false,
+            controls: player.controller.controls,
+            moveControls: player.controller.moveControls,
+            flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(controllerIndex, this.controllers.length),
             attackDamage: tmpl.attackDamage,
             runPaletteKey: this.runPaletteKey,
-            y: 592
+            x: controllerIndex * menuWidth,
+            y: 592,
+            partyRenderIndex: controllerIndex,
+            partySize: this.controllers.length
         };
 
         activeParty.push(member);
     }
 
-    numPlayers = activeParty.length;
-    menuWidth = 320;
-    startX = 0;
-
-    if (numPlayers === 1 || numPlayers === 2) {
-        startX = (this.application.screen.width / 2) - ((menuWidth * numPlayers) / 2);
-    }
-
-    for (i = 0; i < numPlayers; i++) {
-        activeParty[i].x = startX + (i * menuWidth);
-        activeParty[i].partyRenderIndex = i;
-        activeParty[i].partySize = numPlayers;
-        activeParty[i].flipStandX = GraveFallGame.scene.Game.getPartyMemberFlippedX(i, numPlayers);
+    for (i = 0; i < activeParty.length; i++) {
+        activeParty[i].activePartyIndex = i;
     }
 
     GraveFallGame.scene.Game.PARTY_MEMBERS = activeParty;

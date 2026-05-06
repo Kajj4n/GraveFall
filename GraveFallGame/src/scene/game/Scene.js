@@ -166,6 +166,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
 
     for (var partyIndex = 0; partyIndex < partySize; partyIndex++) {
         var partyMember = partyMembers[partyIndex];
+        var renderIndex = typeof partyMember.partyRenderIndex === "number" ? partyMember.partyRenderIndex : partyIndex;
+        var renderPartySize = typeof partyMember.partySize === "number" ? partyMember.partySize : partySize;
 
         this.playerMenus.push(this.createCharacterMenu({
             characterId: partyMember.id,
@@ -178,9 +180,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
             hpCurrent: partyMember.hpCurrent,
             hpMax: partyMember.hpMax,
             playerTheme: this.getPlayerTheme(partyMember.themeIndex || 0),
-            flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(partyIndex, partySize),
-            partyRenderIndex: partyIndex,
-            partySize: partySize,
+            flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(renderIndex, renderPartySize),
+            partyRenderIndex: renderIndex,
+            partySize: renderPartySize,
             controls: partyMember.controls,
             moveControls: partyMember.moveControls,
             attackMinigame: partyMember.attackMinigame,
