@@ -1,21 +1,38 @@
 {
   "name": "GraveFallGame",
-  "version": "%VERSION%",
+  "version": "0.0.5",
   "description": "An awesome Rune-based application.",
   "main": "bin/bootstrap.js",
-  "directories": {
-    "lib": "lib"
-  },
   "scripts": {
     "test": "electron ./bin-debug/bootstrap.js",
     "start": "electron ./bin/bootstrap.js",
-    "build": "cd ./scripts/shell/ && ./make.sh"
+    "build": "cd ./scripts/shell/ && ./make.sh",
+    "dist": "electron-builder --win portable"
   },
   "author": "Uncredited Rune developer",
   "license": "MIT",
   "devDependencies": {
     "google-closure-compiler": "*",
     "jsdoc": "*",
-    "electron": "*"
+    "electron": "*",
+    "electron-builder": "*"
+  },
+  "build": {
+    "appId": "com.gravefall.game",
+    "productName": "GraveFallGame",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "bin/**/*",
+      "dist/**/*",
+      "lib/**/*",
+      "asset/**/*",
+      "src/data/resource/Requests.js",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable"
+    }
   }
 }
