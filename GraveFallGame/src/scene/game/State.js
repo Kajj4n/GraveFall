@@ -293,8 +293,9 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         title: "WARRIOR: MASH",
         setup: "setupButtonMashMinigame",
         update: "updateButtonMashMinigame",
-        damagePerPress: 1,
-        maxUsefulPresses: 36
+        pressesPerDamage: 3,
+        maxUsefulPresses: 12,
+        gateBonusDamage: 2
     },
     buttonSequence: {
         id: "buttonSequence",
@@ -314,7 +315,9 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         perfectDamage: 5,
         goodDamage: 3,
         okDamage: 1,
-        shotCooldownMs: 280
+        shotCooldownMs: 280,
+        settleDurationMs: 850,
+        resetDistance: 62
     },
     timingBar: {
         id: "timingBar",
@@ -813,6 +816,7 @@ GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseRe
         { state: "itemDefend", resource: this.resolveExistingResource([prefix + "_Item_Defend", prefix + "_Idle_Stance"], baseResource) },
         { state: "itemPotion", resource: this.resolveExistingResource([prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
         { state: "itemSpeedPotion", resource: this.resolveExistingResource([prefix + "_Item_Speed_Potion", downedPrefix + "_Item_Speed_Potion", prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
+        { state: "buff", resource: this.resolveExistingResource([prefix + "_Buff_Stance", prefix + "_Item_Defend", prefix + "_Idle_Stance"], baseResource) },
 
         { state: "knockedOut", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) },
         { state: "dead", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) }

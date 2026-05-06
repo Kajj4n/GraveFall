@@ -1088,7 +1088,7 @@ GraveFallGame.scene.Game.prototype.beginActionPreviewStep = function () {
     this.actionPreviewTimerMs = this.getActionPreviewDuration(playerMenu.selectedAction);
     this.actionPreviewStepStarted = true;
 
-    standState = this.getActionPreviewStandState(playerMenu.selectedAction);
+    standState = this.getActionPreviewStandState(playerMenu.selectedAction, playerMenu);
     playerMenu.standActionState = standState;
     this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
     this.startPlayerActionPreviewShake(playerMenu, playerMenu.selectedAction);

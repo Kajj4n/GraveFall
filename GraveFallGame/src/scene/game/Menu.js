@@ -342,6 +342,63 @@ GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, target
     field.restoreCache();
 };
 
+GraveFallGame.scene.Game.POPUP_DIGIT_PATTERNS = {
+    "0": ["111", "101", "101", "101", "111"],
+    "1": ["010", "110", "010", "010", "111"],
+    "2": ["111", "001", "111", "100", "111"],
+    "3": ["111", "001", "111", "001", "111"],
+    "4": ["101", "101", "111", "001", "001"],
+    "5": ["111", "100", "111", "001", "111"],
+    "6": ["111", "100", "111", "101", "111"],
+    "7": ["111", "001", "010", "010", "010"],
+    "8": ["111", "101", "111", "101", "111"],
+    "9": ["111", "101", "111", "001", "111"],
+    "-": ["000", "000", "111", "000", "000"],
+    "+": ["000", "010", "111", "010", "000"]
+};
+
+GraveFallGame.scene.Game.prototype.createPlainColoredPopupText = function (text, color, pixelSize) {
+    var patterns = GraveFallGame.scene.Game.POPUP_DIGIT_PATTERNS;
+    var spacing;
+    var charWidth;
+    var charHeight;
+    var width;
+    var height;
+    var popup;
+    var i;
+    var row;
+    var col;
+    var pattern;
+    var block;
+
+    text = String(text);
+    pixelSize = pixelSize || 4;
+    spacing = pixelSize;
+    charWidth = 3 * pixelSize;
+    charHeight = 5 * pixelSize;
+    width = (text.length * charWidth) + (Math.max(0, text.length - 1) * spacing);
+    height = charHeight;
+    popup = new rune.display.DisplayObjectContainer(0, 0, width, height);
+    popup.visualWidth = width;
+
+    for (i = 0; i < text.length; i++) {
+        pattern = patterns[text.charAt(i)] || patterns["0"];
+
+        for (row = 0; row < pattern.length; row++) {
+            for (col = 0; col < pattern[row].length; col++) {
+                if (pattern[row].charAt(col) === "1") {
+                    block = new rune.display.Graphic((i * (charWidth + spacing)) + (col * pixelSize), row * pixelSize, pixelSize, pixelSize);
+                    block.backgroundColor = color;
+                    popup.addChild(block);
+                }
+            }
+        }
+    }
+
+    return popup;
+};
+
+
 GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, playerColor) {
     var text;
     var popup;
@@ -370,10 +427,7 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     }
 
     text = "-" + popupAmount;
-    popup = new rune.text.BitmapField(text);
-    popup.autoSize = true;
-    popup.scaleX = 2;
-    popup.scaleY = 2;
+    popup = this.createPlainColoredPopupText(text, popupColor, 4);
     popup.life = 720;
     popup.startLife = popup.life;
     popup.floatSpeed = 10;
@@ -381,17 +435,16 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     popup.playerColor = popupColor;
 
     healthTextWidth = this.enemyHealthText.text.length * 6 * (this.enemyHealthText.scaleX || 1);
-    popupWidth = text.length * 6 * popup.scaleX;
+    popupWidth = popup.visualWidth || (text.length * 16);
     barRight = (typeof this.enemyHealthBarX === "number" ? this.enemyHealthBarX : 0) + (this.enemyHealthBarWidth || 300);
 
     popup.x = Math.round(this.enemyHealthText.x + healthTextWidth + 8);
-    popup.y = Math.round(this.enemyHealthText.y - 4 - (this.damagePopups.length * 24));
+    popup.y = Math.round(this.enemyHealthText.y - 4 - (this.damagePopups.length * 22));
 
     if (popup.x + popupWidth > barRight - 6) {
         popup.x = Math.round(this.enemyHealthText.x - popupWidth - 8);
     }
 
-    this.tintBitmapFieldText(popup, popupColor);
     this.stage.addChild(popup);
     this.damagePopups.push(popup);
 };
@@ -512,21 +565,77 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (selectedAction) {
-    if (selectedAction === 0 || selectedAction === 11) {
+GraveFallGame.scene.Game.prototype.getClassBuffType = function (playerMenu) {
+    var id = playerMenu && playerMenu.characterId ? String(playerMenu.characterId).toLowerCase() : "";
+    var minigame = playerMenu && playerMenu.attackMinigame ? playerMenu.attackMinigame : "";
+
+    if (id === "fighter" || id.indexOf("fighter_") === 0 || minigame === "buttonMash") {
+        return "defense";
+    }
+
+    if (id === "assassin" || id.indexOf("assassin_") === 0 || id === "rogue" || id.indexOf("rogue_") === 0 || minigame === "timingBar") {
+        return "speed";
+    }
+
+    if (id === "wizard" || id.indexOf("wizard_") === 0 || minigame === "buttonSequence") {
+        return "maxHp";
+    }
+
+    if (id === "ranger" || id.indexOf("ranger_") === 0 || minigame === "targetReticle") {
+        return "attack";
+    }
+
+    return null;
+};
+
+GraveFallGame.scene.Game.prototype.getItemBuffTypeForAction = function (selectedAction) {
+    if (selectedAction >= 10 && selectedAction <= 13) {
+        return this.getItemBuffTypeForIndex(selectedAction - 10);
+    }
+
+    return null;
+};
+
+GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (selectedAction, playerMenu) {
+    var itemBuffType;
+    var classBuffType;
+
+    if (selectedAction === 2) {
+        return "buff";
+    }
+
+    if (selectedAction === 0) {
         return "itemAttack";
     }
 
-    if (selectedAction === 10) {
-        return "itemPotion";
-    }
-
-    if (selectedAction === 13) {
-        return "itemSpeedPotion";
-    }
-
-    if (selectedAction === 1 || selectedAction === 2 || selectedAction === 12) {
+    if (selectedAction === 1) {
         return "itemDefend";
+    }
+
+    itemBuffType = this.getItemBuffTypeForAction(selectedAction);
+
+    if (itemBuffType) {
+        classBuffType = this.getClassBuffType(playerMenu);
+
+        if (classBuffType === itemBuffType) {
+            return "buff";
+        }
+
+        if (itemBuffType === "attack") {
+            return "itemAttack";
+        }
+
+        if (itemBuffType === "speed") {
+            return "itemSpeedPotion";
+        }
+
+        if (itemBuffType === "maxHp") {
+            return "itemPotion";
+        }
+
+        if (itemBuffType === "defense") {
+            return "itemDefend";
+        }
     }
 
     return null;
@@ -1567,7 +1676,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
             playerMenu.selectedAction = playerMenu.menuState === "main" ? playerMenu.selectedIndex : 10 + playerMenu.selectedIndex;
             playerMenu.confirmed = true;
             playerMenu.container.y = playerMenu.confirmedY;
-            playerMenu.standActionState = this.getActionPreviewStandState(playerMenu.selectedAction);
+            playerMenu.standActionState = this.getActionPreviewStandState(playerMenu.selectedAction, playerMenu);
 
             this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
 
