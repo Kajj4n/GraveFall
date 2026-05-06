@@ -1,2 +1,52 @@
+# Dependencies
 node_modules/
-GraveFallGame/node_modules/
+**/node_modules/
+
+# Electron / packaged builds
+release/
+dist/
+out/
+build/
+*.exe
+*.msi
+*.AppImage
+*.dmg
+*.deb
+*.rpm
+
+# Closure compiler / build tools
+closure-compiler*.jar
+google-closure-compiler*.jar
+compiler.jar
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor folders
+.vscode/
+.idea/
+
+# Temporary/cache files
+.cache/
+tmp/
+temp/
+*.tmp
+
+# Zip/export files
+*.zip
+*.7z
+*.rar
+*.tar
+*.tar.gz
+
+# Rune / local debug output
+bin-debug/

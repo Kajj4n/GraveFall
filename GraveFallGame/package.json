@@ -6,8 +6,9 @@
   "scripts": {
     "test": "electron ./bin-debug/bootstrap.js",
     "start": "electron ./bin/bootstrap.js",
-    "build": "cd ./scripts/shell/ && ./make.sh",
-    "dist": "electron-builder --win portable"
+    "build": "cd scripts/shell && bash make.sh",
+    "dist": "npm run build && electron-builder --win portable",
+    "dist:dir": "npm run build && electron-builder --win dir"
   },
   "author": "Uncredited Rune developer",
   "license": "MIT",
@@ -20,15 +21,17 @@
   "build": {
     "appId": "com.gravefall.game",
     "productName": "GraveFallGame",
+    "asar": true,
+    "compression": "maximum",
+    "electronLanguages": [
+      "en-US"
+    ],
     "directories": {
       "output": "release"
     },
     "files": [
       "bin/**/*",
-      "dist/**/*",
-      "lib/**/*",
-      "asset/**/*",
-      "src/data/resource/Requests.js",
+      "dist/GraveFallGame.js",
       "package.json"
     ],
     "win": {
