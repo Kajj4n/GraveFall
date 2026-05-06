@@ -411,6 +411,22 @@ GraveFallGame.scene.Game.getPartyMemberFlippedX = function (renderIndex, partySi
     return false;
 };
 
+// Returns the bottom command/start UI x-position for a party member.
+// Smaller parties are distributed across the whole screen instead of being
+// packed into the left-most four-player slots.
+GraveFallGame.scene.Game.getPartyMenuX = function (renderIndex, partySize, menuWidth, screenWidth) {
+    menuWidth = menuWidth || 320;
+    screenWidth = screenWidth || 1280;
+    partySize = Math.max(1, Math.min(4, partySize || 1));
+    renderIndex = Math.max(0, Math.min(partySize - 1, renderIndex || 0));
+
+    if (partySize >= 4) {
+        return renderIndex * menuWidth;
+    }
+
+    return Math.round(((screenWidth / partySize) * renderIndex) + ((screenWidth / partySize) / 2) - (menuWidth / 2));
+};
+
 /**
  * Enemy / phase prototype data.
  *

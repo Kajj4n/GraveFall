@@ -849,13 +849,18 @@ GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (
 
 GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
     var activeParty = [];
+    var selectedPlayers = [];
     var menuWidth = 320;
+    var screenWidth = this.application && this.application.screen ? this.application.screen.width : 1280;
     var controllerIndex;
     var i;
     var p;
     var player;
     var tmpl;
     var member;
+    var partySize;
+    var renderIndex;
+    var selection;
 
     for (controllerIndex = 0; controllerIndex < this.controllers.length; controllerIndex++) {
         player = null;
@@ -867,10 +872,21 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
             }
         }
 
-        if (!player) {
-            continue;
+        if (player) {
+            selectedPlayers.push({
+                player: player,
+                controllerIndex: controllerIndex
+            });
         }
+    }
 
+    partySize = selectedPlayers.length;
+
+    for (i = 0; i < selectedPlayers.length; i++) {
+        selection = selectedPlayers[i];
+        player = selection.player;
+        controllerIndex = selection.controllerIndex;
+        renderIndex = i;
         tmpl = this.classNodes[player.classIndex].template;
 
         member = {
@@ -885,13 +901,13 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
             attackMinigame: tmpl.attackMinigame,
             controls: player.controller.controls,
             moveControls: player.controller.moveControls,
-            flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(controllerIndex, this.controllers.length),
+            flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(renderIndex, partySize),
             attackDamage: tmpl.attackDamage,
             runPaletteKey: this.runPaletteKey,
-            x: controllerIndex * menuWidth,
+            x: GraveFallGame.scene.Game.getPartyMenuX(renderIndex, partySize, menuWidth, screenWidth),
             y: 592,
-            partyRenderIndex: controllerIndex,
-            partySize: this.controllers.length
+            partyRenderIndex: renderIndex,
+            partySize: partySize
         };
 
         activeParty.push(member);
