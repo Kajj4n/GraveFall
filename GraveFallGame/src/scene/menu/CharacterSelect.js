@@ -12,10 +12,10 @@ GraveFallGame.scene.CharacterSelect = function () {
     rune.scene.Scene.call(this);
 
     this.controllers = [
-        { id: "P1", controls: { left: "a", right: "d", confirm: "space" }, moveControls: { left: "a", right: "d", up: "w", down: "s" }, themeIndex: 0 },
-        { id: "P2", controls: { left: "left", right: "right", confirm: "enter" }, moveControls: { left: "left", right: "right", up: "up", down: "down" }, themeIndex: 1 },
-        { id: "P3", controls: { left: "j", right: "l", confirm: "k" }, moveControls: { left: "j", right: "l", up: "i", down: "k" }, themeIndex: 2 },
-        { id: "P4", controls: { left: "v", right: "n", confirm: "b" }, moveControls: { left: "f", right: "h", up: "t", down: "g" }, themeIndex: 3 }
+        { id: "P1", label: "PLAYER 1", controls: { left: "a", right: "d", confirm: "space" }, moveControls: { left: "a", right: "d", up: "w", down: "s" }, themeIndex: 0 },
+        { id: "P2", label: "PLAYER 2", controls: { left: "left", right: "right", confirm: "enter" }, moveControls: { left: "left", right: "right", up: "up", down: "down" }, themeIndex: 1 },
+        { id: "P3", label: "PLAYER 3", controls: { left: "j", right: "l", confirm: "k" }, moveControls: { left: "j", right: "l", up: "i", down: "k" }, themeIndex: 2 },
+        { id: "P4", label: "PLAYER 4", controls: { left: "v", right: "n", confirm: "b" }, moveControls: { left: "f", right: "h", up: "t", down: "g" }, themeIndex: 3 }
     ];
 
     this.players = [];
@@ -23,7 +23,8 @@ GraveFallGame.scene.CharacterSelect = function () {
     this.classNodes = [];
     this.runPaletteKey = null;
     this.runPalette = null;
-    this.selectionSkin = GraveFallGame.scene.Game.UI_SKINS.outsideCampfireBrown || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    this.backgroundSkin = GraveFallGame.scene.Game.UI_SKINS.outsideCampfireBrown || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    this.selectionSkin = GraveFallGame.scene.Game.UI_SKINS.dullBrown;
 };
 
 //------------------------------------------------------------------------------
@@ -46,6 +47,12 @@ GraveFallGame.scene.CharacterSelect.prototype.resolveExistingResource = GraveFal
 GraveFallGame.scene.CharacterSelect.prototype.createFramePiece = GraveFallGame.scene.Game.prototype.createFramePiece;
 GraveFallGame.scene.CharacterSelect.prototype.createBoxFrame = GraveFallGame.scene.Game.prototype.createBoxFrame;
 GraveFallGame.scene.CharacterSelect.prototype.createSeparator = GraveFallGame.scene.Game.prototype.createSeparator;
+GraveFallGame.scene.CharacterSelect.prototype.createDamageStateGroup = GraveFallGame.scene.Game.prototype.createDamageStateGroup;
+GraveFallGame.scene.CharacterSelect.prototype.setDamageStateGroupState = GraveFallGame.scene.Game.prototype.setDamageStateGroupState;
+GraveFallGame.scene.CharacterSelect.prototype.setDamageStateGroupFlippedX = GraveFallGame.scene.Game.prototype.setDamageStateGroupFlippedX;
+GraveFallGame.scene.CharacterSelect.prototype.applyPaletteSwapsToDamageStateGroup = GraveFallGame.scene.Game.prototype.applyPaletteSwapsToDamageStateGroup;
+GraveFallGame.scene.CharacterSelect.prototype.getPlayerStandDamageStates = GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates;
+GraveFallGame.scene.CharacterSelect.prototype.getPortraitDamageStates = GraveFallGame.scene.Game.prototype.getPortraitDamageStates;
 
 //------------------------------------------------------------------------------
 // Public prototype methods
@@ -56,30 +63,29 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
 
     var screenWidth = this.application.screen.width;
     var screenHeight = this.application.screen.height;
-    var i;
     var templates;
-    var cardWidth;
-    var cardHeight;
-    var cardGap;
-    var totalWidth;
+    var menuWidth;
+    var menuHeight;
     var startX;
-    var cardY;
+    var menuY;
+    var i;
 
-    // Character select still has no music. This is also where a new run locks in
-    // its palette so the campfire and dungeon stay consistent for that run.
+    // Character select has no music. A new run locks its random palette here so
+    // the outside campfire and dungeon keep the same palette until that run ends.
     this.runPalette = GraveFallGame.scene.Game.startNewRunPalette();
     this.runPaletteKey = this.runPalette.key;
-    this.selectionSkin = this.runPalette.outside;
+    this.backgroundSkin = this.runPalette.outside;
+    this.selectionSkin = this.runPalette.inside;
 
     this.background = new rune.display.Sprite(0, 0, screenWidth, screenHeight, "Outside_Campfire");
-    this.applyPaletteSwaps(this.background, this.getFramePaletteSwaps(this.selectionSkin));
+    this.applyPaletteSwaps(this.background, this.getFramePaletteSwaps(this.backgroundSkin));
     this.stage.addChild(this.background);
 
     this.titleText = new rune.text.BitmapField("SELECT CHARACTER");
     this.titleText.width = 800;
     this.titleText.scaleX = 3;
     this.titleText.scaleY = 3;
-    this.titleText.y = 36;
+    this.titleText.y = 34;
     this.centerText(this.titleText, screenWidth / 2, 3);
     this.stage.addChild(this.titleText);
 
@@ -87,20 +93,18 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     this.instructionText.width = 1200;
     this.instructionText.scaleX = 2;
     this.instructionText.scaleY = 2;
-    this.instructionText.y = 92;
+    this.instructionText.y = 88;
     this.stage.addChild(this.instructionText);
 
     this.classNodes = [];
     templates = GraveFallGame.scene.Game.CLASS_TEMPLATES;
-    cardWidth = 284;
-    cardHeight = 384;
-    cardGap = 24;
-    totalWidth = (templates.length * cardWidth) + ((templates.length - 1) * cardGap);
-    startX = Math.round((screenWidth - totalWidth) / 2);
-    cardY = 150;
+    menuWidth = 320;
+    menuHeight = 70;
+    startX = Math.round((screenWidth - (templates.length * menuWidth)) / 2);
+    menuY = screenHeight - menuHeight;
 
     for (i = 0; i < templates.length; i++) {
-        this.createClassCard(templates[i], startX + (i * (cardWidth + cardGap)), cardY, cardWidth, cardHeight);
+        this.createClassCard(templates[i], startX + (i * menuWidth), menuY, menuWidth, menuHeight, i);
     }
 
     this.updateInstructionText(false, false);
@@ -220,7 +224,7 @@ GraveFallGame.scene.CharacterSelect.prototype.dispose = function () {
 };
 
 //------------------------------------------------------------------------------
-// Character card visuals
+// Character select visuals
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.CharacterSelect.prototype.centerText = function (field, centerX, scale) {
@@ -231,95 +235,77 @@ GraveFallGame.scene.CharacterSelect.prototype.centerText = function (field, cent
     field.x = Math.round(centerX - ((field.text.length * 6 * scale) / 2));
 };
 
-GraveFallGame.scene.CharacterSelect.prototype.getNeutralCharacterTheme = function () {
+GraveFallGame.scene.CharacterSelect.prototype.getDownedCharacterTheme = function () {
     return {
-        accent: this.selectionSkin.frame.mid,
-        accentDark: this.selectionSkin.frame.dark,
-        accentLight: this.selectionSkin.frame.light,
+        accent: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid,
+        accentDark: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.dark,
+        accentLight: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.light,
         clothing: {
-            light: this.selectionSkin.frame.light,
-            mid: this.selectionSkin.frame.mid,
-            dark: this.selectionSkin.frame.dark
+            light: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.light,
+            mid: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid,
+            dark: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.dark
         }
     };
 };
 
-GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height) {
+GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height, index) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.selectionSkin);
-    var topPanelHeight = 82;
-    var footerHeight = 72;
-    var panelTop;
-    var panelBody;
-    var frame;
-    var separatorTop;
-    var separatorBottom;
+    var panel;
     var menuAccent;
-    var actionAccent;
-    var healthBg;
-    var healthFill;
+    var frame;
     var nameText;
-    var hpText;
-    var minigameText;
+    var hpLabelText;
+    var hpValueText;
+    var statusText;
     var node;
+    var spriteScale = 2.05;
+    var textScale = 1.55;
+    var nameY = 12;
+    var hpY = 36;
 
-    panelTop = new rune.display.Graphic(x, y, width, topPanelHeight);
-    panelTop.backgroundColor = this.selectionSkin.panelTop;
-    panelTop.alpha = 0.86;
-    this.stage.addChild(panelTop);
+    panel = new rune.display.DisplayObjectContainer(x, y, width, height);
+    panel.backgroundColor = this.selectionSkin.panelTop;
+    this.stage.addChild(panel);
 
-    panelBody = new rune.display.Graphic(x, y + topPanelHeight, width, height - topPanelHeight);
-    panelBody.backgroundColor = this.selectionSkin.panelBottom;
-    panelBody.alpha = 0.82;
-    this.stage.addChild(panelBody);
-
-    menuAccent = new rune.display.Graphic(x, y, width, 4);
+    menuAccent = new rune.display.Graphic(0, 0, width, 4);
     menuAccent.backgroundColor = this.selectionSkin.frame.mid;
-    this.stage.addChild(menuAccent);
-
-    actionAccent = new rune.display.Graphic(x, y + height - footerHeight, width, 2);
-    actionAccent.backgroundColor = this.selectionSkin.frame.dark;
-    this.stage.addChild(actionAccent);
-
-    separatorTop = this.createSeparator(x, y + topPanelHeight - 4, width, framePaletteSwaps);
-    this.stage.addChild(separatorTop);
-
-    separatorBottom = this.createSeparator(x, y + height - footerHeight - 4, width, framePaletteSwaps);
-    this.stage.addChild(separatorBottom);
-
-    frame = this.createBoxFrame(x, y, width, height, framePaletteSwaps);
-    this.stage.addChild(frame);
+    panel.addChild(menuAccent);
 
     nameText = new rune.text.BitmapField(template.name.toUpperCase());
-    nameText.width = 200;
-    nameText.scaleX = 1.65;
-    nameText.scaleY = 1.65;
-    nameText.y = y + 16;
-    this.centerText(nameText, x + (width / 2) + 20, 1.65);
-    this.stage.addChild(nameText);
+    nameText.width = 92;
+    nameText.scaleX = textScale;
+    nameText.scaleY = textScale;
+    nameText.x = 102;
+    nameText.y = nameY;
+    panel.addChild(nameText);
 
-    hpText = new rune.text.BitmapField("HP " + template.hpMax);
-    hpText.width = 160;
-    hpText.scaleX = 1.35;
-    hpText.scaleY = 1.35;
-    hpText.x = x + 110;
-    hpText.y = y + 50;
-    this.stage.addChild(hpText);
+    hpLabelText = new rune.text.BitmapField("HP");
+    hpLabelText.width = 30;
+    hpLabelText.scaleX = textScale;
+    hpLabelText.scaleY = textScale;
+    hpLabelText.x = 102;
+    hpLabelText.y = hpY;
+    panel.addChild(hpLabelText);
 
-    healthBg = new rune.display.Graphic(x + 164, y + 55, 86, 10);
-    healthBg.backgroundColor = "#101010";
-    this.stage.addChild(healthBg);
+    hpValueText = new rune.text.BitmapField(String(template.hpMax));
+    hpValueText.width = 54;
+    hpValueText.scaleX = textScale;
+    hpValueText.scaleY = textScale;
+    hpValueText.x = 132;
+    hpValueText.y = hpY;
+    panel.addChild(hpValueText);
 
-    healthFill = new rune.display.Graphic(x + 166, y + 57, 82, 6);
-    healthFill.backgroundColor = this.selectionSkin.frame.mid;
-    this.stage.addChild(healthFill);
+    statusText = new rune.text.BitmapField("");
+    statusText.width = 108;
+    statusText.scaleX = textScale;
+    statusText.scaleY = textScale;
+    statusText.x = 202;
+    statusText.y = nameY;
+    statusText.visible = false;
+    panel.addChild(statusText);
 
-    minigameText = new rune.text.BitmapField(this.getMinigameLabel(template.attackMinigame));
-    minigameText.width = width - 32;
-    minigameText.scaleX = 1.2;
-    minigameText.scaleY = 1.2;
-    minigameText.y = y + height - footerHeight - 28;
-    this.centerText(minigameText, x + (width / 2), 1.2);
-    this.stage.addChild(minigameText);
+    frame = this.createBoxFrame(0, 0, width, height, framePaletteSwaps);
+    panel.addChild(frame);
 
     node = {
         cardX: x,
@@ -327,62 +313,45 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
         cardWidth: width,
         cardHeight: height,
         centerX: x + (width / 2),
-        portraitX: x + 16,
-        portraitY: y + 13,
-        portraitScale: 0.62,
-        iconX: x + width - 78,
-        iconY: y + 13,
-        iconScale: 0.48,
-        spriteX: x + Math.round((width - (100 * 1.55)) / 2),
-        spriteY: y + 116,
-        statusY: y + height - 36,
-        width: 150,
-        standScale: 1.55,
-        actionIconY: y + height - 58,
+        portraitX: 10,
+        portraitY: 3,
+        portraitSize: 74,
+        iconX: 55,
+        iconY: 30,
+        spriteX: Math.round(x + (width / 2) - ((100 * spriteScale) / 2)),
+        spriteY: y - 196,
+        spriteScale: spriteScale,
         template: template,
-        panelTop: panelTop,
-        panelBody: panelBody,
+        panel: panel,
         menuAccent: menuAccent,
-        actionAccent: actionAccent,
-        healthFill: healthFill,
+        frame: frame,
+        statusText: statusText,
+        statusBaseX: 202,
+        statusY: nameY,
+        statusScale: textScale,
         portrait: null,
         sprite: null,
         icon: null,
-        actionIcons: [],
-        lockedBy: null
+        lockedBy: null,
+        index: index || 0
     };
 
     this.classNodes.push(node);
     this.restoreClassNodeVisual(node);
 };
 
-GraveFallGame.scene.CharacterSelect.prototype.getMinigameLabel = function (attackMinigame) {
-    switch (attackMinigame) {
-        case "buttonMash":
-            return "MASH ATTACK";
-        case "timingBar":
-            return "TIMING ATTACK";
-        case "targetReticle":
-            return "AIM ATTACK";
-        case "buttonSequence":
-            return "RUNE SEQUENCE";
-    }
-
-    return "ATTACK READY";
-};
-
-GraveFallGame.scene.CharacterSelect.prototype.createClassNodePortrait = function (node, theme) {
+GraveFallGame.scene.CharacterSelect.prototype.createClassNodePortrait = function (node, theme, downed) {
     var portrait;
-    var paletteTheme = theme || this.getNeutralCharacterTheme();
+    var paletteTheme = theme || this.getDownedCharacterTheme();
+    var swaps = this.getClothingPaletteSwaps(paletteTheme);
 
     if (!node || !node.template || !node.template.portrait) {
         return null;
     }
 
-    portrait = new rune.display.Sprite(node.portraitX, node.portraitY, 100, 100, node.template.portrait);
-    portrait.scaleX = node.portraitScale;
-    portrait.scaleY = node.portraitScale;
-    this.applyPaletteSwaps(portrait, this.getClothingPaletteSwaps(paletteTheme));
+    portrait = this.createDamageStateGroup(node.portraitX, node.portraitY, node.portraitSize || 74, node.portraitSize || 74, this.getPortraitDamageStates(node.template.portrait));
+    this.applyPaletteSwapsToDamageStateGroup(portrait, swaps, swaps);
+    this.setDamageStateGroupState(portrait, downed === true ? "dead" : "hp100");
 
     return portrait;
 };
@@ -390,7 +359,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodePortrait = function
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodeIcon = function (node, theme) {
     var icon;
     var resource;
-    var tintTheme = theme || this.getNeutralCharacterTheme();
+    var tintTheme = theme || this.getDownedCharacterTheme();
 
     resource = node && node.template ? node.template.classIcon : null;
     if (!resource) {
@@ -398,59 +367,42 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodeIcon = function (no
     }
 
     icon = new rune.display.Sprite(node.iconX, node.iconY, 100, 100, resource);
-    icon.scaleX = node.iconScale;
-    icon.scaleY = node.iconScale;
-    this.applyMonochromeIconColor(icon, tintTheme.accentLight);
+    icon.scaleX = 0.35;
+    icon.scaleY = 0.35;
+    this.applyMonochromeIconColor(icon, tintTheme.accent);
 
     return icon;
 };
 
-GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (node, theme) {
+GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (node, theme, downed) {
     var sprite;
-    var resource;
-    var paletteTheme = theme || this.getNeutralCharacterTheme();
+    var paletteTheme = theme || this.getDownedCharacterTheme();
+    var swaps = this.getClothingPaletteSwaps(paletteTheme);
+    var flipped;
 
-    resource = node && node.template && node.template.stand ? node.template.stand : null;
-    if (!resource) {
+    if (!node || !node.template || !node.template.stand) {
         return null;
     }
 
-    sprite = new rune.display.Sprite(node.spriteX, node.spriteY, 100, 100, resource);
-    sprite.scaleX = node.standScale;
-    sprite.scaleY = node.standScale;
-
-    if (node.template.flipStandX) {
-        sprite.flippedX = true;
-    }
-
-    this.applyPaletteSwaps(sprite, this.getClothingPaletteSwaps(paletteTheme));
+    flipped = node.template.flipStandX === true;
+    sprite = this.createDamageStateGroup(
+        node.spriteX,
+        node.spriteY,
+        100,
+        100,
+        this.getPlayerStandDamageStates(node.template.stand),
+        { flippedX: flipped }
+    );
+    sprite.scaleX = node.spriteScale;
+    sprite.scaleY = node.spriteScale;
+    this.setDamageStateGroupFlippedX(sprite, flipped);
+    this.applyPaletteSwapsToDamageStateGroup(sprite, swaps, swaps);
+    this.setDamageStateGroupState(sprite, downed === true ? "dead" : "hp100");
 
     return sprite;
 };
 
-GraveFallGame.scene.CharacterSelect.prototype.createClassNodeActionIcons = function (node, theme) {
-    var resources = ["Fight_Icon_T", "Defend_Icon_T", "Buff_Icon_T", "Item_Icon_T"];
-    var icons = [];
-    var tintTheme = theme || this.getNeutralCharacterTheme();
-    var gap = 65;
-    var startX = node.cardX + Math.round((node.cardWidth - ((resources.length - 1) * gap) - 48) / 2);
-    var i;
-    var icon;
-
-    for (i = 0; i < resources.length; i++) {
-        icon = new rune.display.Sprite(startX + (i * gap), node.actionIconY, 100, 100, resources[i]);
-        icon.scaleX = 0.48;
-        icon.scaleY = 0.48;
-        this.applyMonochromeIconColor(icon, tintTheme.accentLight);
-        icons.push(icon);
-    }
-
-    return icons;
-};
-
 GraveFallGame.scene.CharacterSelect.prototype.removeNodeDynamicVisuals = function (node) {
-    var i;
-
     if (!node) {
         return;
     }
@@ -467,43 +419,25 @@ GraveFallGame.scene.CharacterSelect.prototype.removeNodeDynamicVisuals = functio
         node.sprite.parent.removeChild(node.sprite, true);
     }
 
-    if (node.actionIcons) {
-        for (i = 0; i < node.actionIcons.length; i++) {
-            if (node.actionIcons[i] && node.actionIcons[i].parent) {
-                node.actionIcons[i].parent.removeChild(node.actionIcons[i], true);
-            }
-        }
-    }
-
     node.portrait = null;
     node.icon = null;
     node.sprite = null;
-    node.actionIcons = [];
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.applyClassNodeChrome = function (node, theme) {
-    var tintTheme = theme || this.getNeutralCharacterTheme();
+    var tintTheme = theme || this.getDownedCharacterTheme();
 
-    if (node.panelTop) {
-        node.panelTop.backgroundColor = this.selectionSkin.panelTop;
-        node.panelTop.alpha = theme ? 0.94 : 0.86;
-    }
-
-    if (node.panelBody) {
-        node.panelBody.backgroundColor = this.selectionSkin.panelBottom;
-        node.panelBody.alpha = theme ? 0.90 : 0.82;
+    if (node.panel) {
+        node.panel.backgroundColor = this.selectionSkin.panelTop;
+        node.panel.alpha = theme ? 0.97 : 0.88;
     }
 
     if (node.menuAccent) {
         node.menuAccent.backgroundColor = tintTheme.accent;
     }
 
-    if (node.actionAccent) {
-        node.actionAccent.backgroundColor = tintTheme.accentDark;
-    }
-
-    if (node.healthFill) {
-        node.healthFill.backgroundColor = tintTheme.accent;
+    if (node.statusText && !theme) {
+        node.statusText.visible = false;
     }
 };
 
@@ -511,8 +445,7 @@ GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (nod
     var icon;
     var sprite;
     var portrait;
-    var actionIcons;
-    var i;
+    var downed = false;
 
     if (!node) {
         return;
@@ -521,31 +454,29 @@ GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (nod
     this.removeNodeDynamicVisuals(node);
     this.applyClassNodeChrome(node, theme);
 
-    portrait = this.createClassNodePortrait(node, theme);
+    portrait = this.createClassNodePortrait(node, theme, downed);
     icon = this.createClassNodeIcon(node, theme);
-    sprite = this.createClassNodeSprite(node, theme);
-    actionIcons = this.createClassNodeActionIcons(node, theme);
+    sprite = this.createClassNodeSprite(node, theme, downed);
 
     if (portrait) {
-        this.stage.addChild(portrait);
+        node.panel.addChild(portrait);
     }
 
     if (icon) {
-        this.stage.addChild(icon);
+        node.panel.addChild(icon);
+    }
+
+    if (node.frame) {
+        node.panel.addChild(node.frame);
     }
 
     if (sprite) {
         this.stage.addChild(sprite);
     }
 
-    for (i = 0; i < actionIcons.length; i++) {
-        this.stage.addChild(actionIcons[i]);
-    }
-
     node.portrait = portrait;
     node.icon = icon;
     node.sprite = sprite;
-    node.actionIcons = actionIcons;
     node.lockedBy = lockedBy || null;
 };
 
@@ -637,7 +568,6 @@ GraveFallGame.scene.CharacterSelect.prototype.claimPlayerSelection = function (p
 
 GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
     var player;
-    var status;
 
     player = {
         controller: ctrl,
@@ -651,14 +581,6 @@ GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
 
     player.classIndex = this.findAvailableClassIndex(0, 1, player);
     this.claimPlayerSelection(player, player.classIndex);
-
-    status = new rune.text.BitmapField(ctrl.id);
-    status.width = 150;
-    status.scaleX = 1.5;
-    status.scaleY = 1.5;
-    this.stage.addChild(status);
-    player.statusText = status;
-
     this.updatePlayerCursor(player);
 };
 
@@ -676,23 +598,14 @@ GraveFallGame.scene.CharacterSelect.prototype.updatePlayerCursor = function (pla
         this.setClassNodeVisual(node, theme, player);
     }
 
-    player.statusText.text = player.confirmed ? "READY" : player.controller.id;
-    this.positionStatusText(player, node);
-};
-
-GraveFallGame.scene.CharacterSelect.prototype.positionStatusText = function (player, node) {
-    if (!player || !player.statusText || !node) {
-        return;
+    if (node.statusText) {
+        node.statusText.text = player.confirmed ? "READY" : (player.controller.label || player.controller.id);
+        node.statusText.visible = true;
+        node.statusText.x = node.statusBaseX || 202;
+        node.statusText.y = node.statusY || 38;
+        node.statusText.scaleX = node.statusScale || 1.35;
+        node.statusText.scaleY = node.statusScale || 1.35;
     }
-
-    player.statusText.x = Math.round(node.centerX - ((player.statusText.text.length * 6 * 1.5) / 2));
-    player.statusText.y = node.statusY;
-
-    if (player.statusText.parent === this.stage && typeof this.stage.removeChild === "function") {
-        this.stage.removeChild(player.statusText, false);
-    }
-
-    this.stage.addChild(player.statusText);
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (anyJoined, allJoinedConfirmed) {

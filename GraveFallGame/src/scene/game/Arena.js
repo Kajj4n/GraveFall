@@ -268,7 +268,8 @@ GraveFallGame.scene.Game.prototype.setEnemyUiAlpha = function (alpha) {
 GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (visible, actionsVisible) {
     var i;
     var menu;
-    var showActions = visible === true && actionsVisible === true;
+    var showMenus = visible === true && actionsVisible === true;
+    var showActions = showMenus;
 
     if (!this.playerMenus) {
         return;
@@ -315,8 +316,8 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (vis
         }
 
         if (menu.container) {
-            menu.container.visible = visible === true;
-            menu.container.alpha = visible === true ? 1 : 0;
+            menu.container.visible = showMenus;
+            menu.container.alpha = showMenus ? 1 : 0;
         }
 
         if (menu.actionsContainer) {
@@ -345,12 +346,12 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAl
     var i;
     var menu;
     var showPlayer;
-    var showActions;
+    var showMenus;
 
     playerAlpha = Math.max(0, Math.min(1, playerAlpha));
     actionsAlpha = Math.max(0, Math.min(1, actionsAlpha));
     showPlayer = playerAlpha > 0;
-    showActions = actionsAlpha > 0;
+    showMenus = actionsAlpha > 0;
 
     if (!this.playerMenus) {
         return;
@@ -393,18 +394,18 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAl
         }
 
         if (menu.container) {
-            menu.container.visible = showPlayer;
-            menu.container.alpha = playerAlpha;
+            menu.container.visible = showMenus;
+            menu.container.alpha = actionsAlpha;
         }
 
         if (menu.actionsContainer) {
-            menu.actionsContainer.visible = showActions;
-            menu.actionsContainer.alpha = actionsAlpha;
+            menu.actionsContainer.visible = showMenus;
+            menu.actionsContainer.alpha = 1;
         }
 
         if (menu.selectionBar) {
-            menu.selectionBar.visible = showActions && menu.healthCurrent > 0;
-            menu.selectionBar.alpha = actionsAlpha;
+            menu.selectionBar.visible = showMenus && menu.healthCurrent > 0;
+            menu.selectionBar.alpha = 1;
         }
 
         if (menu.stand) {
