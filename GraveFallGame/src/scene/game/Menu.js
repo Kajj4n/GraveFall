@@ -374,7 +374,7 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     if (!this.damagePopups) {
         this.damagePopups = [];
     }
-
+    // Comment placeholder
     popupAmount = Math.floor(amount);
     popupColor = playerColor || "#FFFFFF";
 
