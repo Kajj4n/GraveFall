@@ -4,61 +4,120 @@
 
 GraveFallGame.scene.Game.prototype.justPressedConfirm = function(pm) {
     if (this.keyboard.justPressed(pm.controls.confirm)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
+    var gp = this.getGamepadForInput(pm);
     return gp && gp.justPressed(0);
+};
+
+// Face button helpers keep combat/action buttons separate from movement input.
+// Standard controller mapping: A/Cross=0, B/Circle=1, X/Square=2, Y/Triangle=3.
+GraveFallGame.scene.Game.prototype.justPressedFaceDown = function(pm) {
+    var gp = this.getGamepadForInput(pm);
+    return gp && gp.justPressed(0);
+};
+
+GraveFallGame.scene.Game.prototype.justPressedFaceRight = function(pm) {
+    var gp = this.getGamepadForInput(pm);
+    return gp && gp.justPressed(1);
+};
+
+GraveFallGame.scene.Game.prototype.isHoldingConfirm = function(pm) {
+    if (pm && pm.controls && pm.controls.confirm && this.keyboard.pressed(pm.controls.confirm)) return true;
+    var gp = this.getGamepadForInput(pm);
+    return gp && gp.pressed(0);
+};
+
+GraveFallGame.scene.Game.prototype.isHoldingFaceRight = function(pm) {
+    var gp = this.getGamepadForInput(pm);
+    return gp && gp.pressed(1);
+};
+
+GraveFallGame.scene.Game.prototype.isHoldingItemExitButton = function(pm) {
+    return this.isHoldingConfirm(pm) || this.isHoldingFaceRight(pm) || this.keyboard.pressed("backspace");
+};
+
+GraveFallGame.scene.Game.prototype.justPressedFaceLeft = function(pm) {
+    var gp = this.getGamepadForInput(pm);
+    return gp && gp.justPressed(2);
+};
+
+GraveFallGame.scene.Game.prototype.justPressedFaceUp = function(pm) {
+    var gp = this.getGamepadForInput(pm);
+    return gp && gp.justPressed(3);
+};
+
+GraveFallGame.scene.Game.prototype.justPressedBack = function(pm) {
+    if (this.keyboard.justPressed("backspace")) return true;
+    return this.justPressedFaceRight(pm);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedLeft = function(pm) {
     if (this.keyboard.justPressed(pm.controls.left)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
-    return gp && gp.justPressed(14);
+    var gp = this.getGamepadForInput(pm);
+    return gp && (gp.justPressed(14) || gp.stickLeftJustLeft);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedRight = function(pm) {
     if (this.keyboard.justPressed(pm.controls.right)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
-    return gp && gp.justPressed(15);
+    var gp = this.getGamepadForInput(pm);
+    return gp && (gp.justPressed(15) || gp.stickLeftJustRight);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedUp = function(pm) {
     if (this.keyboard.justPressed(pm.moveControls.up)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
-    return gp && gp.justPressed(12);
+    var gp = this.getGamepadForInput(pm);
+    return gp && (gp.justPressed(12) || gp.stickLeftJustUp);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedDown = function(pm) {
     if (this.keyboard.justPressed(pm.moveControls.down)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
-    return gp && gp.justPressed(13);
+    var gp = this.getGamepadForInput(pm);
+    return gp && (gp.justPressed(13) || gp.stickLeftJustDown);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingLeft = function(pm) {
     if (this.keyboard.pressed(pm.moveControls.left)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
+    var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(14) || gp.stickLeft.x < -0.3);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingRight = function(pm) {
     if (this.keyboard.pressed(pm.moveControls.right)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
+    var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(15) || gp.stickLeft.x > 0.3);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingUp = function(pm) {
     if (this.keyboard.pressed(pm.moveControls.up)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
+    var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(12) || gp.stickLeft.y < -0.3);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingDown = function(pm) {
     if (this.keyboard.pressed(pm.moveControls.down)) return true;
-    var gp = this.gamepads.get(pm.gamepadIndex);
+    var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(13) || gp.stickLeft.y > 0.3);
 };
 
 //------------------------------------------------------------------------------
 // Menu / command phase UI
 //------------------------------------------------------------------------------
+
+GraveFallGame.scene.Game.prototype.getGamepadForInput = function (inputOwner) {
+    var index = inputOwner && inputOwner.gamepadIndex !== undefined ? inputOwner.gamepadIndex : 0;
+    var gp = null;
+
+    if (!this.gamepads || typeof this.gamepads.get !== "function") {
+        return null;
+    }
+
+    try {
+        gp = this.gamepads.get(index);
+    } catch (error) {
+        return null;
+    }
+
+    return gp && gp.connected ? gp : null;
+};
 
 GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var menuWidth = 320;
@@ -1638,10 +1697,95 @@ GraveFallGame.scene.Game.prototype.clearBuffVisualEffects = function () {
 };
 
 
+GraveFallGame.scene.Game.prototype.returnPlayerItemMenuToMain = function (playerMenu) {
+    playerMenu.menuState = "main";
+    playerMenu.selectedIndex = 3;
+    // Do not let the same B/Circle or A/Cross press that exited Items
+    // immediately re-open Items when the menu lands back on the Item icon.
+    playerMenu.waitingForItemExitButtonRelease = true;
+    this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
+    this.updateCharacterMenuVisuals(playerMenu);
+};
+
+GraveFallGame.scene.Game.prototype.confirmPlayerMenuSelection = function (playerMenu) {
+    var buffType;
+
+    if (!this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
+        this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
+        this.updateCharacterMenuVisuals(playerMenu);
+        return;
+    }
+
+    if (playerMenu.menuState === "main" && playerMenu.selectedIndex === 3) {
+        playerMenu.menuState = "items";
+        playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, "items", 0, 1);
+        this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
+        this.updateCharacterMenuVisuals(playerMenu);
+        return;
+    }
+
+    if (playerMenu.menuState === "items" && playerMenu.selectedIndex === playerMenu.itemIcons.length - 1) {
+        this.returnPlayerItemMenuToMain(playerMenu);
+        return;
+    }
+
+    if (playerMenu.menuState === "items") {
+        buffType = this.getItemBuffTypeForIndex(playerMenu.selectedIndex);
+
+        if (this.getPlayerItemCount(playerMenu, buffType) <= 0) {
+            this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
+            this.updateCharacterMenuVisuals(playerMenu);
+            return;
+        }
+    }
+
+    playerMenu.selectedAction = playerMenu.menuState === "main" ? playerMenu.selectedIndex : 10 + playerMenu.selectedIndex;
+    playerMenu.confirmed = true;
+    playerMenu.container.y = playerMenu.confirmedY;
+    playerMenu.standActionState = this.getActionPreviewStandState(playerMenu.selectedAction, playerMenu);
+
+    this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
+
+    this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
+    this.updateCharacterMenuVisuals(playerMenu);
+};
+
+GraveFallGame.scene.Game.prototype.handlePlayerMenuFaceAction = function (playerMenu) {
+    if (playerMenu.menuState === "items") {
+        if (this.justPressedBack(playerMenu)) {
+            this.returnPlayerItemMenuToMain(playerMenu);
+            return true;
+        }
+
+        return false;
+    }
+
+    // A/Cross remains the normal confirm button so D-pad/left-stick selection still works.
+    // The other right-side face buttons are direct command shortcuts.
+    if (this.justPressedFaceLeft(playerMenu)) {
+        playerMenu.selectedIndex = 1; // X/Square = Defend
+        this.confirmPlayerMenuSelection(playerMenu);
+        return true;
+    }
+
+    if (this.justPressedFaceUp(playerMenu)) {
+        playerMenu.selectedIndex = 2; // Y/Triangle = Buff
+        this.confirmPlayerMenuSelection(playerMenu);
+        return true;
+    }
+
+    if (this.justPressedFaceRight(playerMenu)) {
+        playerMenu.selectedIndex = 3; // B/Circle = Item, then Back while in the item menu.
+        this.confirmPlayerMenuSelection(playerMenu);
+        return true;
+    }
+
+    return false;
+};
+
 GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMenu) {
     var direction;
     var previousIndex;
-    var buffType;
 
     if (playerMenu.healthCurrent <= 0) {
         playerMenu.confirmed = true;
@@ -1661,6 +1805,15 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, playerMenu.selectedIndex, 1);
     }
 
+    if (playerMenu.waitingForItemExitButtonRelease) {
+        if (this.isHoldingItemExitButton(playerMenu)) {
+            this.updateCharacterMenuVisuals(playerMenu);
+            return;
+        }
+
+        playerMenu.waitingForItemExitButtonRelease = false;
+    }
+
     if (this.justPressedLeft(playerMenu) || this.justPressedRight(playerMenu)) {
         direction = this.justPressedLeft(playerMenu) ? -1 : 1;
         previousIndex = playerMenu.selectedIndex;
@@ -1671,41 +1824,14 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         }
     }
 
-    if (this.justPressedConfirm(playerMenu)) {
-        if (!this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
-            this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
-            this.updateCharacterMenuVisuals(playerMenu);
-            return;
-        }
-
-        if (playerMenu.menuState === "main" && playerMenu.selectedIndex === 3) {
-            playerMenu.menuState = "items";
-            playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, "items", 0, 1);
-            this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
-        } else if (playerMenu.menuState === "items" && playerMenu.selectedIndex === playerMenu.itemIcons.length - 1) {
-            playerMenu.menuState = "main";
-            playerMenu.selectedIndex = 3;
-            this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
-        } else {
-            if (playerMenu.menuState === "items") {
-                buffType = this.getItemBuffTypeForIndex(playerMenu.selectedIndex);
-
-                if (this.getPlayerItemCount(playerMenu, buffType) <= 0) {
-                    this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
-                    this.updateCharacterMenuVisuals(playerMenu);
-                    return;
-                }
-            }
-
-            playerMenu.selectedAction = playerMenu.menuState === "main" ? playerMenu.selectedIndex : 10 + playerMenu.selectedIndex;
-            playerMenu.confirmed = true;
-            playerMenu.container.y = playerMenu.confirmedY;
-            playerMenu.standActionState = this.getActionPreviewStandState(playerMenu.selectedAction, playerMenu);
-
-            this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
-
-            this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
-        }
+    if (this.handlePlayerMenuFaceAction(playerMenu)) {
+        return;
     }
+
+    if (this.justPressedConfirm(playerMenu)) {
+        this.confirmPlayerMenuSelection(playerMenu);
+        return;
+    }
+
     this.updateCharacterMenuVisuals(playerMenu);
 };

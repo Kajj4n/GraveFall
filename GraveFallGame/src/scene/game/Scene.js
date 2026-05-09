@@ -186,6 +186,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
             partySize: renderPartySize,
             controls: partyMember.controls,
             moveControls: partyMember.moveControls,
+            gamepadIndex: partyMember.gamepadIndex,
             attackMinigame: partyMember.attackMinigame,
             attackDamage: partyMember.attackDamage || 5,
             uiSkin: this.uiSkin

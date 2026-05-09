@@ -562,19 +562,19 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
         return;
     }
 
-    if (this.keyboard.pressed(playerMenu.moveControls.left)) {
+    if (this.isHoldingLeft(playerMenu)) {
         nextX -= speed;
     }
 
-    if (this.keyboard.pressed(playerMenu.moveControls.right)) {
+    if (this.isHoldingRight(playerMenu)) {
         nextX += speed;
     }
 
-    if (this.keyboard.pressed(playerMenu.moveControls.up)) {
+    if (this.isHoldingUp(playerMenu)) {
         nextY -= speed;
     }
 
-    if (this.keyboard.pressed(playerMenu.moveControls.down)) {
+    if (this.isHoldingDown(playerMenu)) {
         nextY += speed;
     }
 

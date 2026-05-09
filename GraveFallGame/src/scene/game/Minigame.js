@@ -294,21 +294,38 @@ GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (directi
     return this.getButtonIconForDirection(direction);
 };
 
-// --- UPDATED TO USE UNIVERSAL INPUT HELPERS ---
+// Minigame button prompts are face-button prompts, not D-pad/left-stick prompts.
+// Keyboard fallback stays on each player's existing movement keys for debug/keyboard play.
 GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu) {
-    if (this.justPressedUp(menu)) {
+    if (this.keyboard.justPressed(menu.moveControls.up)) {
         return "up";
     }
 
-    if (this.justPressedLeft(menu)) {
+    if (this.keyboard.justPressed(menu.moveControls.left)) {
         return "left";
     }
 
-    if (this.justPressedRight(menu)) {
+    if (this.keyboard.justPressed(menu.moveControls.right)) {
         return "right";
     }
 
-    if (this.justPressedDown(menu)) {
+    if (this.keyboard.justPressed(menu.moveControls.down)) {
+        return "down";
+    }
+
+    if (this.justPressedFaceUp(menu)) {
+        return "up";
+    }
+
+    if (this.justPressedFaceLeft(menu)) {
+        return "left";
+    }
+
+    if (this.justPressedFaceRight(menu)) {
+        return "right";
+    }
+
+    if (this.justPressedFaceDown(menu)) {
         return "down";
     }
 

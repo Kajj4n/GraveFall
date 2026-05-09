@@ -60,22 +60,39 @@ GraveFallGame.scene.CharacterSelect.prototype.getPlayerStandDamageStates = Grave
 GraveFallGame.scene.CharacterSelect.prototype.getPortraitDamageStates = GraveFallGame.scene.Game.prototype.getPortraitDamageStates;
 
 // --- UNIVERSAL INPUT HELPERS FOR SELECT SCENE ---
+GraveFallGame.scene.CharacterSelect.prototype.getGamepadForInput = function (inputOwner) {
+    var index = inputOwner && inputOwner.gamepadIndex !== undefined ? inputOwner.gamepadIndex : 0;
+    var gp = null;
+
+    if (!this.gamepads || typeof this.gamepads.get !== "function") {
+        return null;
+    }
+
+    try {
+        gp = this.gamepads.get(index);
+    } catch (error) {
+        return null;
+    }
+
+    return gp && gp.connected ? gp : null;
+};
+
 GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctrl) {
     if (this.keyboard.justPressed(ctrl.controls.confirm)) return true;
-    var gp = this.gamepads.get(ctrl.gamepadIndex);
+    var gp = this.getGamepadForInput(ctrl);
     return gp && gp.justPressed(0);
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) {
     if (this.keyboard.justPressed(ctrl.controls.left)) return true;
-    var gp = this.gamepads.get(ctrl.gamepadIndex);
-    return gp && gp.justPressed(14);
+    var gp = this.getGamepadForInput(ctrl);
+    return gp && (gp.justPressed(14) || gp.stickLeftJustLeft);
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl) {
     if (this.keyboard.justPressed(ctrl.controls.right)) return true;
-    var gp = this.gamepads.get(ctrl.gamepadIndex);
-    return gp && gp.justPressed(15);
+    var gp = this.getGamepadForInput(ctrl);
+    return gp && (gp.justPressed(15) || gp.stickLeftJustRight);
 };
 
 //------------------------------------------------------------------------------
