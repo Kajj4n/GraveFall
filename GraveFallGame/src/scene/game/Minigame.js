@@ -294,6 +294,27 @@ GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (directi
     return this.getButtonIconForDirection(direction);
 };
 
+// --- UPDATED TO USE UNIVERSAL INPUT HELPERS ---
+GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu) {
+    if (this.justPressedUp(menu)) {
+        return "up";
+    }
+
+    if (this.justPressedLeft(menu)) {
+        return "left";
+    }
+
+    if (this.justPressedRight(menu)) {
+        return "right";
+    }
+
+    if (this.justPressedDown(menu)) {
+        return "down";
+    }
+
+    return null;
+};
+
 GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (menu) {
     if (!menu || !menu.minigame) {
         return null;
@@ -508,26 +529,6 @@ GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu,
     this.rollButtonSequence(menu);
 };
 
-GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu) {
-    if (this.keyboard.justPressed(menu.moveControls.up)) {
-        return "up";
-    }
-
-    if (this.keyboard.justPressed(menu.moveControls.left)) {
-        return "left";
-    }
-
-    if (this.keyboard.justPressed(menu.moveControls.right)) {
-        return "right";
-    }
-
-    if (this.keyboard.justPressed(menu.moveControls.down)) {
-        return "down";
-    }
-
-    return null;
-};
-
 GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu) {
     var pressed;
     var expected;
@@ -637,6 +638,7 @@ GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
     minigame.jitterY = -10 + Math.random() * 20;
 };
 
+// --- UPDATED TO USE UNIVERSAL INPUT HELPERS ---
 GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu, step) {
     var minigame;
     var t;
@@ -656,7 +658,8 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     minigame.jitterTimer -= step;
     minigame.hitCooldown -= step;
     minigame.resetForce = Math.max(0, minigame.resetForce - (step / (minigame.settleDurationMs || 850)));
-    confirmPressed = this.keyboard.justPressed(menu.controls.confirm);
+    
+    confirmPressed = this.justPressedConfirm(menu);
 
     if (minigame.jitterTimer <= 0) {
         minigame.jitterTimer = 160 + Math.random() * 260;
@@ -763,6 +766,7 @@ GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, defi
     this.resetTimingBlock(menu);
 };
 
+// --- UPDATED TO USE UNIVERSAL INPUT HELPERS ---
 GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, step) {
     var minigame;
     var blockCenter;
@@ -779,7 +783,7 @@ GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, ste
         return;
     }
 
-    if (this.keyboard.justPressed(menu.controls.confirm)) {
+    if (this.justPressedConfirm(menu)) {
         blockCenter = minigame.block.x + (minigame.blockWidth / 2);
         distance = Math.abs(blockCenter - minigame.hitCenterX);
         bonus = 0;

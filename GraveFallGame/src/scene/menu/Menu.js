@@ -133,19 +133,33 @@ GraveFallGame.scene.Menu.prototype.init = function (step) {
 GraveFallGame.scene.Menu.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
-    if (this.keyboard.justPressed("down") && this.index < this.options.length - 1) {
+    var pressDown = this.keyboard.justPressed("down");
+    var pressUp = this.keyboard.justPressed("up");
+    var pressConfirm = this.keyboard.justPressed("space") || this.keyboard.justPressed("enter");
+
+    // Allow ANY connected gamepad to navigate the main menu
+    for (var i = 0; i < 4; i++) {
+        var gp = this.gamepads.get(i);
+        if (gp) {
+            if (gp.justPressed(13)) pressDown = true;     // D-pad Down
+            if (gp.justPressed(12)) pressUp = true;       // D-pad Up
+            if (gp.justPressed(0)) pressConfirm = true;   // A / Cross button
+        }
+    }
+
+    if (pressDown && this.index < this.options.length - 1) {
         this.index++;
         GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_MOVE, 0.45);
         this.updateVisuals();
     }
 
-    if (this.keyboard.justPressed("up") && this.index > 0) {
+    if (pressUp && this.index > 0) {
         this.index--;
         GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_MOVE, 0.45);
         this.updateVisuals();
     }
 
-    if (this.keyboard.justPressed("space")) {
+    if (pressConfirm) {
         GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.6);
 
         if (this.index === 0) {

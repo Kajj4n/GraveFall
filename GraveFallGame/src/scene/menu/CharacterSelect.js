@@ -12,10 +12,10 @@ GraveFallGame.scene.CharacterSelect = function () {
     rune.scene.Scene.call(this);
 
     this.controllers = [
-        { id: "P1", label: "PLAYER 1", controls: { left: "a", right: "d", confirm: "space" }, moveControls: { left: "a", right: "d", up: "w", down: "s" }, themeIndex: 0 },
-        { id: "P2", label: "PLAYER 2", controls: { left: "left", right: "right", confirm: "enter" }, moveControls: { left: "left", right: "right", up: "up", down: "down" }, themeIndex: 1 },
-        { id: "P3", label: "PLAYER 3", controls: { left: "j", right: "l", confirm: "k" }, moveControls: { left: "j", right: "l", up: "i", down: "k" }, themeIndex: 2 },
-        { id: "P4", label: "PLAYER 4", controls: { left: "v", right: "n", confirm: "b" }, moveControls: { left: "f", right: "h", up: "t", down: "g" }, themeIndex: 3 }
+        { id: "P1", label: "PLAYER 1", gamepadIndex: 0, controls: { left: "a", right: "d", confirm: "space" }, moveControls: { left: "a", right: "d", up: "w", down: "s" }, themeIndex: 0 },
+        { id: "P2", label: "PLAYER 2", gamepadIndex: 1, controls: { left: "left", right: "right", confirm: "enter" }, moveControls: { left: "left", right: "right", up: "up", down: "down" }, themeIndex: 1 },
+        { id: "P3", label: "PLAYER 3", gamepadIndex: 2, controls: { left: "j", right: "l", confirm: "k" }, moveControls: { left: "j", right: "l", up: "i", down: "k" }, themeIndex: 2 },
+        { id: "P4", label: "PLAYER 4", gamepadIndex: 3, controls: { left: "v", right: "n", confirm: "b" }, moveControls: { left: "f", right: "h", up: "t", down: "g" }, themeIndex: 3 }
     ];
 
     this.players = [];
@@ -59,6 +59,25 @@ GraveFallGame.scene.CharacterSelect.prototype.applyPaletteSwapsToDamageStateGrou
 GraveFallGame.scene.CharacterSelect.prototype.getPlayerStandDamageStates = GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates;
 GraveFallGame.scene.CharacterSelect.prototype.getPortraitDamageStates = GraveFallGame.scene.Game.prototype.getPortraitDamageStates;
 
+// --- UNIVERSAL INPUT HELPERS FOR SELECT SCENE ---
+GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctrl) {
+    if (this.keyboard.justPressed(ctrl.controls.confirm)) return true;
+    var gp = this.gamepads.get(ctrl.gamepadIndex);
+    return gp && gp.justPressed(0);
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) {
+    if (this.keyboard.justPressed(ctrl.controls.left)) return true;
+    var gp = this.gamepads.get(ctrl.gamepadIndex);
+    return gp && gp.justPressed(14);
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl) {
+    if (this.keyboard.justPressed(ctrl.controls.right)) return true;
+    var gp = this.gamepads.get(ctrl.gamepadIndex);
+    return gp && gp.justPressed(15);
+};
+
 //------------------------------------------------------------------------------
 // Public prototype methods
 //------------------------------------------------------------------------------
@@ -75,8 +94,6 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     var menuY;
     var i;
 
-    // Character select has no music. A new run locks its random palette here so
-    // the outside campfire and dungeon keep the same palette until that run ends.
     this.runPalette = GraveFallGame.scene.Game.startNewRunPalette();
     this.runPaletteKey = this.runPalette.key;
     this.backgroundSkin = this.runPalette.outside;
@@ -148,7 +165,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
             }
         }
 
-        if (!alreadyJoined && this.keyboard.justPressed(ctrl.controls.confirm)) {
+        if (!alreadyJoined && this.justPressedConfirm(ctrl)) {
             this.joinPlayer(ctrl);
             GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.6);
         }
@@ -165,7 +182,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
         if (!player.confirmed) {
             allJoinedConfirmed = false;
 
-            if (this.keyboard.justPressed(ctrl.controls.left)) {
+            if (this.justPressedLeft(ctrl)) {
                 nextLeft = this.findAvailableClassIndex(player.classIndex - 1, -1, player);
 
                 if (nextLeft !== player.classIndex) {
@@ -178,7 +195,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
                 }
             }
 
-            if (this.keyboard.justPressed(ctrl.controls.right)) {
+            if (this.justPressedRight(ctrl)) {
                 nextRight = this.findAvailableClassIndex(player.classIndex + 1, 1, player);
 
                 if (nextRight !== player.classIndex) {
@@ -191,7 +208,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
                 }
             }
 
-            if (this.keyboard.justPressed(ctrl.controls.confirm) && player.joinDelay <= 0) {
+            if (this.justPressedConfirm(ctrl) && player.joinDelay <= 0) {
                 node = this.classNodes[player.classIndex];
 
                 if (node && (!node.lockedBy || node.lockedBy === player)) {
@@ -514,6 +531,10 @@ GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (nod
 
     if (sprite) {
         this.stage.addChild(sprite);
+        // Switch to the attack sprite if confirmed
+        if (lockedBy && lockedBy.confirmed === true) {
+            this.setDamageStateGroupState(sprite, "itemAttack");
+        }
     }
 
     node.portrait = portrait;
@@ -1040,6 +1061,13 @@ GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
 
     player.classIndex = this.findAvailableClassIndex(0, 1, player);
     this.claimPlayerSelection(player, player.classIndex);
+
+    var status = new rune.text.BitmapField(ctrl.id);
+    status.scaleX = 1.5;
+    status.scaleY = 1.5;
+    this.stage.addChild(status);
+    player.statusText = status;
+
     this.updatePlayerCursor(player);
 };
 
@@ -1095,7 +1123,7 @@ GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (
     if (anyJoined) {
         this.instructionText.text = "SELECT YOUR CHARACTER";
     } else {
-        this.instructionText.text = "PRESS [SPACE], [ENTER], [K], or [B] TO JOIN";
+        this.instructionText.text = "PRESS [SPACE/ENTER/K/B] OR GAMEPAD [A] TO JOIN";
     }
 
     this.centerText(this.instructionText, this.application.screen.width / 2, 2);
@@ -1153,6 +1181,7 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
             hpMax: tmpl.hpMax,
             themeIndex: player.controller.themeIndex,
             attackMinigame: tmpl.attackMinigame,
+            gamepadIndex: player.controller.gamepadIndex, // Map to correct gamepad
             controls: player.controller.controls,
             moveControls: player.controller.moveControls,
             flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(renderIndex, partySize),

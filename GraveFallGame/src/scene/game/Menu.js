@@ -1,4 +1,62 @@
 //------------------------------------------------------------------------------
+// UNIVERSAL INPUT HELPERS FOR COMBAT PHASE
+//------------------------------------------------------------------------------
+
+GraveFallGame.scene.Game.prototype.justPressedConfirm = function(pm) {
+    if (this.keyboard.justPressed(pm.controls.confirm)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && gp.justPressed(0);
+};
+
+GraveFallGame.scene.Game.prototype.justPressedLeft = function(pm) {
+    if (this.keyboard.justPressed(pm.controls.left)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && gp.justPressed(14);
+};
+
+GraveFallGame.scene.Game.prototype.justPressedRight = function(pm) {
+    if (this.keyboard.justPressed(pm.controls.right)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && gp.justPressed(15);
+};
+
+GraveFallGame.scene.Game.prototype.justPressedUp = function(pm) {
+    if (this.keyboard.justPressed(pm.moveControls.up)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && gp.justPressed(12);
+};
+
+GraveFallGame.scene.Game.prototype.justPressedDown = function(pm) {
+    if (this.keyboard.justPressed(pm.moveControls.down)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && gp.justPressed(13);
+};
+
+GraveFallGame.scene.Game.prototype.isHoldingLeft = function(pm) {
+    if (this.keyboard.pressed(pm.moveControls.left)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && (gp.pressed(14) || gp.stickLeft.x < -0.3);
+};
+
+GraveFallGame.scene.Game.prototype.isHoldingRight = function(pm) {
+    if (this.keyboard.pressed(pm.moveControls.right)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && (gp.pressed(15) || gp.stickLeft.x > 0.3);
+};
+
+GraveFallGame.scene.Game.prototype.isHoldingUp = function(pm) {
+    if (this.keyboard.pressed(pm.moveControls.up)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && (gp.pressed(12) || gp.stickLeft.y < -0.3);
+};
+
+GraveFallGame.scene.Game.prototype.isHoldingDown = function(pm) {
+    if (this.keyboard.pressed(pm.moveControls.down)) return true;
+    var gp = this.gamepads.get(pm.gamepadIndex);
+    return gp && (gp.pressed(13) || gp.stickLeft.y > 0.3);
+};
+
+//------------------------------------------------------------------------------
 // Menu / command phase UI
 //------------------------------------------------------------------------------
 
@@ -188,6 +246,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         confirmedY: options.y + 58,
         controls: options.controls,
         moveControls: options.moveControls,
+        gamepadIndex: options.gamepadIndex !== undefined ? options.gamepadIndex : 0,
         characterId: options.characterId || null,
         characterName: options.characterName || "Character",
         partyRenderIndex: typeof options.partyRenderIndex === "number" ? options.partyRenderIndex : 0,
@@ -284,12 +343,11 @@ GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
     );
 };
 
-// --- PASS COLOR TO ENEMY DAMAGE ---
 GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor, skipDefaultSfx) {
     var wasAlive = this.enemyHealthCurrent > 0;
 
     if (amount > 0) {
-        this.addScorePopup(amount * 10, "DAMAGE DEALT");
+        this.addScorePopup(amount * 10, "DAMAGE DEALT", playerColor);
     }
 
     this.enemyHealthCurrent = Math.max(0, this.enemyHealthCurrent - amount);
@@ -311,7 +369,6 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
     }
 };
 
-
 GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, targetColor, stripBackdrop) {
     var color;
     var imageData;
@@ -325,9 +382,6 @@ GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, target
 
     color = rune.color.Color24.fromHex(targetColor);
 
-    // Rune's default BitmapField font bakes the black number backdrop into the
-    // font texture. For enemy hit numbers we remove those dark pixels before
-    // tinting, but score popups are left untouched so they keep Rune's default.
     field.render();
     imageData = field.canvas.context.getImageData(0, 0, field.canvas.width, field.canvas.height);
     data = imageData.data;
@@ -374,7 +428,7 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     if (!this.damagePopups) {
         this.damagePopups = [];
     }
-    // Comment placeholder
+
     popupAmount = Math.floor(amount);
     popupColor = playerColor || "#FFFFFF";
 
@@ -408,9 +462,6 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
     minY = 48;
     maxY = this.application.screen.height - popupHeight - 48;
 
-    // Keep the damage number visually attached to the enemy instead of drifting
-    // to the screen edge. Since the enemy usually stands on the right side, put
-    // the popup just to its left; if an enemy appears on the left, use its right.
     if (enemyRight + sidePadding + popupWidth <= maxX) {
         popup.x = Math.round(enemyRight + sidePadding);
     } else {
@@ -479,9 +530,6 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
         wasDowned = menu.healthCurrent <= 0;
 
         if (wasDowned === true) {
-            // Enemy-clear recovery revives downed players with the same percentage heal.
-            // Keep them visible in the same tucked/confirmed HUD state as a player
-            // who already took their turn, but do not offer actions until the next fight.
             menu.healthCurrent = Math.min(menu.healthMax, healAmount);
             menu.hideUntilNextEncounter = false;
             menu.revivedFromEnemyDefeat = true;
@@ -1613,8 +1661,8 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, playerMenu.selectedIndex, 1);
     }
 
-    if (this.keyboard.justPressed(playerMenu.controls.left) || this.keyboard.justPressed(playerMenu.controls.right)) {
-        direction = this.keyboard.justPressed(playerMenu.controls.left) ? -1 : 1;
+    if (this.justPressedLeft(playerMenu) || this.justPressedRight(playerMenu)) {
+        direction = this.justPressedLeft(playerMenu) ? -1 : 1;
         previousIndex = playerMenu.selectedIndex;
         playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, playerMenu.selectedIndex + direction, direction);
 
@@ -1623,7 +1671,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         }
     }
 
-    if (this.keyboard.justPressed(playerMenu.controls.confirm)) {
+    if (this.justPressedConfirm(playerMenu)) {
         if (!this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
             this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
             this.updateCharacterMenuVisuals(playerMenu);
