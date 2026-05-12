@@ -6,6 +6,10 @@ GraveFallGame.scene.Game.prototype.startMinigamePhase = function () {
     var i;
     var menu;
 
+    if (typeof this.hideAllCharacterMenuTooltips === "function") {
+        this.hideAllCharacterMenuTooltips();
+    }
+
     this.phase = GraveFallGame.scene.Game.PHASE_MINIGAME;
     this.minigameTimer = 10000;
     this.minigameDurationMs = this.minigameTimer;

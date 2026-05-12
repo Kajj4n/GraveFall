@@ -333,19 +333,21 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     this.arenaAvatarLayer.addChild(battleAvatar);
     this.stage.addChild(characterMenu);
 
-    tooltipContainer = new rune.display.DisplayObjectContainer(options.x, options.y - 46, menuWidth, 42);
-    tooltipBackground = new rune.display.Graphic(0, 0, menuWidth, 42);
+    tooltipContainer = new rune.display.DisplayObjectContainer(options.x, options.y - 54, menuWidth, 50);
+    tooltipBackground = new rune.display.Graphic(0, 0, menuWidth, 50);
     tooltipBackground.backgroundColor = uiSkin.panelTop || "#191919";
     tooltipBackground.alpha = 0.94;
-    tooltipFrame = this.createBoxFrame(0, 0, menuWidth, 42, framePaletteSwaps);
+    tooltipFrame = this.createBoxFrame(0, 0, menuWidth, 50, framePaletteSwaps);
     tooltipLineOne = new rune.text.BitmapField("");
     tooltipLineTwo = new rune.text.BitmapField("");
+    tooltipLineOne.width = 1200;
+    tooltipLineTwo.width = 1200;
     tooltipLineOne.scaleX = 1.15;
     tooltipLineOne.scaleY = 1.15;
     tooltipLineTwo.scaleX = 1.15;
     tooltipLineTwo.scaleY = 1.15;
     tooltipLineOne.y = 8;
-    tooltipLineTwo.y = 24;
+    tooltipLineTwo.y = 27;
     tooltipContainer.visible = false;
     tooltipContainer.addChild(tooltipBackground);
     tooltipContainer.addChild(tooltipLineOne);
@@ -427,7 +429,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         tooltipLineTwo: tooltipLineTwo,
         tooltipHoverKey: null,
         tooltipHoverFrames: 0,
-        tooltipDelayFrames: 38
+        tooltipDelayFrames: 0
     };
 
     this.updatePlayerHealthUi(playerMenu);
@@ -1098,18 +1100,18 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
         target = typeof targetPartyIndex === "number" ? this.getPlayerMenuByPartyIndex(targetPartyIndex) : null;
 
         if (target && target.characterName) {
-            return ["DEFEND " + String(target.characterName).toUpperCase(), "HEALS + DEFENCE [REVIVES IF DOWNED]"];
+            return ["DEFEND " + String(target.characterName).toUpperCase(), "HEAL + DEF [REVIVES]"];
         }
 
-        return ["DEFEND: HEALS + DEFENCE", "FOR SELECTED PLAYER [REVIVES IF DOWNED]"];
+        return ["DEFEND: HEAL + DEF", "SELECTED PLAYER [REVIVES]"];
     }
 
     if (playerMenu.selectedIndex === 0) {
-        return ["ATTACK", "DEAL DAMAGE TO THE ENEMY"];
+        return ["ATTACK", "DEAL DAMAGE TO ENEMY"];
     }
 
     if (playerMenu.selectedIndex === 1) {
-        return ["DEFEND: HEALS + DEFENCE", "FOR SELECTED PLAYER [REVIVES IF DOWNED]"];
+        return ["DEFEND: HEAL + DEF", "SELECTED PLAYER [REVIVES]"];
     }
 
     if (playerMenu.selectedIndex === 2) {
@@ -1129,15 +1131,44 @@ GraveFallGame.scene.Game.prototype.hideCharacterMenuTooltip = function (playerMe
     }
 };
 
+GraveFallGame.scene.Game.prototype.hideAllCharacterMenuTooltips = function () {
+    var i;
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        if (this.playerMenus[i]) {
+            this.playerMenus[i].tooltipHoverKey = null;
+            this.playerMenus[i].tooltipHoverFrames = 0;
+            this.hideCharacterMenuTooltip(this.playerMenus[i]);
+        }
+    }
+};
+
 GraveFallGame.scene.Game.prototype.setCharacterMenuTooltipLine = function (field, text, scale, menuWidth) {
+    var safeText;
+    var maxTextWidth;
+    var estimatedWidth;
+
     if (!field) {
         return;
     }
 
-    field.text = text || "";
+    safeText = text || "";
+    maxTextWidth = Math.max(1, menuWidth - 24);
+    estimatedWidth = safeText.length * 6 * scale;
+
+    if (estimatedWidth > maxTextWidth) {
+        scale = Math.max(0.78, maxTextWidth / Math.max(1, safeText.length * 6));
+    }
+
+    field.text = safeText;
+    field.width = 1200;
     field.scaleX = scale;
     field.scaleY = scale;
-    field.x = Math.round((menuWidth - (field.text.length * 6 * scale)) / 2);
+    field.x = Math.max(8, Math.round((menuWidth - (safeText.length * 6 * scale)) / 2));
 };
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (playerMenu) {
@@ -1169,13 +1200,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (
     if (playerMenu.tooltipHoverKey !== key) {
         playerMenu.tooltipHoverKey = key;
         playerMenu.tooltipHoverFrames = 0;
-        this.hideCharacterMenuTooltip(playerMenu);
-        return;
     }
 
     playerMenu.tooltipHoverFrames++;
 
-    if (playerMenu.tooltipHoverFrames < (playerMenu.tooltipDelayFrames || 38)) {
+    if (playerMenu.tooltipHoverFrames < (playerMenu.tooltipDelayFrames || 0)) {
         this.hideCharacterMenuTooltip(playerMenu);
         return;
     }
@@ -1188,7 +1217,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (
     }
 
     playerMenu.tooltipContainer.x = playerMenu.container ? playerMenu.container.x : playerMenu.tooltipContainer.x;
-    playerMenu.tooltipContainer.y = playerMenu.container ? playerMenu.container.y - 46 : playerMenu.tooltipContainer.y;
+    playerMenu.tooltipContainer.y = playerMenu.container ? playerMenu.container.y - 54 : playerMenu.tooltipContainer.y;
     playerMenu.tooltipContainer.visible = true;
 
     this.setCharacterMenuTooltipLine(playerMenu.tooltipLineOne, lines[0] || "", scale, menuWidth);

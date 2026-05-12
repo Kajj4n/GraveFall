@@ -88,9 +88,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
     // Dungeon music starts after the campfire-to-dungeon passage finishes.
 
     this.turnTimer = 600;
-    this.turnTimerMs = 10000;
+    this.turnTimerMs = 25000;
 
-    this.turnTimerText = new rune.text.BitmapField("10");
+    this.turnTimerText = new rune.text.BitmapField("25");
     this.turnTimerText.scaleX = 2;
     this.turnTimerText.scaleY = 2;
     this.turnTimerText.x = this.application.screen.width - 28;
@@ -329,7 +329,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     }
 
     if (this.phase === GraveFallGame.scene.Game.PHASE_COMMAND) {
-        if (!this.commandMenuResetDone && this.turnTimerMs === 10000) {
+        if (!this.commandMenuResetDone && this.turnTimerMs === 25000) {
             this.resetPlayerMenusForCommandPhase();
             this.commandMenuResetDone = true;
         }
@@ -379,6 +379,10 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
                     requiresMinigame = true;
                     break;
                 }
+            }
+
+            if (typeof this.hideAllCharacterMenuTooltips === "function") {
+                this.hideAllCharacterMenuTooltips();
             }
 
             if (requiresMinigame && typeof this.startMinigamePhase === "function") {
