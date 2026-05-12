@@ -1250,7 +1250,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
         this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
         
         this.playerMenus[i].menuState = "main";
-        this.updateCharacterMenuVisuals(this.playerMenus[i]);
+        this.restorePlayerCommandMenuVisibility(this.playerMenus[i]);
 
         this.deactivateBattleAvatar(this.playerMenus[i]);
     }

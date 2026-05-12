@@ -1093,6 +1093,54 @@ GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMen
     this.updateCharacterMenuVisuals(playerMenu);
 };
 
+GraveFallGame.scene.Game.prototype.restorePlayerCommandMenuVisibility = function (playerMenu) {
+    var alive;
+
+    if (!playerMenu) {
+        return;
+    }
+
+    alive = playerMenu.healthCurrent > 0;
+
+    if (alive === true) {
+        playerMenu.hideUntilNextEncounter = false;
+        playerMenu.revivedFromEnemyDefeat = false;
+    }
+
+    playerMenu.menuState = "main";
+
+    if (!this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
+        playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, 0, 1);
+    }
+
+    if (playerMenu.container) {
+        playerMenu.container.visible = true;
+        playerMenu.container.alpha = 1;
+    }
+
+    if (playerMenu.actionsContainer) {
+        playerMenu.actionsContainer.visible = true;
+        playerMenu.actionsContainer.alpha = 1;
+    }
+
+    if (playerMenu.selectionBar) {
+        playerMenu.selectionBar.visible = alive === true;
+        playerMenu.selectionBar.alpha = 1;
+    }
+
+    if (playerMenu.stand && !playerMenu.healingStandSprite) {
+        playerMenu.stand.visible = true;
+        playerMenu.stand.alpha = 1;
+    }
+
+    if (playerMenu.battleAvatar) {
+        playerMenu.battleAvatar.visible = false;
+        playerMenu.battleAvatar.alpha = 1;
+    }
+
+    this.updateCharacterMenuVisuals(playerMenu);
+};
+
 GraveFallGame.scene.Game.ITEM_BUFF_TYPES = ["maxHp", "attack", "defense", "speed"];
 
 GraveFallGame.scene.Game.BUFF_CONFIGS = {

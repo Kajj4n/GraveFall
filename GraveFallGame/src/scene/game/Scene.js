@@ -432,12 +432,7 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
         menu.confirmed = false;
         menu.container.y = menu.baseY;
 
-        if (menu.stand && !menu.healingStandSprite) {
-            menu.stand.visible = true;
-            menu.stand.alpha = 1;
-        }
-
-        this.updateCharacterMenuVisuals(menu);
+        this.restorePlayerCommandMenuVisibility(menu);
     }
 };
 
