@@ -40,6 +40,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.defendHealRatio = 0.04;
     this.firstActionPhasePromptShown = false;
     this.actionPhaseStartDelayFrames = 0;
+    this.actionPromptTimerFrames = 0;
 
     this.arenaItem = null;
     this.itemSpawnTimer = 0;
@@ -616,6 +617,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.defendHealRatio = null;
     this.firstActionPhasePromptShown = null;
     this.actionPhaseStartDelayFrames = null;
+    this.actionPromptTimerFrames = null;
     this.actionPromptText = null;
     this.enemyFadeTimerMs = null;
     this.enemyFadeDurationMs = null;

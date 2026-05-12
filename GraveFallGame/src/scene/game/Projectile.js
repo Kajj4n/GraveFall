@@ -686,22 +686,14 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
 
+    this.updateActionPromptTimer();
+
     if (this.actionPhaseStartDelayFrames > 0) {
         this.actionPhaseStartDelayFrames--;
-
-        if (this.actionPromptText) {
-            this.actionPromptText.visible = true;
-            this.actionPromptText.alpha = 1;
-        }
 
         for (i = 0; i < this.playerMenus.length; i++) {
             this.updateBattleAvatarMovement(this.playerMenus[i]);
             this.updatePlayerHitFlicker(this.playerMenus[i]);
-        }
-
-        if (this.actionPhaseStartDelayFrames <= 0 && this.actionPromptText) {
-            this.actionPromptText.visible = false;
-            this.actionPromptText.alpha = 0;
         }
 
         return;

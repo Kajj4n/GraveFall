@@ -36,12 +36,12 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     this.stage.addChild(this.arenaFrame);
 
     this.actionPromptText = new rune.text.BitmapField("AVOID DAMAGE");
-    this.actionPromptText.width = 500;
-    this.actionPromptText.height = 48;
-    this.actionPromptText.scaleX = 2;
-    this.actionPromptText.scaleY = 2;
-    this.actionPromptText.x = Math.floor((screenWidth / 2) - ((this.actionPromptText.text.length * 6 * 2) / 2));
-    this.actionPromptText.y = arenaY + arenaHeight + 10;
+    this.actionPromptText.width = screenWidth;
+    this.actionPromptText.height = 96;
+    this.actionPromptText.scaleX = 5;
+    this.actionPromptText.scaleY = 5;
+    this.actionPromptText.x = Math.floor((screenWidth / 2) - ((this.actionPromptText.text.length * 6 * this.actionPromptText.scaleX) / 2));
+    this.actionPromptText.y = Math.max(24, arenaY - 70);
     this.actionPromptText.visible = false;
     this.actionPromptText.alpha = 0;
     this.stage.addChild(this.actionPromptText);
@@ -104,6 +104,49 @@ GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
     this.arenaFrame.visible = visible;
 
     if (visible !== true && this.actionPromptText) {
+        this.actionPromptTimerFrames = 0;
+        this.actionPromptText.visible = false;
+        this.actionPromptText.alpha = 0;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.showActionPromptForFirstEnemy = function () {
+    if (this.encounterIndex === 0 && this.actionPromptText) {
+        this.actionPromptTimerFrames = 150;
+        this.actionPromptText.visible = true;
+        this.actionPromptText.alpha = 1;
+        this.actionPromptText.x = Math.floor((this.application.screen.width / 2) - ((this.actionPromptText.text.length * 6 * this.actionPromptText.scaleX) / 2));
+    } else if (this.actionPromptText) {
+        this.actionPromptTimerFrames = 0;
+        this.actionPromptText.visible = false;
+        this.actionPromptText.alpha = 0;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.updateActionPromptTimer = function () {
+    if (!this.actionPromptText) {
+        return;
+    }
+
+    if (this.actionPromptTimerFrames > 0) {
+        this.actionPromptTimerFrames--;
+        this.actionPromptText.visible = true;
+        this.actionPromptText.alpha = 1;
+
+        if (this.actionPromptTimerFrames <= 0) {
+            this.actionPromptText.visible = false;
+            this.actionPromptText.alpha = 0;
+        }
+    } else {
+        this.actionPromptText.visible = false;
+        this.actionPromptText.alpha = 0;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.hideActionPrompt = function () {
+    this.actionPromptTimerFrames = 0;
+
+    if (this.actionPromptText) {
         this.actionPromptText.visible = false;
         this.actionPromptText.alpha = 0;
     }
@@ -684,6 +727,7 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
     this.turnTimerText.text = "25";
     this.turnTimerMs = 25000;
     this.lastTurnWarningSecond = null;
+    this.hideActionPrompt();
 };
 
 GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = function () {
@@ -1199,19 +1243,8 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     this.playSfx(GraveFallGame.SOUNDS.PHASE_START, 0.65);
     this.actionPhaseTimer = enemy.actionPhaseDuration;
     this.nextPatternIn = 0;
-    this.actionPhaseStartDelayFrames = this.firstActionPhasePromptShown === true ? 0 : 30;
-
-    if (this.actionPhaseStartDelayFrames > 0) {
-        this.firstActionPhasePromptShown = true;
-
-        if (this.actionPromptText) {
-            this.actionPromptText.visible = true;
-            this.actionPromptText.alpha = 1;
-        }
-    } else if (this.actionPromptText) {
-        this.actionPromptText.visible = false;
-        this.actionPromptText.alpha = 0;
-    }
+    this.actionPhaseStartDelayFrames = 60;
+    this.showActionPromptForFirstEnemy();
 
     this.clearProjectiles();
     this.setBattleArenaVisible(true);
@@ -1233,11 +1266,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
     this.actionPhaseStartDelayFrames = 0;
-
-    if (this.actionPromptText) {
-        this.actionPromptText.visible = false;
-        this.actionPromptText.alpha = 0;
-    }
+    this.hideActionPrompt();
     this.commandActionsResolved = false;
     this.clearProjectiles();
     this.setBattleArenaVisible(false);
