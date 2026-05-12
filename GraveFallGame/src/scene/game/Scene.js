@@ -37,6 +37,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyPreviewBaseX = null;
     this.enemyPreviewBaseY = null;
     this.enemyDefeatedHealRatio = 0.08;
+    this.defendHealRatio = 0.04;
+    this.firstActionPhasePromptShown = false;
+    this.actionPhaseStartDelayFrames = 0;
 
     this.arenaItem = null;
     this.itemSpawnTimer = 0;
@@ -182,6 +185,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
             hpMax: partyMember.hpMax,
             playerTheme: this.getPlayerTheme(partyMember.themeIndex || 0),
             flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(renderIndex, renderPartySize),
+            partyIndex: partyIndex,
             partyRenderIndex: renderIndex,
             partySize: renderPartySize,
             controls: partyMember.controls,
@@ -423,6 +427,7 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
         menu.menuState = "main";
         menu.selectedIndex = 0;
         menu.selectedAction = null;
+        menu.selectedDefendTargetPartyIndex = null;
         menu.standActionState = null;
         menu.confirmed = false;
         menu.container.y = menu.baseY;
@@ -609,6 +614,10 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyPreviewBaseX = null;
     this.enemyPreviewBaseY = null;
     this.enemyDefeatedHealRatio = null;
+    this.defendHealRatio = null;
+    this.firstActionPhasePromptShown = null;
+    this.actionPhaseStartDelayFrames = null;
+    this.actionPromptText = null;
     this.enemyFadeTimerMs = null;
     this.enemyFadeDurationMs = null;
     this.enemyDefeatedTimerMs = null;

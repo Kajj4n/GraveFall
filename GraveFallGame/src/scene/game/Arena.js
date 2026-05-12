@@ -34,6 +34,17 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     this.arenaFrame = this.createBoxFrame(arenaX, arenaY, arenaWidth, arenaHeight, framePaletteSwaps);
     this.arenaFrame.visible = false;
     this.stage.addChild(this.arenaFrame);
+
+    this.actionPromptText = new rune.text.BitmapField("AVOID DAMAGE");
+    this.actionPromptText.width = 500;
+    this.actionPromptText.height = 48;
+    this.actionPromptText.scaleX = 2;
+    this.actionPromptText.scaleY = 2;
+    this.actionPromptText.x = Math.floor((screenWidth / 2) - ((this.actionPromptText.text.length * 6 * 2) / 2));
+    this.actionPromptText.y = arenaY + arenaHeight + 10;
+    this.actionPromptText.visible = false;
+    this.actionPromptText.alpha = 0;
+    this.stage.addChild(this.actionPromptText);
 };
 
 
@@ -91,6 +102,11 @@ GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
     this.arenaProjectileLayer.visible = visible;
     this.arenaAvatarLayer.visible = visible;
     this.arenaFrame.visible = visible;
+
+    if (visible !== true && this.actionPromptText) {
+        this.actionPromptText.visible = false;
+        this.actionPromptText.alpha = 0;
+    }
 };
 
 GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
@@ -520,6 +536,7 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
         this.playerMenus[i].selectedAction = null;
+        this.playerMenus[i].selectedDefendTargetPartyIndex = null;
         this.playerMenus[i].standActionState = null;
         this.playerMenus[i].hideUntilNextEncounter = false;
         this.playerMenus[i].revivedFromEnemyDefeat = false;
@@ -1170,6 +1187,20 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     this.playSfx(GraveFallGame.SOUNDS.PHASE_START, 0.65);
     this.actionPhaseTimer = enemy.actionPhaseDuration;
     this.nextPatternIn = 0;
+    this.actionPhaseStartDelayFrames = this.firstActionPhasePromptShown === true ? 0 : 30;
+
+    if (this.actionPhaseStartDelayFrames > 0) {
+        this.firstActionPhasePromptShown = true;
+
+        if (this.actionPromptText) {
+            this.actionPromptText.visible = true;
+            this.actionPromptText.alpha = 1;
+        }
+    } else if (this.actionPromptText) {
+        this.actionPromptText.visible = false;
+        this.actionPromptText.alpha = 0;
+    }
+
     this.clearProjectiles();
     this.setBattleArenaVisible(true);
     this.layoutBattleAvatarsInArena();
@@ -1189,6 +1220,12 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     this.playSfx(GraveFallGame.SOUNDS.PHASE_END, 0.5);
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
+    this.actionPhaseStartDelayFrames = 0;
+
+    if (this.actionPromptText) {
+        this.actionPromptText.visible = false;
+        this.actionPromptText.alpha = 0;
+    }
     this.commandActionsResolved = false;
     this.clearProjectiles();
     this.setBattleArenaVisible(false);
@@ -1203,6 +1240,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;
         this.playerMenus[i].selectedAction = null;
+        this.playerMenus[i].selectedDefendTargetPartyIndex = null;
         this.playerMenus[i].standActionState = null; 
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;

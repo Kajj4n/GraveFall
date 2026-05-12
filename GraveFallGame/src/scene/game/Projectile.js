@@ -381,8 +381,33 @@ GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index) {
     this.projectiles.splice(index, 1);
 };
 
+GraveFallGame.scene.Game.prototype.getCollisionBounds = function (object) {
+    var insetX = object && typeof object.hitboxInsetX === "number" ? object.hitboxInsetX : 0;
+    var insetY = object && typeof object.hitboxInsetY === "number" ? object.hitboxInsetY : 0;
+    var width = object ? object.width || 0 : 0;
+    var height = object ? object.height || 0 : 0;
+
+    insetX = Math.max(0, Math.min(width / 2, insetX));
+    insetY = Math.max(0, Math.min(height / 2, insetY));
+
+    return {
+        x: (object ? object.x || 0 : 0) + insetX,
+        y: (object ? object.y || 0 : 0) + insetY,
+        width: Math.max(0, width - (insetX * 2)),
+        height: Math.max(0, height - (insetY * 2))
+    };
+};
+
 GraveFallGame.scene.Game.prototype.rectsOverlap = function (a, b) {
-    return (a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y);
+    var aBounds = this.getCollisionBounds(a);
+    var bBounds = this.getCollisionBounds(b);
+
+    return (
+        aBounds.x < bBounds.x + bBounds.width &&
+        aBounds.x + aBounds.width > bBounds.x &&
+        aBounds.y < bBounds.y + bBounds.height &&
+        aBounds.y + aBounds.height > bBounds.y
+    );
 };
 
 GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMenu, testX, testY) {
@@ -660,6 +685,27 @@ GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
 GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
+
+    if (this.actionPhaseStartDelayFrames > 0) {
+        this.actionPhaseStartDelayFrames--;
+
+        if (this.actionPromptText) {
+            this.actionPromptText.visible = true;
+            this.actionPromptText.alpha = 1;
+        }
+
+        for (i = 0; i < this.playerMenus.length; i++) {
+            this.updateBattleAvatarMovement(this.playerMenus[i]);
+            this.updatePlayerHitFlicker(this.playerMenus[i]);
+        }
+
+        if (this.actionPhaseStartDelayFrames <= 0 && this.actionPromptText) {
+            this.actionPromptText.visible = false;
+            this.actionPromptText.alpha = 0;
+        }
+
+        return;
+    }
 
     this.actionPhaseTimer--;
     this.nextPatternIn--;
