@@ -190,6 +190,11 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var targetIcon;
     var targetTheme;
     var targetPosition;
+    var tooltipContainer;
+    var tooltipBackground;
+    var tooltipFrame;
+    var tooltipLineOne;
+    var tooltipLineTwo;
 
     var itemIconsArray = [healthItemIcon, sharpItemIcon, shieldItemIcon, speedItemIcon, returnItemIcon];
     for (var i = 0; i < itemIconsArray.length; i++) {
@@ -328,6 +333,26 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     this.arenaAvatarLayer.addChild(battleAvatar);
     this.stage.addChild(characterMenu);
 
+    tooltipContainer = new rune.display.DisplayObjectContainer(options.x, options.y - 46, menuWidth, 42);
+    tooltipBackground = new rune.display.Graphic(0, 0, menuWidth, 42);
+    tooltipBackground.backgroundColor = uiSkin.panelTop || "#191919";
+    tooltipBackground.alpha = 0.94;
+    tooltipFrame = this.createBoxFrame(0, 0, menuWidth, 42, framePaletteSwaps);
+    tooltipLineOne = new rune.text.BitmapField("");
+    tooltipLineTwo = new rune.text.BitmapField("");
+    tooltipLineOne.scaleX = 1.15;
+    tooltipLineOne.scaleY = 1.15;
+    tooltipLineTwo.scaleX = 1.15;
+    tooltipLineTwo.scaleY = 1.15;
+    tooltipLineOne.y = 8;
+    tooltipLineTwo.y = 24;
+    tooltipContainer.visible = false;
+    tooltipContainer.addChild(tooltipBackground);
+    tooltipContainer.addChild(tooltipLineOne);
+    tooltipContainer.addChild(tooltipLineTwo);
+    tooltipContainer.addChild(tooltipFrame);
+    this.stage.addChild(tooltipContainer);
+
     var playerMenu = {
         container: characterMenu,
         characterContainer: characterMenuCharacter,
@@ -396,7 +421,13 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         healingStandTimer: 0,
         hideUntilNextEncounter: false,
         revivedFromEnemyDefeat: false,
-        menuState: "main"
+        menuState: "main",
+        tooltipContainer: tooltipContainer,
+        tooltipLineOne: tooltipLineOne,
+        tooltipLineTwo: tooltipLineTwo,
+        tooltipHoverKey: null,
+        tooltipHoverFrames: 0,
+        tooltipDelayFrames: 38
     };
 
     this.updatePlayerHealthUi(playerMenu);
@@ -1003,6 +1034,167 @@ GraveFallGame.scene.Game.prototype.updateDefendTargetMenuIcons = function (playe
     }
 };
 
+GraveFallGame.scene.Game.prototype.getClassBuffTooltipLines = function (playerMenu) {
+    var id = playerMenu && playerMenu.characterId ? String(playerMenu.characterId).toLowerCase() : "";
+    var minigame = playerMenu && playerMenu.attackMinigame ? playerMenu.attackMinigame : "";
+
+    if (id === "fighter" || id.indexOf("fighter_") === 0 || minigame === "buttonMash") {
+        return ["BUFF: TEMP DEFENCE", "FOR THE PARTY"];
+    }
+
+    if (id === "assassin" || id.indexOf("assassin_") === 0 || id === "rogue" || id.indexOf("rogue_") === 0 || minigame === "timingBar") {
+        return ["BUFF: TEMP SPEED", "FOR THE PARTY"];
+    }
+
+    if (id === "wizard" || id.indexOf("wizard_") === 0 || minigame === "buttonSequence") {
+        return ["BUFF: HEALS THE PARTY", "[REVIVES IF DOWNED]"];
+    }
+
+    if (id === "ranger" || id.indexOf("ranger_") === 0 || minigame === "targetReticle") {
+        return ["BUFF: TEMP DAMAGE", "FOR THE PARTY"];
+    }
+
+    return ["BUFF: TEMP DAMAGE", "FOR THE PARTY"];
+};
+
+GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
+    var targetPartyIndex;
+    var target;
+
+    if (!playerMenu) {
+        return null;
+    }
+
+    if (playerMenu.menuState === "items") {
+        if (playerMenu.selectedIndex === playerMenu.itemIcons.length - 1) {
+            return ["BACK", "RETURN TO ACTIONS"];
+        }
+
+        if (playerMenu.selectedIndex === 0) {
+            return ["HP ITEM: PERMANENTLY INCREASES HP", "FOR PARTY [REVIVES IF DOWNED]"];
+        }
+
+        if (playerMenu.selectedIndex === 1) {
+            return ["ATK ITEM: PERMANENTLY INCREASES ATK", "FOR THE WHOLE PARTY"];
+        }
+
+        if (playerMenu.selectedIndex === 2) {
+            return ["DEF ITEM: PERMANENTLY INCREASES DEFENCE", "FOR THE WHOLE PARTY"];
+        }
+
+        if (playerMenu.selectedIndex === 3) {
+            return ["SPD ITEM: PERMANENTLY INCREASES SPEED", "FOR THE WHOLE PARTY"];
+        }
+
+        return null;
+    }
+
+    if (playerMenu.menuState === "defendTarget") {
+        if (playerMenu.selectedIndex === playerMenu.defendTargetIcons.length - 1) {
+            return ["BACK", "RETURN TO ACTIONS"];
+        }
+
+        targetPartyIndex = playerMenu.defendTargetPartyIndexes ? playerMenu.defendTargetPartyIndexes[playerMenu.selectedIndex] : null;
+        target = typeof targetPartyIndex === "number" ? this.getPlayerMenuByPartyIndex(targetPartyIndex) : null;
+
+        if (target && target.characterName) {
+            return ["DEFEND " + String(target.characterName).toUpperCase(), "HEALS + DEFENCE [REVIVES IF DOWNED]"];
+        }
+
+        return ["DEFEND: HEALS + DEFENCE", "FOR SELECTED PLAYER [REVIVES IF DOWNED]"];
+    }
+
+    if (playerMenu.selectedIndex === 0) {
+        return ["ATTACK", "DEAL DAMAGE TO THE ENEMY"];
+    }
+
+    if (playerMenu.selectedIndex === 1) {
+        return ["DEFEND: HEALS + DEFENCE", "FOR SELECTED PLAYER [REVIVES IF DOWNED]"];
+    }
+
+    if (playerMenu.selectedIndex === 2) {
+        return this.getClassBuffTooltipLines(playerMenu);
+    }
+
+    if (playerMenu.selectedIndex === 3) {
+        return ["ITEM: PERMANENTLY INCREASES A STAT", "FOR THE WHOLE PARTY"];
+    }
+
+    return null;
+};
+
+GraveFallGame.scene.Game.prototype.hideCharacterMenuTooltip = function (playerMenu) {
+    if (playerMenu && playerMenu.tooltipContainer) {
+        playerMenu.tooltipContainer.visible = false;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.setCharacterMenuTooltipLine = function (field, text, scale, menuWidth) {
+    if (!field) {
+        return;
+    }
+
+    field.text = text || "";
+    field.scaleX = scale;
+    field.scaleY = scale;
+    field.x = Math.round((menuWidth - (field.text.length * 6 * scale)) / 2);
+};
+
+GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (playerMenu) {
+    var key;
+    var lines;
+    var menuWidth = 320;
+    var scale = 1.15;
+
+    if (!playerMenu || !playerMenu.tooltipContainer) {
+        return;
+    }
+
+    if (playerMenu.confirmed === true || playerMenu.healthCurrent <= 0 || (this.phase && this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND)) {
+        playerMenu.tooltipHoverKey = null;
+        playerMenu.tooltipHoverFrames = 0;
+        this.hideCharacterMenuTooltip(playerMenu);
+        return;
+    }
+
+    if (!this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
+        playerMenu.tooltipHoverKey = null;
+        playerMenu.tooltipHoverFrames = 0;
+        this.hideCharacterMenuTooltip(playerMenu);
+        return;
+    }
+
+    key = playerMenu.menuState + ":" + playerMenu.selectedIndex;
+
+    if (playerMenu.tooltipHoverKey !== key) {
+        playerMenu.tooltipHoverKey = key;
+        playerMenu.tooltipHoverFrames = 0;
+        this.hideCharacterMenuTooltip(playerMenu);
+        return;
+    }
+
+    playerMenu.tooltipHoverFrames++;
+
+    if (playerMenu.tooltipHoverFrames < (playerMenu.tooltipDelayFrames || 38)) {
+        this.hideCharacterMenuTooltip(playerMenu);
+        return;
+    }
+
+    lines = this.getMenuTooltipLines(playerMenu);
+
+    if (!lines) {
+        this.hideCharacterMenuTooltip(playerMenu);
+        return;
+    }
+
+    playerMenu.tooltipContainer.x = playerMenu.container ? playerMenu.container.x : playerMenu.tooltipContainer.x;
+    playerMenu.tooltipContainer.y = playerMenu.container ? playerMenu.container.y - 46 : playerMenu.tooltipContainer.y;
+    playerMenu.tooltipContainer.visible = true;
+
+    this.setCharacterMenuTooltipLine(playerMenu.tooltipLineOne, lines[0] || "", scale, menuWidth);
+    this.setCharacterMenuTooltipLine(playerMenu.tooltipLineTwo, lines[1] || "", scale, menuWidth);
+};
+
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
     var i;
     var isItemMenu = playerMenu.menuState === "items";
@@ -1064,6 +1256,8 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 
     playerMenu.selectionBar.x = positions[playerMenu.selectedIndex] || positions[0];
     playerMenu.selectionBar.visible = playerMenu.healthCurrent > 0;
+
+    this.updateCharacterMenuTooltipVisual(playerMenu);
 };
 
 GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMenu) {

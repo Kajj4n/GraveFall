@@ -297,6 +297,29 @@ GraveFallGame.scene.CharacterSelect.prototype.getDownedCharacterTheme = function
     };
 };
 
+GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription = function (template) {
+    var id = template && template.id ? String(template.id).toLowerCase() : "";
+    var name = template && template.name ? String(template.name).toLowerCase() : "";
+
+    if (id === "fighter" || name === "fighter" || name === "warrior") {
+        return "BUFF: TEMP DEFENCE";
+    }
+
+    if (id === "assassin" || id === "rogue" || name === "rogue" || name === "assassin") {
+        return "BUFF: TEMP SPEED";
+    }
+
+    if (id === "wizard" || name === "wizard") {
+        return "BUFF: HEALS [REVIVES IF DOWNED]";
+    }
+
+    if (id === "ranger" || name === "ranger") {
+        return "BUFF: TEMP DAMAGE";
+    }
+
+    return "BUFF: TEMP DAMAGE";
+};
+
 GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height, index) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.selectionSkin);
     var panel;
@@ -307,6 +330,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     var hpValueText;
     var statusText;
     var statusNumberText;
+    var buffText;
     var node;
     var spriteScale = 2.05;
     var textScale = 1.55;
@@ -345,6 +369,14 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     hpValueText.x = 132;
     hpValueText.y = hpY + numberYAdjust;
     panel.addChild(hpValueText);
+
+    buffText = new rune.text.BitmapField(this.getCharacterSelectBuffDescription(template));
+    buffText.width = 204;
+    buffText.scaleX = 1;
+    buffText.scaleY = 1;
+    buffText.x = 102;
+    buffText.y = 55;
+    panel.addChild(buffText);
 
     statusText = new rune.text.BitmapField("");
     statusText.width = 66;
@@ -394,6 +426,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
         frame: frame,
         statusText: statusText,
         statusNumberText: statusNumberText,
+        buffText: buffText,
         statusBaseX: 202,
         statusNumberBaseX: 267,
         statusY: nameY,
