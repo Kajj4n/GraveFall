@@ -179,15 +179,17 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var speedItemIcon = new rune.display.Sprite(itemActionPositions[3], 10, 100, 100, "Speed_Up_Buff_Icon_T");
     var returnItemIcon = new rune.display.Sprite(itemActionPositions[4], 10, 100, 100, "Back_Arrow_Icon_T");
 
-    var defendActionPositions = [6, 70, 134, 198, 262];
+    var defendActionSlots = [6, 70, 134, 198, 262];
+    var defendActionPositions = [];
     var defendTargetIconsArray = [];
     var defendTargetPartyIndexes = [];
-    var returnDefendIcon = new rune.display.Sprite(defendActionPositions[defendActionPositions.length - 1], 10, 100, 100, "Back_Arrow_Icon_T");
+    var returnDefendIcon = new rune.display.Sprite(defendActionSlots[defendActionSlots.length - 1], 10, 100, 100, "Back_Arrow_Icon_T");
     var partyMembersForTargets = this.partyMembers || GraveFallGame.scene.Game.PARTY_MEMBERS || [];
     var targetPartyIndex;
     var targetMember;
     var targetIcon;
     var targetTheme;
+    var targetPosition;
 
     var itemIconsArray = [healthItemIcon, sharpItemIcon, shieldItemIcon, speedItemIcon, returnItemIcon];
     for (var i = 0; i < itemIconsArray.length; i++) {
@@ -199,18 +201,15 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     }
 
     for (targetPartyIndex = 0; targetPartyIndex < partyMembersForTargets.length; targetPartyIndex++) {
-        if (targetPartyIndex === options.partyIndex) {
-            continue;
-        }
-
-        if (defendTargetIconsArray.length >= defendActionPositions.length - 1) {
+        if (defendTargetIconsArray.length >= defendActionSlots.length - 1) {
             break;
         }
 
         targetMember = partyMembersForTargets[targetPartyIndex];
         targetTheme = this.getPlayerTheme(targetMember.themeIndex || 0);
+        targetPosition = defendActionSlots[defendTargetIconsArray.length];
         targetIcon = this.createDamageStateGroup(
-            defendActionPositions[defendTargetIconsArray.length],
+            targetPosition,
             10,
             80,
             80,
@@ -228,7 +227,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         characterMenuActions.addChild(targetIcon);
         defendTargetIconsArray.push(targetIcon);
         defendTargetPartyIndexes.push(targetPartyIndex);
+        defendActionPositions.push(targetPosition);
     }
+
+    defendActionPositions.push(defendActionSlots[defendActionSlots.length - 1]);
 
     returnDefendIcon.scaleX = 0.52;
     returnDefendIcon.scaleY = 0.52;
@@ -2091,9 +2093,9 @@ GraveFallGame.scene.Game.prototype.handlePlayerMenuFaceAction = function (player
         return true;
     }
 
-    if (this.justPressedFaceRight(playerMenu)) {
-        playerMenu.selectedIndex = 3; // B/Circle = Item, then Back while in the item menu.
-        this.confirmPlayerMenuSelection(playerMenu);
+    if (this.justPressedBack(playerMenu)) {
+        // B/Circle and Backspace are reserved for backing out of submenus.
+        // On the normal command menu, backing out should do nothing.
         return true;
     }
 
