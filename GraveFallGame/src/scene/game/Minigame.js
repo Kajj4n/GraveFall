@@ -386,10 +386,10 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, a
     var group;
     var directions = ["up", "left", "right", "down"];
     var centers = {
-        up: { x: 128, y: 48 },
-        left: { x: 111, y: 65 },
-        right: { x: 145, y: 65 },
-        down: { x: 128, y: 82 }
+        up: { x: 128, y: 54 },
+        left: { x: 109, y: 70 },
+        right: { x: 147, y: 70 },
+        down: { x: 128, y: 86 }
     };
     var i;
     var direction;
@@ -412,7 +412,7 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, a
     for (i = 0; i < directions.length; i++) {
         direction = directions[i];
         isActive = direction === activeDirection;
-        scale = isActive ? 0.26 : 0.22;
+        scale = isActive ? 0.33 : 0.27;
         icon = this.createCenteredMinigameIcon(
             this.getButtonMashIconResource(direction),
             centers[direction].x,
@@ -495,23 +495,37 @@ GraveFallGame.scene.Game.prototype.getPressedMovementMinigameDirection = functio
 
     gp = this.getGamepadForInput(menu);
 
-    if (!gp) {
-        return null;
+    if (gp) {
+        if (gp.justPressed(12) || gp.stickLeftJustUp) {
+            return "up";
+        }
+
+        if (gp.justPressed(14) || gp.stickLeftJustLeft) {
+            return "left";
+        }
+
+        if (gp.justPressed(15) || gp.stickLeftJustRight) {
+            return "right";
+        }
+
+        if (gp.justPressed(13) || gp.stickLeftJustDown) {
+            return "down";
+        }
     }
 
-    if (gp.justPressed(12) || gp.stickLeftJustUp) {
+    if (this.justPressedFaceUp(menu)) {
         return "up";
     }
 
-    if (gp.justPressed(14) || gp.stickLeftJustLeft) {
+    if (this.justPressedFaceLeft(menu)) {
         return "left";
     }
 
-    if (gp.justPressed(15) || gp.stickLeftJustRight) {
+    if (this.justPressedFaceRight(menu)) {
         return "right";
     }
 
-    if (gp.justPressed(13) || gp.stickLeftJustDown) {
+    if (this.justPressedFaceDown(menu)) {
         return "down";
     }
 
@@ -544,7 +558,7 @@ GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
 
     minigame.currentMashDirection = direction;
     this.setButtonMashPromptMatrix(menu, direction);
-    this.setMinigameFeedback(menu, "MASH " + this.getButtonPositionLabelForDirection(direction) + " BUTTON");
+    this.setMinigameFeedback(menu, "");
 };
 
 GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
@@ -560,7 +574,7 @@ GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
     minigame.pressCount = 0;
     minigame.mashFill.scaleX = 0;
 
-    this.setMinigameFeedback(menu, "MAX +" + bonus);
+    this.setMinigameFeedback(menu, "");
     this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.45);
     this.rollButtonMashButton(menu);
 };
@@ -568,9 +582,9 @@ GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
 GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("MASH SHOWN");
-    var barBack = new rune.display.Graphic(36, 94, 184, 8);
-    var barFill = new rune.display.Graphic(36, 94, 184, 8);
-    var feedback = this.createHiddenMinigameFeedbackText(106);
+    var barBack = new rune.display.Graphic(36, 98, 184, 8);
+    var barFill = new rune.display.Graphic(36, 98, 184, 8);
+    var feedback = this.createHiddenMinigameFeedbackText(108);
 
     barBack.backgroundColor = "#171717";
     barFill.backgroundColor = menu.theme.accent;
@@ -584,7 +598,7 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
     feedback.autoSize = true;
     feedback.scaleX = 1;
     feedback.scaleY = 1;
-    this.centerMinigameText(feedback, group.width, 106);
+    this.centerMinigameText(feedback, group.width, 108);
 
     group.addChild(prompt);
     group.addChild(barBack);
@@ -628,7 +642,7 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
             return;
         }
     } else if (pressedDirection) {
-        this.setMinigameFeedback(menu, "MASH " + this.getButtonPositionLabelForDirection(minigame.currentMashDirection) + " BUTTON");
+        this.setMinigameFeedback(menu, "");
         this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.22);
     }
 
@@ -638,15 +652,18 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
 
 GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
     var i;
-    var icon;
-    var label;
+    var directionIcon;
+    var buttonIcon;
     var sequence;
     var group;
     var startX;
     var direction;
-    var iconScale;
+    var directionScale;
+    var buttonScale;
     var spacing;
     var centerX;
+    var activeDirectionScale;
+    var activeButtonScale;
 
     sequence = menu.minigame.sequence;
     group = menu.minigame.group;
@@ -670,42 +687,46 @@ GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
     menu.minigame.sequenceIcons = [];
     menu.minigame.sequenceLabels = [];
 
-    spacing = Math.max(28, Math.min(34, Math.floor((group.width - 64) / Math.max(1, sequence.length - 1))));
-    iconScale = 0.24;
+    spacing = Math.max(32, Math.min(36, Math.floor((group.width - 72) / Math.max(1, sequence.length - 1))));
+    directionScale = 0.34;
+    buttonScale = 0.28;
+    activeDirectionScale = 0.38;
+    activeButtonScale = 0.31;
     startX = Math.round((group.width / 2) - (((sequence.length - 1) * spacing) / 2));
 
     for (i = 0; i < sequence.length; i++) {
         direction = sequence[i];
         centerX = startX + (i * spacing);
-        icon = this.createCenteredMinigameIcon(this.getSequenceIconForDirection(direction), centerX, 60, iconScale);
-
-        label = new rune.text.BitmapField(this.getMovementLabelForDirection(direction));
-        label.autoSize = true;
-        label.scaleX = 1;
-        label.scaleY = 1;
-        label.x = Math.round(centerX - (label.width / 2));
-        label.y = 78;
+        directionIcon = this.createCenteredMinigameIcon(this.getSequenceIconForDirection(direction), centerX, 61, directionScale);
+        buttonIcon = this.createCenteredMinigameIcon(this.getButtonIconForDirection(direction), centerX, 96, buttonScale);
 
         if (i < menu.minigame.sequenceIndex) {
-            this.applyMonochromeIconColor(icon, "#BBBBBB");
-            icon.alpha = 0.45;
-            label.alpha = 0.45;
+            this.applyMonochromeIconColor(directionIcon, "#BBBBBB");
+            this.applyMonochromeIconColor(buttonIcon, "#BBBBBB");
+            directionIcon.alpha = 0.45;
+            buttonIcon.alpha = 0.45;
         } else if (i === menu.minigame.sequenceIndex) {
-            this.applyMonochromeIconColor(icon, menu.theme.accent);
-            icon.scaleX = 0.29;
-            icon.scaleY = 0.29;
-            icon.x = Math.round(centerX - ((100 * icon.scaleX) / 2));
-            icon.y = Math.round(58 - ((100 * icon.scaleY) / 2));
-            label.y = 82;
+            this.applyMonochromeIconColor(directionIcon, menu.theme.accent);
+            this.applyMonochromeIconColor(buttonIcon, menu.theme.accent);
+            directionIcon.scaleX = activeDirectionScale;
+            directionIcon.scaleY = activeDirectionScale;
+            directionIcon.x = Math.round(centerX - ((100 * directionIcon.scaleX) / 2));
+            directionIcon.y = Math.round(61 - ((100 * directionIcon.scaleY) / 2));
+            buttonIcon.scaleX = activeButtonScale;
+            buttonIcon.scaleY = activeButtonScale;
+            buttonIcon.x = Math.round(centerX - ((100 * buttonIcon.scaleX) / 2));
+            buttonIcon.y = Math.round(96 - ((100 * buttonIcon.scaleY) / 2));
         } else {
-            this.applyMonochromeIconColor(icon, "#E8E8E8");
-            icon.alpha = 0.95;
+            this.applyMonochromeIconColor(directionIcon, "#E8E8E8");
+            this.applyMonochromeIconColor(buttonIcon, "#E8E8E8");
+            directionIcon.alpha = 0.95;
+            buttonIcon.alpha = 0.95;
         }
 
-        group.addChild(icon);
-        group.addChild(label);
-        menu.minigame.sequenceIcons.push(icon);
-        menu.minigame.sequenceLabels.push(label);
+        group.addChild(directionIcon);
+        group.addChild(buttonIcon);
+        menu.minigame.sequenceIcons.push(directionIcon);
+        menu.minigame.sequenceLabels.push(buttonIcon);
     }
 };
 
@@ -730,7 +751,7 @@ GraveFallGame.scene.Game.prototype.rollButtonSequence = function (menu) {
 GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("CAST THE SEQUENCE");
-    var feedback = this.createHiddenMinigameFeedbackText(102);
+    var feedback = this.createHiddenMinigameFeedbackText(106);
 
     prompt.autoSize = true;
     prompt.scaleX = 1.5;
@@ -740,7 +761,7 @@ GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu,
     feedback.autoSize = true;
     feedback.scaleX = 1;
     feedback.scaleY = 1;
-    this.centerMinigameText(feedback, group.width, 102);
+    this.centerMinigameText(feedback, group.width, 106);
 
     group.addChild(prompt);
     group.addChild(feedback);
@@ -784,16 +805,16 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
 
         if (minigame.sequenceIndex >= minigame.sequence.length) {
             minigame.storedDamage += minigame.definition.damagePerSequence || 3;
-            this.setMinigameFeedback(menu, "COMPLETE +" + String(minigame.definition.damagePerSequence || 3));
+            this.setMinigameFeedback(menu, "");
             this.rollButtonSequence(menu);
         } else {
-            this.setMinigameFeedback(menu, "GOOD");
+            this.setMinigameFeedback(menu, "");
             this.buildSequenceIcons(menu);
         }
     } else {
         minigame.sequenceIndex = 0;
         minigame.storedDamage = Math.max(0, minigame.storedDamage - (minigame.definition.wrongPenalty || 1));
-        this.setMinigameFeedback(menu, "RESET");
+        this.setMinigameFeedback(menu, "");
         this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.35);
         this.buildSequenceIcons(menu);
     }
