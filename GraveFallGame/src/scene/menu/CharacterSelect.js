@@ -30,6 +30,9 @@ GraveFallGame.scene.CharacterSelect = function () {
     this.runPalette = null;
     this.backgroundSkin = GraveFallGame.scene.Game.UI_SKINS.outsideCampfireBrown || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     this.selectionSkin = GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    
+    // Default Phase
+    this.phase = "select"; 
 };
 
 //------------------------------------------------------------------------------
@@ -83,6 +86,12 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctr
     return gp && gp.justPressed(0);
 };
 
+GraveFallGame.scene.CharacterSelect.prototype.justPressedBack = function (ctrl) {
+    if (this.keyboard.justPressed("backspace")) return true;
+    var gp = this.getGamepadForInput(ctrl);
+    return gp && (gp.justPressed(1) || gp.justPressed(2)); // Button B or X
+};
+
 GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) {
     if (this.keyboard.justPressed(ctrl.controls.left)) return true;
     var gp = this.getGamepadForInput(ctrl);
@@ -93,6 +102,18 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl)
     if (this.keyboard.justPressed(ctrl.controls.right)) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && (gp.justPressed(15) || gp.stickLeftJustRight);
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.justPressedUp = function (ctrl) {
+    if (this.keyboard.justPressed(ctrl.moveControls.up)) return true;
+    var gp = this.getGamepadForInput(ctrl);
+    return gp && (gp.justPressed(12) || gp.stickLeftJustUp);
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.justPressedDown = function (ctrl) {
+    if (this.keyboard.justPressed(ctrl.moveControls.down)) return true;
+    var gp = this.getGamepadForInput(ctrl);
+    return gp && (gp.justPressed(13) || gp.stickLeftJustDown);
 };
 
 //------------------------------------------------------------------------------
@@ -121,15 +142,15 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     this.stage.addChild(this.background);
 
     this.titleText = new rune.text.BitmapField("SELECT CHARACTER");
-    this.titleText.width = 800;
+    this.titleText.width = 1200; // Hardcoded width to prevent clipping
     this.titleText.scaleX = 3;
     this.titleText.scaleY = 3;
     this.titleText.y = 34;
-    this.centerText(this.titleText, screenWidth / 2, 3);
+    this.titleText.x = Math.round((screenWidth / 2) - ((this.titleText.text.length * 6 * 3) / 2));
     this.stage.addChild(this.titleText);
 
     this.instructionText = new rune.text.BitmapField("");
-    this.instructionText.width = 1200;
+    this.instructionText.width = 1400; // Hardcoded width
     this.instructionText.scaleX = 2;
     this.instructionText.scaleY = 2;
     this.instructionText.y = 88;
@@ -154,11 +175,18 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
 GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
-    if (this.enterTransition) {
+    // --- PHASE ROUTING ---
+    if (this.phase === "name") {
+        this.updateNamePhase(step);
+        return;
+    }
+
+    if (this.enterTransition || this.phase === "transition") {
         this.updateEnterTransition(step);
         return;
     }
 
+    // --- PHASE: SELECT ---
     var allJoinedConfirmed = true;
     var anyJoined = this.players.length > 0;
     var c;
@@ -250,11 +278,11 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
 
         this.countdownTimer -= step;
         secs = Math.max(0, Math.ceil(this.countdownTimer / 1000));
-        this.instructionText.text = "ENTERING DUNGEON IN " + secs;
+        this.instructionText.text = "PROCEEDING TO PARTY CREATION IN " + secs;
         this.centerText(this.instructionText, this.application.screen.width / 2, 2);
 
         if (this.countdownTimer <= 0) {
-            this.beginEnterTransition();
+            this.startNameInputPhase();
         }
     } else {
         this.countdownTimer = undefined;
@@ -270,6 +298,194 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
 
 GraveFallGame.scene.CharacterSelect.prototype.dispose = function () {
     rune.scene.Scene.prototype.dispose.call(this);
+};
+
+//------------------------------------------------------------------------------
+// PARTY NAME PHASE
+//------------------------------------------------------------------------------
+
+GraveFallGame.scene.CharacterSelect.prototype.startNameInputPhase = function () {
+    this.phase = "name";
+
+    this.titleText.visible = false;
+    this.instructionText.text = "CREATE A PARTY NAME. EVERYONE PRESS 'OK' TO START!";
+    this.centerText(this.instructionText, this.application.screen.width / 2, 2);
+    this.instructionText.y = 40;
+
+    for (var i = 0; i < this.classNodes.length; i++) {
+        if (!this.classNodes[i].lockedBy) {
+            if (this.classNodes[i].panel) this.classNodes[i].panel.visible = false;
+            if (this.classNodes[i].sprite) this.classNodes[i].sprite.visible = false;
+            if (this.classNodes[i].statusText) this.classNodes[i].statusText.visible = false;
+            if (this.classNodes[i].buffText) this.classNodes[i].buffText.visible = false;
+        }
+    }
+
+    this.kbContainer = new rune.display.DisplayObjectContainer(0, 0, this.application.screen.width, this.application.screen.height);
+    this.stage.addChild(this.kbContainer);
+
+    this.partyName = "";
+    this.partyNameText = new rune.text.BitmapField("");
+    this.partyNameText.width = 1200; // Fix clipping
+    this.partyNameText.height = 80;
+    this.partyNameText.scaleX = 4;
+    this.partyNameText.scaleY = 4;
+    this.partyNameText.y = 120;
+    this.kbContainer.addChild(this.partyNameText);
+
+    this.kbRows = [
+        ['A','B','C','D','E','F','G','H','I','J'],
+        ['K','L','M','N','O','P','Q','R','S','T'],
+        ['U','V','W','X','Y','Z','-','.','!','?'],
+        ['0','1','2','3','4','5','6','7','8','9'],
+        ['DEL', 'SPACE', 'OK']
+    ];
+
+    this.kbVisuals = [];
+    var startY = 240;
+    var spacingY = 56;
+
+    for (var r = 0; r < this.kbRows.length; r++) {
+        this.kbVisuals[r] = [];
+        var isLastRow = (r === this.kbRows.length - 1);
+        var spacingX = isLastRow ? 180 : 56;
+        
+        // Exact centering math prevents invisible right-side ghost keys
+        var rowContentWidth = (this.kbRows[r].length - 1) * spacingX;
+        var startX = (this.application.screen.width / 2) - (rowContentWidth / 2);
+
+        for (var c = 0; c < this.kbRows[r].length; c++) {
+            var keyStr = this.kbRows[r][c];
+            var keyText = new rune.text.BitmapField(keyStr);
+            keyText.width = 64; // Fix clipping
+            keyText.height = 32;
+            keyText.scaleX = 2.5;
+            keyText.scaleY = 2.5;
+            keyText.x = startX + (c * spacingX) - ((keyStr.length * 6 * 2.5) / 2);
+            keyText.y = startY + (r * spacingY);
+            this.kbContainer.addChild(keyText);
+
+            this.kbVisuals[r].push({
+                text: keyStr,
+                x: startX + (c * spacingX),
+                y: startY + (r * spacingY)
+            });
+        }
+    }
+
+    this.kbdCursors = [];
+    for (var p = 0; p < this.players.length; p++) {
+        var player = this.players[p];
+        player.kbdX = 0;
+        player.kbdY = 0;
+        player.nameReady = false;
+
+        var theme = GraveFallGame.scene.Game.PLAYER_THEMES[player.controller.themeIndex];
+        var cursor = new rune.display.Graphic(0, 0, 44, 44);
+        cursor.backgroundColor = theme.accent;
+        cursor.alpha = 0.4;
+        this.kbContainer.addChildAt(cursor, 0);
+        this.kbdCursors.push(cursor);
+
+        this.updatePlayerKbdCursor(player, p);
+    }
+
+    this.refreshPartyNameDisplay();
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.updateNamePhase = function (step) {
+    var allReady = true;
+
+    for (var p = 0; p < this.players.length; p++) {
+        var player = this.players[p];
+        var ctrl = player.controller;
+
+        if (!player.nameReady) {
+            allReady = false;
+        }
+
+        var moved = false;
+        if (this.justPressedLeft(ctrl)) { player.kbdX--; moved = true; player.nameReady = false; }
+        if (this.justPressedRight(ctrl)) { player.kbdX++; moved = true; player.nameReady = false; }
+        if (this.justPressedUp(ctrl)) { player.kbdY--; moved = true; player.nameReady = false; }
+        if (this.justPressedDown(ctrl)) { player.kbdY++; moved = true; player.nameReady = false; }
+
+        if (moved) {
+            if (player.kbdY < 0) player.kbdY = this.kbRows.length - 1;
+            if (player.kbdY >= this.kbRows.length) player.kbdY = 0;
+
+            if (player.kbdX < 0) player.kbdX = this.kbRows[player.kbdY].length - 1;
+            if (player.kbdX >= this.kbRows[player.kbdY].length) player.kbdX = this.kbRows[player.kbdY].length - 1;
+
+            GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_MOVE, 0.4);
+            this.updatePlayerKbdCursor(player, p);
+        }
+
+        if (this.justPressedBack(ctrl)) {
+            if (this.partyName.length > 0) {
+                this.partyName = this.partyName.slice(0, -1);
+                GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_BACK, 0.4);
+                this.refreshPartyNameDisplay();
+            }
+        } else if (this.justPressedConfirm(ctrl)) {
+            var keyStr = this.kbRows[player.kbdY][player.kbdX];
+            if (keyStr === "OK") {
+                player.nameReady = !player.nameReady;
+                GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.6);
+                this.updatePlayerKbdCursor(player, p);
+            } else if (keyStr === "DEL") {
+                if (this.partyName.length > 0) {
+                    this.partyName = this.partyName.slice(0, -1);
+                    GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_BACK, 0.4);
+                }
+            } else if (keyStr === "SPACE") {
+                if (this.partyName.length < 12) {
+                    this.partyName += " ";
+                    GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.4);
+                }
+            } else {
+                if (this.partyName.length < 12) {
+                    this.partyName += keyStr;
+                    GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.4);
+                }
+            }
+            this.refreshPartyNameDisplay();
+        }
+    }
+
+    if (allReady && this.players.length > 0) {
+        GraveFallGame.scene.Game.PARTY_NAME = this.partyName.trim() || "THE FALLEN";
+        this.kbContainer.visible = false;
+        this.instructionText.visible = false;
+        
+        // FIX: Update phase state so the transition actually begins in the update loop!
+        this.phase = "transition"; 
+        this.beginEnterTransition();
+    }
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.updatePlayerKbdCursor = function (player, playerIndex) {
+    var vis = this.kbVisuals[player.kbdY][player.kbdX];
+    var cursor = this.kbdCursors[playerIndex];
+    var baseW = (player.kbdY === 4) ? 120 : 44; 
+    
+    cursor.width = baseW;
+    cursor.x = vis.x - (baseW / 2) + (playerIndex * 4);
+    cursor.y = vis.y - 12 + (playerIndex * 4);
+
+    if (player.nameReady) {
+        cursor.alpha = 0.8;
+    } else {
+        cursor.alpha = 0.4;
+    }
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.refreshPartyNameDisplay = function () {
+    var str = this.partyName + (this.partyName.length < 12 ? "_" : "");
+    this.partyNameText.text = str;
+    
+    // FIX: Removed autoSize = true and manually centered the string
+    this.partyNameText.x = Math.floor((this.application.screen.width / 2) - ((str.length * 6 * 4) / 2));
 };
 
 //------------------------------------------------------------------------------
@@ -347,7 +563,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     panel.addChild(menuAccent);
 
     nameText = new rune.text.BitmapField(template.name.toUpperCase());
-    nameText.width = 92;
+    nameText.width = 120; // Fix clipping
     nameText.scaleX = textScale;
     nameText.scaleY = textScale;
     nameText.x = 102;
@@ -355,7 +571,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     panel.addChild(nameText);
 
     hpLabelText = new rune.text.BitmapField("HP");
-    hpLabelText.width = 30;
+    hpLabelText.width = 40; // Fix clipping
     hpLabelText.scaleX = textScale;
     hpLabelText.scaleY = textScale;
     hpLabelText.x = 102;
@@ -363,7 +579,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     panel.addChild(hpLabelText);
 
     hpValueText = new rune.text.BitmapField(String(template.hpMax));
-    hpValueText.width = 54;
+    hpValueText.width = 64; // Fix clipping
     hpValueText.scaleX = textScale;
     hpValueText.scaleY = textScale;
     hpValueText.x = 132;
@@ -371,7 +587,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     panel.addChild(hpValueText);
 
     buffText = new rune.text.BitmapField(this.getCharacterSelectBuffDescription(template));
-    buffText.width = 204;
+    buffText.width = 240; // Fix clipping
     buffText.scaleX = 1;
     buffText.scaleY = 1;
     buffText.x = 102;
@@ -379,7 +595,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     panel.addChild(buffText);
 
     statusText = new rune.text.BitmapField("");
-    statusText.width = 66;
+    statusText.width = 80; // Fix clipping
     statusText.scaleX = textScale;
     statusText.scaleY = textScale;
     statusText.x = 202;
@@ -388,7 +604,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     panel.addChild(statusText);
 
     statusNumberText = new rune.text.BitmapField("");
-    statusNumberText.width = 18;
+    statusNumberText.width = 30; // Fix clipping
     statusNumberText.scaleX = textScale;
     statusNumberText.scaleY = textScale;
     statusNumberText.x = 267;
@@ -581,7 +797,6 @@ GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (nod
 
     if (sprite) {
         this.stage.addChild(sprite);
-        // Switch to the attack sprite if confirmed
         if (lockedBy && lockedBy.confirmed === true) {
             this.setDamageStateGroupState(sprite, "itemAttack");
         }
@@ -1113,6 +1328,7 @@ GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
     this.claimPlayerSelection(player, player.classIndex);
 
     var status = new rune.text.BitmapField(ctrl.id);
+    status.width = 150; 
     status.scaleX = 1.5;
     status.scaleY = 1.5;
     this.stage.addChild(status);

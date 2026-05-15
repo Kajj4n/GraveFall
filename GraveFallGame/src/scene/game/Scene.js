@@ -306,7 +306,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     this.updateHealingStandAnimations(step);
     this.updateBuffVisualEffects(step);
-    this.updateScorePopups(step); // --- Hooked in Score UI updating ---
+    this.updateScorePopups(step); 
     this.updateActionPreviewEffects(step);
 
     if (this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND) {
@@ -654,7 +654,10 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.scoreText = null;
     this.scorePopups = null;
     this.finalScoreText = null;
+    this.gameOverPartyNameText = null;
     this.gameOverInstruction = null;
+
+    this.avoidDamageText = null;
 
     this.arenaBackground = null;
     this.arenaProjectileLayer = null;
