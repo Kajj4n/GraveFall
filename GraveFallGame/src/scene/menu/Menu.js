@@ -124,7 +124,7 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     footer.addChild(this.createSeparator(0, 0, screen.width, framePaletteSwaps));
     this.stage.addChild(footer);
 
-    footerText = this.createText("DUNGEON COLORS ARE SET AT RUN START    CONTROLLER PREFERRED    ESC CLOSES THE GAME", 0, 24, 1.2, 1200);
+    footerText = this.createText("CONTROLLER PREFERRED GAME METHOD    PLAYTEST, STILL WIP", 0, 24, 1.2, 1200);
     this.centerText(footerText, screen.centerX, 1.2);
     footer.addChild(footerText);
     this.tintBitmapFieldText(footerText, this.menuSkin.frame.light, true);
@@ -207,10 +207,16 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
 GraveFallGame.scene.Menu.prototype.createText = function (text, x, y, scale, width) {
     var field = new rune.text.BitmapField(text);
 
+    scale = scale || 1;
+
+    if (scale < 1.05) {
+        scale = 1.05;
+    }
+
     field.width = width || 1000;
     field.height = 32;
-    field.scaleX = scale || 1;
-    field.scaleY = scale || 1;
+    field.scaleX = scale;
+    field.scaleY = scale;
     field.x = x || 0;
     field.y = y || 0;
 
@@ -296,7 +302,7 @@ GraveFallGame.scene.Menu.prototype.createControlHint = function (parent, x, y, i
     var group = new rune.display.DisplayObjectContainer(x, y, 210, 44);
     var icon = new rune.display.Sprite(0, 2, 100, 100, iconResource);
     var titleText = this.createText(title, 44, 2, 1.15, 158);
-    var detailText = this.createText(detail, 44, 22, 0.9, 158);
+    var detailText = this.createText(detail, 44, 22, 1.05, 164);
 
     icon.scaleX = 0.32;
     icon.scaleY = 0.32;
@@ -333,7 +339,7 @@ GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
     this.createControlHint(panel, 246, 38, "A_Button_Icon_T", "SELECT", "ENTER/SPACE OR A", GraveFallGame.scene.Game.PLAYER_THEMES[3].accentLight);
     this.createControlHint(panel, 476, 38, "Y_Button_Icon_T", "HELP", "H/R OR Y", GraveFallGame.scene.Game.PLAYER_THEMES[1].accentLight);
 
-    keyboardText = this.createText("UP/DOWN CHANGES MENU SELECTIONS", 390, 16, 0.9, 290);
+    keyboardText = this.createText("UP/DOWN CHANGES MENU SELECTIONS", 390, 16, 1.05, 300);
     panel.addChild(keyboardText);
     this.tintBitmapFieldText(keyboardText, this.menuSkin.frame.light, true);
 };

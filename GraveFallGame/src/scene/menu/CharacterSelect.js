@@ -14,7 +14,7 @@ GraveFallGame.scene.CharacterSelect = function () {
     this.controllers = [
         { id: "P1", label: "PLAYER 1", gamepadIndex: 0, controls: { left: "a", right: "d", confirm: "space" }, moveControls: { left: "a", right: "d", up: "w", down: "s" }, themeIndex: 0 },
         { id: "P2", label: "PLAYER 2", gamepadIndex: 1, controls: { left: "left", right: "right", confirm: "enter" }, moveControls: { left: "left", right: "right", up: "up", down: "down" }, themeIndex: 1 },
-        { id: "P3", label: "PLAYER 3", gamepadIndex: 2, controls: { left: "j", right: "l", confirm: "k" }, moveControls: { left: "j", right: "l", up: "i", down: "k" }, themeIndex: 2 },
+        { id: "P3", label: "PLAYER 3", gamepadIndex: 2, controls: { left: "j", right: "l", confirm: "m" }, moveControls: { left: "j", right: "l", up: "i", down: "k" }, themeIndex: 2 },
         { id: "P4", label: "PLAYER 4", gamepadIndex: 3, controls: { left: "v", right: "n", confirm: "b" }, moveControls: { left: "f", right: "h", up: "t", down: "g" }, themeIndex: 3 }
     ];
 
