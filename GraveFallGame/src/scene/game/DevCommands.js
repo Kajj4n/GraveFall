@@ -76,6 +76,19 @@ GraveFallGame.scene.Game.DEV_COMMAND_NAMES = [
     "gf.item.give",
     "gf.phase.command",
     "gf.phase.action",
+    "gf.timer.status",
+    "gf.timer.turn",
+    "gf.timer.turn.left",
+    "gf.timer.action",
+    "gf.timer.minigame",
+    "gf.timer.reset",
+    "gf.ui.clean",
+    "gf.ui.clear",
+    "gf.ui.reset",
+    "gf.start.help",
+    "gf.start.quick",
+    "gf.start.p1",
+    "gf.start.list",
     "gf.score.add",
     "gf.score.set"
 ];
@@ -163,6 +176,15 @@ GraveFallGame.scene.Game.prototype.registerDevConsoleCommands = function () {
     this.registerDevConsoleCommand(commands, "gf.item.give", this.devCommandItemGive);
     this.registerDevConsoleCommand(commands, "gf.phase.command", this.devCommandPhaseCommand);
     this.registerDevConsoleCommand(commands, "gf.phase.action", this.devCommandPhaseAction);
+    this.registerDevConsoleCommand(commands, "gf.timer.status", this.devCommandTimerStatus);
+    this.registerDevConsoleCommand(commands, "gf.timer.turn", this.devCommandTimerTurn);
+    this.registerDevConsoleCommand(commands, "gf.timer.turn.left", this.devCommandTimerTurnLeft);
+    this.registerDevConsoleCommand(commands, "gf.timer.action", this.devCommandTimerAction);
+    this.registerDevConsoleCommand(commands, "gf.timer.minigame", this.devCommandTimerMinigame);
+    this.registerDevConsoleCommand(commands, "gf.timer.reset", this.devCommandTimerReset);
+    this.registerDevConsoleCommand(commands, "gf.ui.clean", this.devCommandUiClean);
+    this.registerDevConsoleCommand(commands, "gf.ui.clear", this.devCommandUiClean);
+    this.registerDevConsoleCommand(commands, "gf.ui.reset", this.devCommandUiReset);
     this.registerDevConsoleCommand(commands, "gf.score.add", this.devCommandScoreAdd);
     this.registerDevConsoleCommand(commands, "gf.score.set", this.devCommandScoreSet);
 
@@ -228,19 +250,43 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
             "Pattern commands:",
             "gf.pattern.list",
             "gf.pattern.spawn patternId count",
-            "Spawning a pattern auto-enters action phase if needed."
+            "Spawning a pattern auto-enters action phase."
+        ].join("\n");
+    }
+
+    if (section === "timer" || section === "timers") {
+        return [
+            "Timer commands:",
+            "gf.timer.status",
+            "gf.timer.turn seconds",
+            "gf.timer.turn.left seconds",
+            "gf.timer.action frames",
+            "gf.timer.minigame seconds",
+            "gf.timer.reset"
+        ].join("\n");
+    }
+
+    if (section === "ui" || section === "clean") {
+        return [
+            "UI cleanup commands:",
+            "gf.ui.clean",
+            "gf.ui.clear",
+            "gf.ui.reset",
+            "Use reset to clear stale panels and repair visibility."
         ].join("\n");
     }
 
     return [
         "GraveFall dev commands:",
-        "gf.help enemy OR player OR item OR pattern",
+        "gf.help enemy player item pattern timer ui",
         "gf.enemy.load enemyId",
         "gf.enemy.kill enemyId OR gf.enemy.kill",
         "gf.player.heal all OR player",
         "gf.item.all count",
         "gf.pattern.spawn patternId count",
         "gf.phase.command OR gf.phase.action",
+        "gf.timer.status OR gf.timer.turn seconds",
+        "gf.ui.clean OR gf.ui.reset",
         "gf.score.add amount OR gf.score.set amount"
     ].join("\n");
 };
@@ -336,14 +382,7 @@ GraveFallGame.scene.Game.prototype.devPrepareImmediateBattle = function () {
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
     this.actionPhaseStartDelayFrames = 0;
-    this.turnTimerMs = 25000;
-    this.lastTurnWarningSecond = null;
-
-    if (this.turnTimerText) {
-        this.turnTimerText.visible = true;
-        this.turnTimerText.alpha = 1;
-        this.turnTimerText.text = "25";
-    }
+    this.resetCommandTurnTimer(true, 1);
 
     this.startDungeonMusic();
     this.resetPlayersForNewEncounter();
@@ -484,7 +523,7 @@ GraveFallGame.scene.Game.prototype.devEnsureActionPhaseForPatternTest = function
     if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION) {
         this.commandActionsResolved = true;
         this.phase = GraveFallGame.scene.Game.PHASE_ACTION;
-        this.actionPhaseTimer = this.getCurrentEnemyConfig().actionPhaseDuration;
+        this.actionPhaseTimer = this.getActionPhaseDurationFrames(this.getCurrentEnemyConfig());
         this.nextPatternIn = 999999;
         this.actionPhaseStartDelayFrames = 0;
         this.clearProjectiles();
@@ -716,6 +755,279 @@ GraveFallGame.scene.Game.prototype.devCommandPhaseAction = function () {
     return "Entered action phase.";
 };
 
+
+GraveFallGame.scene.Game.prototype.devParsePositiveNumber = function (value, min, max) {
+    var number = parseFloat(value);
+
+    if (isNaN(number)) {
+        return null;
+    }
+
+    if (typeof min === "number") {
+        number = Math.max(min, number);
+    }
+
+    if (typeof max === "number") {
+        number = Math.min(max, number);
+    }
+
+    return number;
+};
+
+GraveFallGame.scene.Game.prototype.devCommandTimerStatus = function () {
+    var turnSeconds = this.getTurnTimerDurationMs() / 1000;
+    var minigameSeconds = this.getMinigameDurationMs() / 1000;
+    var actionFrames = this.getActionPhaseDurationFrames(this.getCurrentEnemyConfig());
+    var currentTurn = typeof this.turnTimerMs === "number" ? Math.ceil(this.turnTimerMs / 1000) : 0;
+
+    return [
+        "Timers:",
+        "turn default seconds: " + turnSeconds,
+        "turn remaining seconds: " + currentTurn,
+        "minigame seconds: " + minigameSeconds,
+        "action frames: " + actionFrames
+    ].join("\n");
+};
+
+GraveFallGame.scene.Game.prototype.devCommandTimerTurn = function (seconds) {
+    var value = this.devParsePositiveNumber(seconds, 1, 300);
+
+    if (value === null) {
+        return "Usage: gf.timer.turn seconds";
+    }
+
+    GraveFallGame.scene.Game.DEV_TURN_TIMER_MS = Math.round(value * 1000);
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_COMMAND) {
+        this.resetCommandTurnTimer(true, 1);
+    } else if (this.turnTimerText) {
+        this.turnTimerText.text = this.getTurnTimerLabel();
+    }
+
+    return "Turn timer default set to " + value + " seconds.";
+};
+
+GraveFallGame.scene.Game.prototype.devCommandTimerTurnLeft = function (seconds) {
+    var value = this.devParsePositiveNumber(seconds, 0, 300);
+
+    if (value === null) {
+        return "Usage: gf.timer.turn.left seconds";
+    }
+
+    this.turnTimerMs = Math.round(value * 1000);
+    this.lastTurnWarningSecond = null;
+
+    if (this.turnTimerText) {
+        this.turnTimerText.text = this.getTurnTimerLabel(this.turnTimerMs);
+        this.turnTimerText.visible = this.phase === GraveFallGame.scene.Game.PHASE_COMMAND;
+        this.turnTimerText.alpha = this.turnTimerText.visible ? 1 : this.turnTimerText.alpha;
+    }
+
+    return "Turn timer remaining set to " + value + " seconds.";
+};
+
+GraveFallGame.scene.Game.prototype.devCommandTimerAction = function (frames) {
+    var value = this.devParsePositiveNumber(frames, 1, 3600);
+
+    if (value === null) {
+        return "Usage: gf.timer.action frames";
+    }
+
+    GraveFallGame.scene.Game.DEV_ACTION_PHASE_FRAMES = Math.round(value);
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_ACTION) {
+        this.actionPhaseTimer = Math.round(value);
+    }
+
+    return "Action phase duration set to " + Math.round(value) + " frames.";
+};
+
+GraveFallGame.scene.Game.prototype.devCommandTimerMinigame = function (seconds) {
+    var value = this.devParsePositiveNumber(seconds, 1, 300);
+
+    if (value === null) {
+        return "Usage: gf.timer.minigame seconds";
+    }
+
+    GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS = Math.round(value * 1000);
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_MINIGAME) {
+        this.minigameTimer = Math.round(value * 1000);
+        this.minigameDurationMs = this.minigameTimer;
+    }
+
+    return "Minigame timer set to " + value + " seconds.";
+};
+
+GraveFallGame.scene.Game.prototype.devCommandTimerReset = function () {
+    GraveFallGame.scene.Game.DEV_TURN_TIMER_MS = null;
+    GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS = null;
+    GraveFallGame.scene.Game.DEV_ACTION_PHASE_FRAMES = null;
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_COMMAND) {
+        this.resetCommandTurnTimer(true, 1);
+    }
+
+    return "Timer overrides reset.";
+};
+
+GraveFallGame.scene.Game.prototype.devRemoveTrackedDisplayList = function (listName) {
+    var list = this[listName];
+    var removed = 0;
+    var i;
+
+    if (!list) {
+        this[listName] = [];
+        return 0;
+    }
+
+    removed = list.length;
+
+    for (i = list.length - 1; i >= 0; i--) {
+        if (list[i] && list[i].parent) {
+            list[i].parent.removeChild(list[i], true);
+        }
+    }
+
+    this[listName] = [];
+    return removed;
+};
+
+GraveFallGame.scene.Game.prototype.devCleanTransientUi = function () {
+    var minigamesRemoved = 0;
+    var i;
+    var menu;
+
+    if (this.playerMenus) {
+        for (i = 0; i < this.playerMenus.length; i++) {
+            menu = this.playerMenus[i];
+
+            if (menu && menu.minigame) {
+                this.cleanupPlayerMinigame(menu);
+                minigamesRemoved++;
+            }
+
+            if (menu && typeof this.restorePlayerActionPreviewShake === "function") {
+                this.restorePlayerActionPreviewShake(menu);
+            }
+        }
+    }
+
+    this.clearProjectiles();
+    this.clearArenaItem();
+    this.clearBuffVisualEffects();
+
+    if (typeof this.clearActionPreviewState === "function") {
+        this.clearActionPreviewState();
+    }
+
+    if (typeof this.clearAllHealingStandAnimations === "function") {
+        this.clearAllHealingStandAnimations(true);
+    }
+
+    if (typeof this.hideActionPrompt === "function") {
+        this.hideActionPrompt();
+    }
+
+    if (typeof this.hideAllCharacterMenuTooltips === "function") {
+        this.hideAllCharacterMenuTooltips();
+    }
+
+    this.delayedSfxQueue = [];
+    this.devRemoveTrackedDisplayList("damagePopups");
+    this.devRemoveTrackedDisplayList("scorePopups");
+
+    return minigamesRemoved;
+};
+
+GraveFallGame.scene.Game.prototype.devRepairCurrentPhaseUi = function () {
+    var i;
+    var menu;
+    var inCommand = this.phase === GraveFallGame.scene.Game.PHASE_COMMAND;
+    var inAction = this.phase === GraveFallGame.scene.Game.PHASE_ACTION;
+    var inDefeated = this.phase === GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
+    var inGameOver = this.phase === GraveFallGame.scene.Game.PHASE_GAME_OVER;
+
+    if (this.backgroundBackdrop) {
+        this.backgroundBackdrop.visible = !inGameOver;
+    }
+
+    if (this.scoreText) {
+        this.scoreText.visible = !inGameOver;
+        this.scoreText.alpha = !inGameOver ? 1 : 0;
+        this.updateScoreUi();
+    }
+
+    if (this.turnTimerText) {
+        this.turnTimerText.visible = inCommand;
+        this.turnTimerText.alpha = inCommand ? 1 : 0;
+        this.turnTimerText.text = this.getTurnTimerLabel(this.turnTimerMs);
+    }
+
+    this.setBattleArenaVisible(inAction);
+    this.setPlayerActionMenusVisible(inCommand);
+    this.updateEnemyHealthBarUi();
+    this.updateEnemyDamageState();
+    this.setEnemyUiAlpha(inDefeated || inGameOver ? 0 : 1);
+
+    if (inCommand) {
+        this.resetPlayerMenusForCommandPhase();
+        this.commandMenuResetDone = true;
+        this.setPlayerTransitionVisibility(true, true);
+        this.setPlayerTransitionAlpha(1, 1);
+    } else if (inAction) {
+        this.setPlayerTransitionVisibility(false, false);
+        this.layoutBattleAvatarsInArena();
+
+        for (i = 0; i < this.playerMenus.length; i++) {
+            menu = this.playerMenus[i];
+            menu.container.y = menu.confirmedY;
+            menu.hitCooldown = 0;
+            menu.moveSpeed = this.calculateEffectiveMoveSpeed(menu);
+            this.activateBattleAvatar(menu);
+        }
+    } else if (!inGameOver) {
+        this.setPlayerTransitionVisibility(true, false);
+        this.setPlayerTransitionAlpha(1, 0);
+    }
+
+    this.updateAllPlayerDamageStates();
+};
+
+GraveFallGame.scene.Game.prototype.devCommandUiClean = function () {
+    var removed = this.devCleanTransientUi();
+
+    if (this.enemyHealthCurrent <= 0 && this.phase !== GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
+        this.startEnemyDefeatedSequence();
+        return "Cleaned UI and started enemy defeat sequence.";
+    }
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_MINIGAME) {
+        this.startActionPreviewPhase();
+        return "Cleaned minigame UI and advanced phase.";
+    }
+
+    this.devRepairCurrentPhaseUi();
+    return "Cleaned UI. Minigames removed: " + removed;
+};
+
+GraveFallGame.scene.Game.prototype.devCommandUiReset = function () {
+    var removed = this.devCleanTransientUi();
+
+    if (this.enemyHealthCurrent <= 0) {
+        this.startEnemyDefeatedSequence();
+        return "Reset UI and started enemy defeat sequence.";
+    }
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_MINIGAME) {
+        this.startActionPreviewPhase();
+        return "Reset minigame UI and advanced phase.";
+    }
+
+    this.devRepairCurrentPhaseUi();
+    return "Reset UI for current phase. Removed: " + removed;
+};
+
 GraveFallGame.scene.Game.prototype.devCommandScoreAdd = function (amount) {
     var scoreAmount = parseInt(amount, 10);
 
@@ -738,3 +1050,167 @@ GraveFallGame.scene.Game.prototype.devCommandScoreSet = function (amount) {
     this.updateScoreUi();
     return "Score: " + this.score;
 };
+
+//------------------------------------------------------------------------------
+// Character Select dev console commands
+//------------------------------------------------------------------------------
+// These are registered only while the CharacterSelect scene is active. They keep
+// menu testing shortcuts separate from in-game combat commands.
+//------------------------------------------------------------------------------
+
+if (GraveFallGame.scene.CharacterSelect) {
+    GraveFallGame.scene.CharacterSelect.DEV_COMMAND_NAMES = [
+        "gf.start.help",
+        "gf.start.quick",
+        "gf.start.p1",
+        "gf.start.list"
+    ];
+
+    GraveFallGame.scene.CharacterSelect.prototype.getDevConsoleManager = GraveFallGame.scene.Game.prototype.getDevConsoleManager;
+    GraveFallGame.scene.CharacterSelect.prototype.sanitizeDevConsoleResult = GraveFallGame.scene.Game.prototype.sanitizeDevConsoleResult;
+    GraveFallGame.scene.CharacterSelect.prototype.registerDevConsoleCommand = GraveFallGame.scene.Game.prototype.registerDevConsoleCommand;
+
+    GraveFallGame.scene.CharacterSelect.prototype.registerCharacterSelectDevConsoleCommands = function () {
+        GraveFallGame.scene.Game.installDevConsoleOutputGuard();
+
+        var consoleManager = this.getDevConsoleManager();
+        var commands;
+
+        if (!consoleManager || !consoleManager.commands) {
+            return;
+        }
+
+        commands = consoleManager.commands;
+        this.unregisterCharacterSelectDevConsoleCommands(commands);
+
+        this.registerDevConsoleCommand(commands, "gf.start.help", this.devCommandSelectHelp);
+        this.registerDevConsoleCommand(commands, "gf.start.quick", this.devCommandQuickStart);
+        this.registerDevConsoleCommand(commands, "gf.start.p1", this.devCommandQuickStart);
+        this.registerDevConsoleCommand(commands, "gf.start.list", this.devCommandStartList);
+
+        if (typeof consoleManager.log === "function") {
+            consoleManager.log("[GraveFall dev] Select ready. Type gf.start.help");
+        }
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.unregisterCharacterSelectDevConsoleCommands = function (commands) {
+        var commandList = GraveFallGame.scene.CharacterSelect.DEV_COMMAND_NAMES;
+        var i;
+        var safety;
+
+        commands = commands || (this.getDevConsoleManager() && this.getDevConsoleManager().commands);
+
+        if (!commands || typeof commands.remove !== "function") {
+            return;
+        }
+
+        for (i = 0; i < commandList.length; i++) {
+            for (safety = 0; safety < 8; safety++) {
+                commands.remove(commandList[i]);
+            }
+        }
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.devCommandSelectHelp = function () {
+        return [
+            "Character select dev commands:",
+            "gf.start.help",
+            "gf.start.quick",
+            "gf.start.quick random",
+            "gf.start.quick fighter",
+            "gf.start.quick assassin",
+            "gf.start.quick wizard",
+            "gf.start.quick ranger",
+            "gf.start.list"
+        ].join("\n");
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.devCommandStartList = function () {
+        var templates = GraveFallGame.scene.Game.CLASS_TEMPLATES || [];
+        var lines = ["Start classes:"];
+        var i;
+
+        for (i = 0; i < templates.length; i++) {
+            lines.push(templates[i].id + " - " + templates[i].name);
+        }
+
+        return lines.join("\n");
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartTemplate = function (classId) {
+        var templates = GraveFallGame.scene.Game.CLASS_TEMPLATES || [];
+        var search = String(classId || "random").toLowerCase();
+        var randomIndex;
+        var i;
+
+        if (templates.length <= 0) {
+            return null;
+        }
+
+        if (search === "" || search === "random" || search === "rand" || search === "p1") {
+            randomIndex = Math.floor(Math.random() * templates.length);
+            return templates[Math.max(0, Math.min(templates.length - 1, randomIndex))];
+        }
+
+        for (i = 0; i < templates.length; i++) {
+            if (templates[i].id.toLowerCase() === search || templates[i].name.toLowerCase() === search) {
+                return templates[i];
+            }
+        }
+
+        return null;
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.createDevSinglePlayerParty = function (template) {
+        var controller = this.controllers[0];
+        var menuWidth = 320;
+        var screenWidth = this.application && this.application.screen ? this.application.screen.width : 1280;
+        var member;
+
+        member = {
+            id: template.id + "_0",
+            name: template.name,
+            portrait: template.portrait,
+            classIcon: template.classIcon,
+            stand: template.stand,
+            hpCurrent: template.hpMax,
+            hpMax: template.hpMax,
+            themeIndex: controller.themeIndex,
+            attackMinigame: template.attackMinigame,
+            gamepadIndex: controller.gamepadIndex,
+            controls: controller.controls,
+            moveControls: controller.moveControls,
+            flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(0, 1),
+            attackDamage: template.attackDamage,
+            runPaletteKey: this.runPaletteKey,
+            x: GraveFallGame.scene.Game.getPartyMenuX(0, 1, menuWidth, screenWidth),
+            y: 592,
+            partyRenderIndex: 0,
+            partySize: 1,
+            activePartyIndex: 0
+        };
+
+        return [member];
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.devCommandQuickStart = function (classId, partyName) {
+        var template = this.resolveDevStartTemplate(classId || "random");
+        var party;
+
+        if (!template) {
+            return "Usage: gf.start.quick random OR classId\nType gf.start.list";
+        }
+
+        if (!this.runPalette) {
+            this.runPalette = GraveFallGame.scene.Game.startNewRunPalette();
+            this.runPaletteKey = this.runPalette.key;
+        }
+
+        party = this.createDevSinglePlayerParty(template);
+        GraveFallGame.scene.Game.PARTY_NAME = partyName || "DEV RUN";
+        GraveFallGame.scene.Game.PARTY_MEMBERS = party;
+        this.application.scenes.load([new GraveFallGame.scene.Game(party, this.runPaletteKey)]);
+
+        return "Quick started P1 as " + template.name + ".";
+    };
+}

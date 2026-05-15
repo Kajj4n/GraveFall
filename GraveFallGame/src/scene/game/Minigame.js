@@ -11,7 +11,7 @@ GraveFallGame.scene.Game.prototype.startMinigamePhase = function () {
     }
 
     this.phase = GraveFallGame.scene.Game.PHASE_MINIGAME;
-    this.minigameTimer = 10000;
+    this.minigameTimer = this.getMinigameDurationMs();
     this.minigameDurationMs = this.minigameTimer;
 
     if (typeof this.clearAllHealingStandAnimations === "function") {
@@ -301,6 +301,10 @@ GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (directi
 // Minigame button prompts are face-button prompts, not D-pad/left-stick prompts.
 // Keyboard fallback stays on each player's existing movement keys for debug/keyboard play.
 GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
+        return null;
+    }
+
     if (this.keyboard.justPressed(menu.moveControls.up)) {
         return "up";
     }

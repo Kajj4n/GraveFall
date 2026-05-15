@@ -59,6 +59,90 @@ GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW = "actionPreview";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
 GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED = "enemyDefeated";
 
+//------------------------------------------------------------------------------
+// Rune debug console input guard
+//------------------------------------------------------------------------------
+
+GraveFallGame.scene.Game.isDevConsoleInputActive = function (application) {
+    var app = application || (typeof rune !== "undefined" && rune.system && rune.system.Application ? rune.system.Application.instance : null);
+    var consoleManager;
+    var consoleInstance = null;
+
+    if (!app || !app.screen || !app.screen.console) {
+        return false;
+    }
+
+    consoleManager = app.screen.console;
+
+    try {
+        consoleInstance = consoleManager.instance || consoleManager.m_console || null;
+    } catch (error) {
+        consoleInstance = consoleManager.m_console || null;
+    }
+
+    return !!(consoleInstance && consoleInstance.parent);
+};
+
+GraveFallGame.scene.Game.prototype.isDevConsoleInputActive = function () {
+    return GraveFallGame.scene.Game.isDevConsoleInputActive(this.application);
+};
+
+//------------------------------------------------------------------------------
+// Dev-tunable timing defaults
+//------------------------------------------------------------------------------
+
+GraveFallGame.scene.Game.DEFAULT_TURN_TIMER_MS = 25000;
+GraveFallGame.scene.Game.DEFAULT_MINIGAME_TIMER_MS = 10000;
+GraveFallGame.scene.Game.DEV_TURN_TIMER_MS = null;
+GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS = null;
+GraveFallGame.scene.Game.DEV_ACTION_PHASE_FRAMES = null;
+
+GraveFallGame.scene.Game.prototype.getTurnTimerDurationMs = function () {
+    var override = GraveFallGame.scene.Game.DEV_TURN_TIMER_MS;
+
+    if (typeof override === "number" && isFinite(override) && override > 0) {
+        return override;
+    }
+
+    return GraveFallGame.scene.Game.DEFAULT_TURN_TIMER_MS;
+};
+
+GraveFallGame.scene.Game.prototype.getTurnTimerLabel = function (ms) {
+    var duration = typeof ms === "number" ? ms : this.getTurnTimerDurationMs();
+    return String(Math.max(0, Math.ceil(duration / 1000)));
+};
+
+GraveFallGame.scene.Game.prototype.resetCommandTurnTimer = function (visible, alpha) {
+    this.turnTimerMs = this.getTurnTimerDurationMs();
+    this.lastTurnWarningSecond = null;
+
+    if (this.turnTimerText) {
+        this.turnTimerText.visible = visible !== false;
+        this.turnTimerText.alpha = typeof alpha === "number" ? alpha : (visible === false ? 0 : 1);
+        this.turnTimerText.text = this.getTurnTimerLabel(this.turnTimerMs);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.getMinigameDurationMs = function () {
+    var override = GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS;
+
+    if (typeof override === "number" && isFinite(override) && override > 0) {
+        return override;
+    }
+
+    return GraveFallGame.scene.Game.DEFAULT_MINIGAME_TIMER_MS;
+};
+
+GraveFallGame.scene.Game.prototype.getActionPhaseDurationFrames = function (enemyConfig) {
+    var override = GraveFallGame.scene.Game.DEV_ACTION_PHASE_FRAMES;
+
+    if (typeof override === "number" && isFinite(override) && override > 0) {
+        return Math.max(1, Math.floor(override));
+    }
+
+    return enemyConfig && enemyConfig.actionPhaseDuration ? enemyConfig.actionPhaseDuration : 230;
+};
+
 GraveFallGame.scene.Game.PLAYER_THEMES = [
     {
         accent: "#E53935",

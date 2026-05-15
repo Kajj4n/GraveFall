@@ -3,6 +3,7 @@
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.Game.prototype.justPressedConfirm = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(pm.controls.confirm)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && gp.justPressed(0);
@@ -11,22 +12,26 @@ GraveFallGame.scene.Game.prototype.justPressedConfirm = function(pm) {
 // Face button helpers keep combat/action buttons separate from movement input.
 // Standard controller mapping: A/Cross=0, B/Circle=1, X/Square=2, Y/Triangle=3.
 GraveFallGame.scene.Game.prototype.justPressedFaceDown = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     var gp = this.getGamepadForInput(pm);
     return gp && gp.justPressed(0);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedFaceRight = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     var gp = this.getGamepadForInput(pm);
     return gp && gp.justPressed(1);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingConfirm = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (pm && pm.controls && pm.controls.confirm && this.keyboard.pressed(pm.controls.confirm)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && gp.pressed(0);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingFaceRight = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     var gp = this.getGamepadForInput(pm);
     return gp && gp.pressed(1);
 };
@@ -36,63 +41,74 @@ GraveFallGame.scene.Game.prototype.isHoldingItemExitButton = function(pm) {
 };
 
 GraveFallGame.scene.Game.prototype.justPressedFaceLeft = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     var gp = this.getGamepadForInput(pm);
     return gp && gp.justPressed(2);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedFaceUp = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     var gp = this.getGamepadForInput(pm);
     return gp && gp.justPressed(3);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedBack = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed("backspace")) return true;
     return this.justPressedFaceRight(pm);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedLeft = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(pm.controls.left)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.justPressed(14) || gp.stickLeftJustLeft);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedRight = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(pm.controls.right)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.justPressed(15) || gp.stickLeftJustRight);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedUp = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(pm.moveControls.up)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.justPressed(12) || gp.stickLeftJustUp);
 };
 
 GraveFallGame.scene.Game.prototype.justPressedDown = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(pm.moveControls.down)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.justPressed(13) || gp.stickLeftJustDown);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingLeft = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.pressed(pm.moveControls.left)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(14) || gp.stickLeft.x < -0.3);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingRight = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.pressed(pm.moveControls.right)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(15) || gp.stickLeft.x > 0.3);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingUp = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.pressed(pm.moveControls.up)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(12) || gp.stickLeft.y < -0.3);
 };
 
 GraveFallGame.scene.Game.prototype.isHoldingDown = function(pm) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.pressed(pm.moveControls.down)) return true;
     var gp = this.getGamepadForInput(pm);
     return gp && (gp.pressed(13) || gp.stickLeft.y > 0.3);

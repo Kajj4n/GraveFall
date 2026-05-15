@@ -61,6 +61,7 @@ GraveFallGame.scene.CharacterSelect.prototype.setDamageStateGroupFlippedX = Grav
 GraveFallGame.scene.CharacterSelect.prototype.applyPaletteSwapsToDamageStateGroup = GraveFallGame.scene.Game.prototype.applyPaletteSwapsToDamageStateGroup;
 GraveFallGame.scene.CharacterSelect.prototype.getPlayerStandDamageStates = GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates;
 GraveFallGame.scene.CharacterSelect.prototype.getPortraitDamageStates = GraveFallGame.scene.Game.prototype.getPortraitDamageStates;
+GraveFallGame.scene.CharacterSelect.prototype.isDevConsoleInputActive = GraveFallGame.scene.Game.prototype.isDevConsoleInputActive;
 
 // --- UNIVERSAL INPUT HELPERS FOR SELECT SCENE ---
 GraveFallGame.scene.CharacterSelect.prototype.getGamepadForInput = function (inputOwner) {
@@ -81,36 +82,42 @@ GraveFallGame.scene.CharacterSelect.prototype.getGamepadForInput = function (inp
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctrl) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.controls.confirm)) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && gp.justPressed(0);
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedBack = function (ctrl) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed("backspace")) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && (gp.justPressed(1) || gp.justPressed(2)); // Button B or X
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.controls.left)) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && (gp.justPressed(14) || gp.stickLeftJustLeft);
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.controls.right)) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && (gp.justPressed(15) || gp.stickLeftJustRight);
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedUp = function (ctrl) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.moveControls.up)) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && (gp.justPressed(12) || gp.stickLeftJustUp);
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.justPressedDown = function (ctrl) {
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.moveControls.down)) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && (gp.justPressed(13) || gp.stickLeftJustDown);
@@ -170,10 +177,18 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     }
 
     this.updateInstructionText(false, false);
+
+    if (typeof this.registerCharacterSelectDevConsoleCommands === "function") {
+        this.registerCharacterSelectDevConsoleCommands();
+    }
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
+
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
+        return;
+    }
 
     // --- PHASE ROUTING ---
     if (this.phase === "name") {
@@ -297,6 +312,10 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.dispose = function () {
+    if (typeof this.unregisterCharacterSelectDevConsoleCommands === "function") {
+        this.unregisterCharacterSelectDevConsoleCommands();
+    }
+
     rune.scene.Scene.prototype.dispose.call(this);
 };
 

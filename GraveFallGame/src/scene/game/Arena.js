@@ -288,7 +288,7 @@ GraveFallGame.scene.Game.prototype.updateGameOver = function () {
         this.gameOverInstruction.alpha = (Math.floor(this.gameOverTimer / 30) % 2 === 0) ? 1 : 0;
     }
 
-    if (this.keyboard.justPressed("space")) {
+    if (!(this.isDevConsoleInputActive && this.isDevConsoleInputActive()) && this.keyboard.justPressed("space")) {
         this.application.scenes.load([
             new GraveFallGame.scene.Menu()
         ]);
@@ -722,11 +722,7 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
     this.setEnemyUiAlpha(0);
     this.setPlayerTransitionVisibility(false, false);
     this.setPlayerTransitionAlpha(0, 0);
-    this.turnTimerText.visible = false;
-    this.turnTimerText.alpha = 0;
-    this.turnTimerText.text = "25";
-    this.turnTimerMs = 25000;
-    this.lastTurnWarningSecond = null;
+    this.resetCommandTurnTimer(false, 0);
     this.hideActionPrompt();
 };
 
@@ -738,11 +734,7 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
     this.resetPassageCameraTransition();
     this.startDungeonMusic();
     this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
-    this.turnTimerMs = 25000;
-    this.lastTurnWarningSecond = null;
-    this.turnTimerText.visible = true;
-    this.turnTimerText.alpha = 1;
-    this.turnTimerText.text = "25";
+    this.resetCommandTurnTimer(true, 1);
     this.enemyFadeTimerMs = this.enemyFadeDurationMs;
     this.setEnemyUiAlpha(1);
     this.resetPlayerMenusForCommandPhase();
@@ -921,7 +913,7 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
             this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
             this.turnTimerText.visible = true;
             this.turnTimerText.alpha = actionsAlpha;
-            this.turnTimerText.text = "25";
+            this.turnTimerText.text = this.getTurnTimerLabel();
         } else {
             actionsAlpha = 1;
             this.setEnemyUiAlpha(1);
@@ -930,7 +922,7 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
             this.setPlayerActionMenusVisible(true);
             this.turnTimerText.visible = true;
             this.turnTimerText.alpha = 1;
-            this.turnTimerText.text = "25";
+            this.turnTimerText.text = this.getTurnTimerLabel();
 
             if (this.passageTransitionActionsShown !== true) {
                 this.passageTransitionActionsShown = true;
@@ -1241,7 +1233,7 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     this.turnTimerText.alpha = 0;
     this.phase = GraveFallGame.scene.Game.PHASE_ACTION;
     this.playSfx(GraveFallGame.SOUNDS.PHASE_START, 0.65);
-    this.actionPhaseTimer = enemy.actionPhaseDuration;
+    this.actionPhaseTimer = this.getActionPhaseDurationFrames(enemy);
     this.nextPatternIn = 0;
     this.actionPhaseStartDelayFrames = 60;
     this.showActionPromptForFirstEnemy();
@@ -1272,11 +1264,7 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     this.setBattleArenaVisible(false);
     this.clearArenaItem();
 
-    this.turnTimerMs = 25000;
-    this.lastTurnWarningSecond = null;
-    this.turnTimerText.visible = true;
-    this.turnTimerText.alpha = 1;
-    this.turnTimerText.text = "25";
+    this.resetCommandTurnTimer(true, 1);
 
     for (i = 0; i < this.playerMenus.length; i++) {
         this.playerMenus[i].confirmed = false;

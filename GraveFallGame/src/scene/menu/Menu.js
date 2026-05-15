@@ -133,6 +133,10 @@ GraveFallGame.scene.Menu.prototype.init = function (step) {
 GraveFallGame.scene.Menu.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
+    if (GraveFallGame.scene.Game.isDevConsoleInputActive(this.application)) {
+        return;
+    }
+
     var pressDown = this.keyboard.justPressed("down");
     var pressUp = this.keyboard.justPressed("up");
     var pressConfirm = this.keyboard.justPressed("space") || this.keyboard.justPressed("enter");
