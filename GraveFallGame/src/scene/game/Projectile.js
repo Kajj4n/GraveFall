@@ -19,9 +19,26 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "goblin_pebble_rain": this.spawnGoblinPebbleRain(); break;
         case "goblin_dart_fan": this.spawnGoblinDartFan(); break;
         case "goblin_stomp_wave": this.spawnGoblinStompWave(); break;
+        case "goblin_boss_mace_quake": this.spawnGoblinBossMaceQuake(); break;
+        case "goblin_boss_sword_pincer": this.spawnGoblinBossSwordPincer(); break;
+        case "goblin_boss_head_toss": this.spawnGoblinBossHeadToss(); break;
+        case "goblin_boss_mob_charge": this.spawnGoblinBossMobCharge(); break;
+        case "goblin_boss_blade_trap": this.spawnGoblinBossBladeTrap(); break;
         case "ghoul_orb_crawl": this.spawnGhoulOrbCrawl(); break;
         case "ghoul_dart_ambush": this.spawnGhoulDartAmbush(); break;
         case "ghoul_stomp_pulse": this.spawnGhoulStompPulse(); break;
+        case "ghoul_impaled_sword_drop": this.spawnGhoulImpaledSwordDrop(); break;
+        case "ghoul_bone_shard_spread": this.spawnGhoulBoneShardSpread(); break;
+        case "ghoul_skull_drift": this.spawnGhoulSkullDrift(); break;
+        case "placeholder_spear_corridor": this.spawnPlaceholderSpearCorridor(); break;
+        case "placeholder_arrow_crossfire": this.spawnPlaceholderArrowCrossfire(); break;
+        case "placeholder_bone_shard_arc": this.spawnPlaceholderBoneShardArc(); break;
+        case "placeholder_skull_ring": this.spawnPlaceholderSkullRing(); break;
+        case "placeholder_crystal_rain": this.spawnPlaceholderCrystalRain(); break;
+        case "placeholder_crystal_wall": this.spawnPlaceholderCrystalWall(); break;
+        case "placeholder_orb_split": this.spawnPlaceholderOrbSplit(); break;
+        case "hydragon_fireball_breath": this.spawnHyDragonFireballBreath(); break;
+        case "hydragon_fire_wave": this.spawnHyDragonFireWave(); break;
         case "hydragon_orb_breath": this.spawnHyDragonOrbBreath(); break;
         case "hydragon_sword_storm": this.spawnHyDragonSwordStorm(); break;
         case "hydragon_cross_sweep": this.spawnHyDragonCrossSweep(); break;
@@ -196,6 +213,192 @@ GraveFallGame.scene.Game.prototype.spawnGoblinStompWave = function () {
     }
 };
 
+GraveFallGame.scene.Game.prototype.spawnGoblinBossMaceQuake = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 9;
+    var i;
+    var x;
+
+    for (i = 0; i < count; i++) {
+        x = inner.x + 30 + (i * ((inner.width - 60) / (count - 1)));
+        this.spawnProjectile({
+            x: x,
+            y: inner.y + inner.height - 16,
+            width: 16,
+            height: 16,
+            resource: "StompWave_Attack_T",
+            vx: this.randomRange(-0.45, 0.45),
+            vy: this.randomRange(-7.2, -4.8),
+            damage: 9,
+            life: 80,
+            type: "goblin_mace_quake"
+        });
+    }
+
+    for (i = 0; i < 3; i++) {
+        this.spawnProjectile({
+            x: inner.x + this.randomRange(80, inner.width - 104),
+            y: inner.y - this.randomRange(16, 90),
+            width: 24,
+            height: 24,
+            resource: "Goblin_Walk_Attack_1_T",
+            vx: this.randomRange(-0.35, 0.35),
+            vy: this.randomRange(5.5, 7.0),
+            damage: 10,
+            life: 100,
+            type: "goblin_mace_drop",
+            hitboxInsetX: 4,
+            hitboxInsetY: 4
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGoblinBossSwordPincer = function () {
+    var inner = this.getArenaInnerBounds();
+    var lanes = [0.22, 0.45, 0.68, 0.82];
+    var resources = ["Goblin_Walk_Attack_2_T", "Goblin_Walk_Attack_3_T"];
+    var i;
+    var y;
+    var leftSpeed;
+    var rightSpeed;
+
+    for (i = 0; i < lanes.length; i++) {
+        y = inner.y + Math.round(inner.height * lanes[i]) - 12;
+        leftSpeed = this.randomRange(4.8, 6.3);
+        rightSpeed = this.randomRange(-6.3, -4.8);
+
+        this.spawnProjectile({
+            x: inner.x - 34 - (i * 18),
+            y: y,
+            width: 24,
+            height: 24,
+            resource: resources[i % resources.length],
+            vx: leftSpeed,
+            vy: this.randomRange(-0.18, 0.18),
+            damage: 11,
+            life: 145,
+            type: "goblin_sword_pincer",
+            hitboxInsetX: 4,
+            hitboxInsetY: 4
+        });
+
+        if (i % 2 === 0) {
+            this.spawnProjectile({
+                x: inner.x + inner.width + 10 + (i * 16),
+                y: y + this.randomRange(-10, 10),
+                width: 24,
+                height: 24,
+                resource: resources[(i + 1) % resources.length],
+                flippedX: true,
+                vx: rightSpeed,
+                vy: this.randomRange(-0.18, 0.18),
+                damage: 11,
+                life: 145,
+                type: "goblin_sword_pincer",
+                hitboxInsetX: 4,
+                hitboxInsetY: 4
+            });
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGoblinBossHeadToss = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 6 + Math.floor(Math.random() * 3);
+    var i;
+    var fromLeft;
+
+    for (i = 0; i < count; i++) {
+        fromLeft = i % 2 === 0;
+        this.spawnProjectile({
+            x: fromLeft ? inner.x - this.randomRange(16, 80) : inner.x + inner.width + this.randomRange(16, 80),
+            y: inner.y - this.randomRange(12, 92),
+            width: 16,
+            height: 16,
+            resource: "Goblin_Head_Attack_T",
+            flippedX: fromLeft ? false : true,
+            vx: fromLeft ? this.randomRange(2.4, 4.4) : this.randomRange(-4.4, -2.4),
+            vy: this.randomRange(4.8, 7.2),
+            rotation: fromLeft ? this.randomRange(12, 28) : this.randomRange(-28, -12),
+            damage: 8,
+            life: 130,
+            type: "goblin_head_toss"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGoblinBossMobCharge = function () {
+    var inner = this.getArenaInnerBounds();
+    var resources = ["Goblin_Walk_Attack_1_T", "Goblin_Walk_Attack_2_T", "Goblin_Walk_Attack_3_T"];
+    var yPositions = [0.28, 0.52, 0.76];
+    var i;
+    var fromLeft;
+    var y;
+
+    for (i = 0; i < resources.length; i++) {
+        fromLeft = i !== 1;
+        y = inner.y + Math.round(inner.height * yPositions[i]) - 12;
+
+        this.spawnProjectile({
+            x: fromLeft ? inner.x - 46 - (i * 16) : inner.x + inner.width + 22 + (i * 16),
+            y: y,
+            width: 24,
+            height: 24,
+            resource: resources[i],
+            flippedX: !fromLeft,
+            vx: fromLeft ? this.randomRange(5.6, 7.4) : this.randomRange(-7.4, -5.6),
+            vy: this.randomRange(-0.25, 0.25),
+            damage: i === 0 ? 13 : 10,
+            life: 135,
+            type: "goblin_mob_charge",
+            hitboxInsetX: 4,
+            hitboxInsetY: 4
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGoblinBossBladeTrap = function () {
+    var inner = this.getArenaInnerBounds();
+    var i;
+    var y;
+
+    for (i = 0; i < 3; i++) {
+        y = inner.y + 54 + (i * ((inner.height - 108) / 2));
+        this.spawnProjectile({
+            x: i % 2 === 0 ? inner.x - 150 : inner.x + inner.width + 10,
+            y: y,
+            width: 140,
+            height: 12,
+            resource: "Horizontal_Sweep_Attack_T",
+            flippedX: i % 2 !== 0,
+            vx: i % 2 === 0 ? this.randomRange(5.0, 6.4) : this.randomRange(-6.4, -5.0),
+            vy: 0,
+            damage: 11,
+            life: 150,
+            type: "goblin_blade_trap",
+            hitboxInsetX: 8,
+            hitboxInsetY: 1
+        });
+    }
+
+    for (i = 0; i < 4; i++) {
+        this.spawnProjectile({
+            x: inner.x + this.randomRange(40, inner.width - 56),
+            y: inner.y - this.randomRange(35, 145),
+            width: 16,
+            height: 48,
+            resource: "Falling_Sword_Attack_T",
+            vx: this.randomRange(-0.8, 0.8),
+            vy: this.randomRange(6.0, 8.0),
+            damage: 10,
+            life: 150,
+            type: "goblin_falling_sword",
+            hitboxInsetX: 3,
+            hitboxInsetY: 2
+        });
+    }
+};
+
 GraveFallGame.scene.Game.prototype.spawnGhoulOrbCrawl = function () {
     var inner = this.getArenaInnerBounds();
     var count = 6 + Math.floor(Math.random() * 3);
@@ -260,6 +463,139 @@ GraveFallGame.scene.Game.prototype.spawnGhoulStompPulse = function () {
             damage: 6,
             life: 72,
             type: "ghoul_stomp"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGhoulImpaledSwordDrop = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 4 + Math.floor(Math.random() * 3);
+    var i;
+
+    for (i = 0; i < count; i++) {
+        this.spawnProjectile({
+            x: inner.x + this.randomRange(28, inner.width - 44),
+            y: inner.y - this.randomRange(25, 165),
+            width: 16,
+            height: 48,
+            resource: "Falling_Sword_Attack_T",
+            vx: this.randomRange(-0.6, 0.6),
+            vy: this.randomRange(5.2, 7.4),
+            damage: 9,
+            life: 150,
+            type: "ghoul_impaled_sword",
+            hitboxInsetX: 3,
+            hitboxInsetY: 3
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGhoulBoneShardSpread = function () {
+    var inner = this.getArenaInnerBounds();
+    var originX = inner.x + (inner.width / 2);
+    var originY = inner.y + 12;
+    var count = 7;
+    var i;
+    var spread;
+
+    for (i = 0; i < count; i++) {
+        spread = i - Math.floor(count / 2);
+        this.spawnProjectile({
+            x: originX,
+            y: originY + this.randomRange(-4, 12),
+            width: 16,
+            height: 8,
+            resource: "Bone_Shard_Attack_T",
+            vx: spread * 0.95,
+            vy: this.randomRange(3.7, 5.4),
+            rotation: spread * 8,
+            damage: 6,
+            life: 140,
+            type: "ghoul_bone_shard",
+            hitboxInsetX: 2,
+            hitboxInsetY: 1
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnGhoulSkullDrift = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 4 + Math.floor(Math.random() * 2);
+    var i;
+    var fromLeft;
+
+    for (i = 0; i < count; i++) {
+        fromLeft = i % 2 === 0;
+        this.spawnProjectile({
+            x: fromLeft ? inner.x - 42 : inner.x + inner.width + 10,
+            y: inner.y + this.randomRange(28, inner.height - 62),
+            width: 32,
+            height: 32,
+            resource: "Skull_Attack_T",
+            flippedX: !fromLeft,
+            vx: fromLeft ? this.randomRange(2.1, 3.2) : this.randomRange(-3.2, -2.1),
+            vy: this.randomRange(-0.65, 0.65),
+            damage: 7,
+            life: 190,
+            type: "ghoul_skull_drift",
+            hitboxInsetX: 5,
+            hitboxInsetY: 5
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnHyDragonFireballBreath = function () {
+    var inner = this.getArenaInnerBounds();
+    var fromLeft = Math.random() > 0.5;
+    var originX = fromLeft ? inner.x - 30 : inner.x + inner.width + 30;
+    var originY = inner.y + this.randomRange(32, 116);
+    var count = 10;
+    var i;
+    var angle;
+    var speed;
+
+    for (i = 0; i < count; i++) {
+        angle = fromLeft ? this.randomRange(-0.28, 0.92) : this.randomRange(2.22, 3.42);
+        speed = this.randomRange(3.8, 5.9);
+        this.spawnProjectile({
+            x: originX,
+            y: originY + this.randomRange(-10, 10),
+            width: 16,
+            height: 16,
+            resource: "Fireball_Attack_T",
+            flippedX: !fromLeft,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            damage: 10,
+            life: 145,
+            type: "hydragon_fireball"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnHyDragonFireWave = function () {
+    var inner = this.getArenaInnerBounds();
+    var fromLeft = Math.random() > 0.5;
+    var count = 4;
+    var i;
+    var y;
+
+    for (i = 0; i < count; i++) {
+        y = inner.y + 38 + (i * ((inner.height - 76) / (count - 1)));
+        this.spawnProjectile({
+            x: fromLeft ? inner.x - 48 - (i * 18) : inner.x + inner.width + 16 + (i * 18),
+            y: y,
+            width: 32,
+            height: 16,
+            resource: "Fire_wave_Attack_T",
+            flippedX: !fromLeft,
+            vx: fromLeft ? this.randomRange(4.6, 6.0) : this.randomRange(-6.0, -4.6),
+            vy: this.randomRange(-0.24, 0.24),
+            damage: 11,
+            life: 150,
+            type: "hydragon_fire_wave",
+            hitboxInsetX: 2,
+            hitboxInsetY: 2
         });
     }
 };
@@ -371,6 +707,213 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFangFan = function () {
             life: 120,
             type: "hydragon_fang"
         });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlaceholderSpearCorridor = function () {
+    var inner = this.getArenaInnerBounds();
+    var lanes = [0.20, 0.38, 0.56, 0.74];
+    var i;
+    var fromLeft;
+    var y;
+
+    for (i = 0; i < lanes.length; i++) {
+        fromLeft = i % 2 === 0;
+        y = inner.y + Math.round(inner.height * lanes[i]);
+        this.spawnProjectile({
+            x: fromLeft ? inner.x - 38 - (i * 14) : inner.x + inner.width + 12 + (i * 14),
+            y: y,
+            width: 26,
+            height: 6,
+            resource: "Spear_Attack_T",
+            flippedX: !fromLeft,
+            vx: fromLeft ? this.randomRange(5.0, 6.6) : this.randomRange(-6.6, -5.0),
+            vy: this.randomRange(-0.18, 0.18),
+            damage: 7,
+            life: 140,
+            type: "placeholder_spear_corridor",
+            hitboxInsetX: 1,
+            hitboxInsetY: 0
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlaceholderArrowCrossfire = function () {
+    var inner = this.getArenaInnerBounds();
+    var rows = 5;
+    var i;
+    var y;
+
+    for (i = 0; i < rows; i++) {
+        y = inner.y + 34 + (i * ((inner.height - 68) / (rows - 1)));
+        this.spawnProjectile({
+            x: inner.x - 34 - (i * 10),
+            y: y,
+            width: 20,
+            height: 6,
+            resource: "Arrow_attack_T",
+            vx: this.randomRange(4.6, 6.0),
+            vy: this.randomRange(-0.12, 0.12),
+            damage: 6,
+            life: 140,
+            type: "placeholder_arrow"
+        });
+        if (i % 2 === 1) {
+            this.spawnProjectile({
+                x: inner.x + inner.width + 14 + (i * 10),
+                y: y + this.randomRange(-10, 10),
+                width: 20,
+                height: 6,
+                resource: "Arrow_attack_T",
+                flippedX: true,
+                vx: this.randomRange(-6.0, -4.6),
+                vy: this.randomRange(-0.12, 0.12),
+                damage: 6,
+                life: 140,
+                type: "placeholder_arrow"
+            });
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlaceholderBoneShardArc = function () {
+    var inner = this.getArenaInnerBounds();
+    var originX = inner.x + (inner.width / 2);
+    var originY = inner.y - 10;
+    var count = 8;
+    var i;
+    var spread;
+
+    for (i = 0; i < count; i++) {
+        spread = i - ((count - 1) / 2);
+        this.spawnProjectile({
+            x: originX,
+            y: originY,
+            width: 16,
+            height: 8,
+            resource: "Bone_Shard_Attack_T",
+            vx: spread * 0.75,
+            vy: this.randomRange(4.2, 6.0),
+            rotation: spread * 7,
+            damage: 6,
+            life: 130,
+            type: "placeholder_bone_arc",
+            hitboxInsetX: 2,
+            hitboxInsetY: 1
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlaceholderSkullRing = function () {
+    var inner = this.getArenaInnerBounds();
+    var positions = [
+        { x: inner.x - 34, y: inner.y - 34, vx: 2.7, vy: 2.4 },
+        { x: inner.x + inner.width + 2, y: inner.y - 34, vx: -2.7, vy: 2.4 },
+        { x: inner.x - 34, y: inner.y + inner.height + 2, vx: 2.7, vy: -2.4 },
+        { x: inner.x + inner.width + 2, y: inner.y + inner.height + 2, vx: -2.7, vy: -2.4 }
+    ];
+    var i;
+
+    for (i = 0; i < positions.length; i++) {
+        this.spawnProjectile({
+            x: positions[i].x,
+            y: positions[i].y,
+            width: 32,
+            height: 32,
+            resource: "Skull_Attack_T",
+            flippedX: positions[i].vx < 0,
+            vx: positions[i].vx + this.randomRange(-0.25, 0.25),
+            vy: positions[i].vy + this.randomRange(-0.25, 0.25),
+            damage: 8,
+            life: 170,
+            type: "placeholder_skull_ring",
+            hitboxInsetX: 5,
+            hitboxInsetY: 5
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlaceholderCrystalRain = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 7;
+    var i;
+    var longShard;
+
+    for (i = 0; i < count; i++) {
+        longShard = i % 2 === 0;
+        this.spawnProjectile({
+            x: inner.x + this.randomRange(24, inner.width - 40),
+            y: inner.y - this.randomRange(20, 170),
+            width: longShard ? 32 : 16,
+            height: longShard ? 8 : 12,
+            resource: longShard ? "Long_Crystal_Shard_Attack_T" : "Crystal_Shard_Attack_T",
+            vx: this.randomRange(-0.5, 0.5),
+            vy: this.randomRange(5.0, 7.5),
+            rotation: this.randomRange(-18, 18),
+            damage: 8,
+            life: 150,
+            type: "placeholder_crystal_rain",
+            hitboxInsetX: 2,
+            hitboxInsetY: 1
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlaceholderCrystalWall = function () {
+    var inner = this.getArenaInnerBounds();
+    var fromLeft = Math.random() > 0.5;
+    var count = 5;
+    var i;
+    var y;
+
+    for (i = 0; i < count; i++) {
+        y = inner.y + 30 + (i * ((inner.height - 60) / (count - 1)));
+        this.spawnProjectile({
+            x: fromLeft ? inner.x - 46 - (i * 8) : inner.x + inner.width + 14 + (i * 8),
+            y: y,
+            width: 32,
+            height: 8,
+            resource: "Long_Crystal_Shard_Attack_T",
+            flippedX: !fromLeft,
+            vx: fromLeft ? this.randomRange(3.9, 5.3) : this.randomRange(-5.3, -3.9),
+            vy: this.randomRange(-0.16, 0.16),
+            damage: 8,
+            life: 160,
+            type: "placeholder_crystal_wall",
+            hitboxInsetX: 2,
+            hitboxInsetY: 1
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnPlaceholderOrbSplit = function () {
+    var inner = this.getArenaInnerBounds();
+    var origins = [
+        { x: inner.x + (inner.width * 0.28), y: inner.y - 18 },
+        { x: inner.x + (inner.width * 0.72), y: inner.y - 18 }
+    ];
+    var i;
+    var j;
+    var angle;
+    var speed;
+
+    for (i = 0; i < origins.length; i++) {
+        for (j = 0; j < 4; j++) {
+            angle = this.randomRange(0.75, 2.35);
+            speed = this.randomRange(2.8, 4.4);
+            this.spawnProjectile({
+                x: origins[i].x,
+                y: origins[i].y,
+                width: 16,
+                height: 16,
+                resource: "Orb_Attack_T",
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                damage: 6,
+                life: 145,
+                type: "placeholder_orb_split"
+            });
+        }
     }
 };
 

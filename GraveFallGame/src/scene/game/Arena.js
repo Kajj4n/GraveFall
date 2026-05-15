@@ -1348,6 +1348,8 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.damage = options.damage || 8;
     display.life = options.life || 180;
     display.type = options.type || "generic";
+    display.hitboxInsetX = options.hitboxInsetX || 0;
+    display.hitboxInsetY = options.hitboxInsetY || 0;
     display.hitFlashFrames = 0;
     display.hit = false;
 
@@ -1395,6 +1397,8 @@ GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (opti
     hitbox.damage = options.damage || 8;
     hitbox.life = options.life || 180;
     hitbox.type = options.type || "generic";
+    hitbox.hitboxInsetX = options.hitboxInsetX || 0;
+    hitbox.hitboxInsetY = options.hitboxInsetY || 0;
     hitbox.hitFlashFrames = 0;
     hitbox.hit = false;
 

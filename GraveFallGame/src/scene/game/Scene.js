@@ -229,6 +229,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(0); 
     this.applyPassageCameraTransition(0);
+
+    this.registerDevConsoleCommands();
 };
 
 // --- NEW SCORE HELPER FUNCTIONS ---
@@ -575,6 +577,8 @@ GraveFallGame.scene.Game.prototype.clearAllHealingStandAnimations = function (re
 
 GraveFallGame.scene.Game.prototype.dispose = function () {
     var i;
+
+    this.unregisterDevConsoleCommands();
 
     this.stopDungeonMusic();
     this.clearProjectiles();
