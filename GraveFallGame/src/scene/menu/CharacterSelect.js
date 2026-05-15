@@ -139,8 +139,9 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     var menuY;
     var i;
 
-    this.runPalette = GraveFallGame.scene.Game.startNewRunPalette();
-    this.runPaletteKey = this.runPalette.key;
+    this.runPaletteKey = GraveFallGame.scene.Game.resolveRunPaletteKey(GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY);
+    this.runPalette = GraveFallGame.scene.Game.getRunPalette(this.runPaletteKey);
+    GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = this.runPaletteKey;
     this.backgroundSkin = this.runPalette.outside;
     this.selectionSkin = this.runPalette.inside;
 
