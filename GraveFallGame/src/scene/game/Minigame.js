@@ -227,6 +227,64 @@ GraveFallGame.scene.Game.prototype.getButtonLabelForDirection = function (direct
     return "A";
 };
 
+GraveFallGame.scene.Game.prototype.getButtonPositionLabelForDirection = function (direction) {
+    if (direction === "up") {
+        return "TOP";
+    }
+
+    if (direction === "left") {
+        return "LEFT";
+    }
+
+    if (direction === "right") {
+        return "RIGHT";
+    }
+
+    return "BOTTOM";
+};
+
+GraveFallGame.scene.Game.prototype.getGamepadMovementIconForDirection = function (direction) {
+    if (direction === "up") {
+        return "Gamepad_Button_Up_T";
+    }
+
+    if (direction === "left") {
+        return "Gamepad_Button_Left_T";
+    }
+
+    if (direction === "right") {
+        return "Gamepad_Button_Right_T";
+    }
+
+    return "Gamepad_Button_Down_T";
+};
+
+GraveFallGame.scene.Game.prototype.getMovementLabelForDirection = function (direction) {
+    if (direction === "up") {
+        return "UP";
+    }
+
+    if (direction === "left") {
+        return "LEFT";
+    }
+
+    if (direction === "right") {
+        return "RIGHT";
+    }
+
+    return "DOWN";
+};
+
+GraveFallGame.scene.Game.prototype.getSequenceIconForDirection = function (direction) {
+    var resource = this.getGamepadMovementIconForDirection(direction);
+
+    if (this.resourceExists(resource)) {
+        return resource;
+    }
+
+    return this.getButtonIconForDirection(direction);
+};
+
 GraveFallGame.scene.Game.prototype.createMinigameIcon = function (resource, x, y, scale) {
     var icon = new rune.display.Sprite(x, y, 100, 100, resource);
 
@@ -298,6 +356,78 @@ GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (directi
     return this.getButtonIconForDirection(direction);
 };
 
+GraveFallGame.scene.Game.prototype.clearButtonMashPromptIcons = function (menu) {
+    var i;
+    var icons;
+
+    if (!menu || !menu.minigame || !menu.minigame.buttonIcons) {
+        return;
+    }
+
+    icons = menu.minigame.buttonIcons;
+
+    for (i = icons.length - 1; i >= 0; i--) {
+        if (icons[i].parent) {
+            icons[i].parent.removeChild(icons[i], true);
+        }
+    }
+
+    menu.minigame.buttonIcons = [];
+};
+
+GraveFallGame.scene.Game.prototype.createCenteredMinigameIcon = function (resource, centerX, centerY, scale) {
+    var size = Math.round(100 * (scale || 0.42));
+
+    return this.createMinigameIcon(resource, Math.round(centerX - (size / 2)), Math.round(centerY - (size / 2)), scale);
+};
+
+GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, activeDirection) {
+    var minigame = menu.minigame;
+    var group;
+    var directions = ["up", "left", "right", "down"];
+    var centers = {
+        up: { x: 128, y: 48 },
+        left: { x: 111, y: 65 },
+        right: { x: 145, y: 65 },
+        down: { x: 128, y: 82 }
+    };
+    var i;
+    var direction;
+    var isActive;
+    var icon;
+    var scale;
+
+    if (!minigame || !minigame.group) {
+        return;
+    }
+
+    group = minigame.group;
+
+    if (!minigame.buttonIcons) {
+        minigame.buttonIcons = [];
+    }
+
+    this.clearButtonMashPromptIcons(menu);
+
+    for (i = 0; i < directions.length; i++) {
+        direction = directions[i];
+        isActive = direction === activeDirection;
+        scale = isActive ? 0.26 : 0.22;
+        icon = this.createCenteredMinigameIcon(
+            this.getButtonMashIconResource(direction),
+            centers[direction].x,
+            centers[direction].y,
+            scale
+        );
+
+        this.applyMonochromeIconColor(icon, isActive ? menu.theme.accent : "#DADADA");
+        icon.alpha = isActive ? 1 : 0.48;
+
+        group.addChild(icon);
+        minigame.buttonIcons.push(icon);
+    }
+};
+
 // Minigame button prompts are face-button prompts, not D-pad/left-stick prompts.
 // Keyboard fallback stays on each player's existing movement keys for debug/keyboard play.
 GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu) {
@@ -340,6 +470,54 @@ GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu)
     return null;
 };
 
+GraveFallGame.scene.Game.prototype.getPressedMovementMinigameDirection = function (menu) {
+    var gp;
+
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
+        return null;
+    }
+
+    if (this.keyboard.justPressed(menu.moveControls.up)) {
+        return "up";
+    }
+
+    if (this.keyboard.justPressed(menu.moveControls.left)) {
+        return "left";
+    }
+
+    if (this.keyboard.justPressed(menu.moveControls.right)) {
+        return "right";
+    }
+
+    if (this.keyboard.justPressed(menu.moveControls.down)) {
+        return "down";
+    }
+
+    gp = this.getGamepadForInput(menu);
+
+    if (!gp) {
+        return null;
+    }
+
+    if (gp.justPressed(12) || gp.stickLeftJustUp) {
+        return "up";
+    }
+
+    if (gp.justPressed(14) || gp.stickLeftJustLeft) {
+        return "left";
+    }
+
+    if (gp.justPressed(15) || gp.stickLeftJustRight) {
+        return "right";
+    }
+
+    if (gp.justPressed(13) || gp.stickLeftJustDown) {
+        return "down";
+    }
+
+    return null;
+};
+
 GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (menu) {
     if (!menu || !menu.minigame) {
         return null;
@@ -365,8 +543,8 @@ GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
     }
 
     minigame.currentMashDirection = direction;
-    this.setButtonMashPromptIcon(menu, this.getButtonMashIconResource(direction), 101, 43, 0.55);
-    this.setMinigameFeedback(menu, "MASH " + this.getButtonLabelForDirection(direction));
+    this.setButtonMashPromptMatrix(menu, direction);
+    this.setMinigameFeedback(menu, "MASH " + this.getButtonPositionLabelForDirection(direction) + " BUTTON");
 };
 
 GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
@@ -390,23 +568,23 @@ GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
 GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("MASH SHOWN");
-    var barBack = new rune.display.Graphic(36, 92, 184, 8);
-    var barFill = new rune.display.Graphic(36, 92, 184, 8);
-    var feedback = this.createHiddenMinigameFeedbackText(102);
+    var barBack = new rune.display.Graphic(36, 94, 184, 8);
+    var barFill = new rune.display.Graphic(36, 94, 184, 8);
+    var feedback = this.createHiddenMinigameFeedbackText(106);
 
     barBack.backgroundColor = "#171717";
     barFill.backgroundColor = menu.theme.accent;
     barFill.scaleX = 0;
 
     prompt.autoSize = true;
-    prompt.scaleX = 2;
-    prompt.scaleY = 2;
-    this.centerMinigameText(prompt, group.width, 26);
+    prompt.scaleX = 1.5;
+    prompt.scaleY = 1.5;
+    this.centerMinigameText(prompt, group.width, 24);
 
     feedback.autoSize = true;
     feedback.scaleX = 1;
     feedback.scaleY = 1;
-    this.centerMinigameText(feedback, group.width, 102);
+    this.centerMinigameText(feedback, group.width, 106);
 
     group.addChild(prompt);
     group.addChild(barBack);
@@ -425,6 +603,7 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
         group: group,
         mashFill: barFill,
         buttonIcon: null,
+        buttonIcons: [],
         feedbackText: feedback
     };
 
@@ -449,7 +628,7 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
             return;
         }
     } else if (pressedDirection) {
-        this.setMinigameFeedback(menu, "MASH " + this.getButtonLabelForDirection(minigame.currentMashDirection));
+        this.setMinigameFeedback(menu, "MASH " + this.getButtonPositionLabelForDirection(minigame.currentMashDirection) + " BUTTON");
         this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.22);
     }
 
@@ -460,10 +639,14 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
 GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
     var i;
     var icon;
+    var label;
     var sequence;
     var group;
     var startX;
     var direction;
+    var iconScale;
+    var spacing;
+    var centerX;
 
     sequence = menu.minigame.sequence;
     group = menu.minigame.group;
@@ -476,28 +659,53 @@ GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
         }
     }
 
+    if (menu.minigame.sequenceLabels) {
+        for (i = menu.minigame.sequenceLabels.length - 1; i >= 0; i--) {
+            if (menu.minigame.sequenceLabels[i].parent) {
+                menu.minigame.sequenceLabels[i].parent.removeChild(menu.minigame.sequenceLabels[i], true);
+            }
+        }
+    }
+
     menu.minigame.sequenceIcons = [];
-    startX = Math.round((group.width / 2) - ((sequence.length * 38) / 2));
+    menu.minigame.sequenceLabels = [];
+
+    spacing = Math.max(28, Math.min(34, Math.floor((group.width - 64) / Math.max(1, sequence.length - 1))));
+    iconScale = 0.24;
+    startX = Math.round((group.width / 2) - (((sequence.length - 1) * spacing) / 2));
 
     for (i = 0; i < sequence.length; i++) {
         direction = sequence[i];
-        icon = this.createMinigameIcon(this.getButtonIconForDirection(direction), startX + (i * 38), 52, 0.34);
+        centerX = startX + (i * spacing);
+        icon = this.createCenteredMinigameIcon(this.getSequenceIconForDirection(direction), centerX, 60, iconScale);
+
+        label = new rune.text.BitmapField(this.getMovementLabelForDirection(direction));
+        label.autoSize = true;
+        label.scaleX = 1;
+        label.scaleY = 1;
+        label.x = Math.round(centerX - (label.width / 2));
+        label.y = 78;
 
         if (i < menu.minigame.sequenceIndex) {
             this.applyMonochromeIconColor(icon, "#BBBBBB");
             icon.alpha = 0.45;
+            label.alpha = 0.45;
         } else if (i === menu.minigame.sequenceIndex) {
             this.applyMonochromeIconColor(icon, menu.theme.accent);
-            icon.scaleX = 0.40;
-            icon.scaleY = 0.40;
-            icon.y -= 4;
+            icon.scaleX = 0.29;
+            icon.scaleY = 0.29;
+            icon.x = Math.round(centerX - ((100 * icon.scaleX) / 2));
+            icon.y = Math.round(58 - ((100 * icon.scaleY) / 2));
+            label.y = 82;
         } else {
             this.applyMonochromeIconColor(icon, "#E8E8E8");
             icon.alpha = 0.95;
         }
 
         group.addChild(icon);
+        group.addChild(label);
         menu.minigame.sequenceIcons.push(icon);
+        menu.minigame.sequenceLabels.push(label);
     }
 };
 
@@ -525,9 +733,9 @@ GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu,
     var feedback = this.createHiddenMinigameFeedbackText(102);
 
     prompt.autoSize = true;
-    prompt.scaleX = 2;
-    prompt.scaleY = 2;
-    this.centerMinigameText(prompt, group.width, 26);
+    prompt.scaleX = 1.5;
+    prompt.scaleY = 1.5;
+    this.centerMinigameText(prompt, group.width, 24);
 
     feedback.autoSize = true;
     feedback.scaleX = 1;
@@ -545,6 +753,7 @@ GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu,
         group: group,
         sequence: [],
         sequenceIcons: [],
+        sequenceLabels: [],
         sequenceIndex: 0,
         sequenceLength: definition.sequenceLength || 5,
         feedbackText: feedback
@@ -560,7 +769,7 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
     var minigame;
 
     minigame = menu.minigame;
-    pressed = this.getPressedMinigameDirection(menu);
+    pressed = this.getPressedMovementMinigameDirection(menu);
 
     if (!pressed) {
         return;
