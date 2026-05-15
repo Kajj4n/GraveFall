@@ -1407,7 +1407,7 @@ GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (
     }
 
     if (anyJoined) {
-        this.instructionText.text = "SELECT YOUR CHARACTER";
+        this.instructionText.text = "SELECT YOUR CHARACTER USING A/D OR D-PAD THEN CONFIRM BUTTON";
     } else {
         this.instructionText.text = "PRESS [SPACE/ENTER/K/B] OR GAMEPAD [A] TO JOIN";
     }

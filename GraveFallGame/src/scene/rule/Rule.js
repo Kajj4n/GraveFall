@@ -95,11 +95,11 @@ GraveFallGame.scene.Rule.prototype.init = function () {
     this.stage.addChild(shell);
     this.shell = shell;
 
-    title = this.createText("HOW TO PLAY", 0, 40, 3.3, 520);
+    title = this.createText("HOW TO PLAY", 0, 56, 3.3, 520);
     this.centerText(title, screen.centerX, 3.3);
     this.stage.addChild(title);
 
-    subtitle = this.createText("A LOCAL 1-4 PLAYER PLAYTEST GUIDE", 0, 88, 1.45, 620);
+    subtitle = this.createText("A LOCAL 1-4 PLAYER PLAYTEST GUIDE", 0, 104, 1.45, 620);
     this.centerText(subtitle, screen.centerX, 1.45);
     this.stage.addChild(subtitle);
     this.tintBitmapFieldText(subtitle, this.menuSkin.frame.light, true);
@@ -295,7 +295,7 @@ GraveFallGame.scene.Rule.prototype.createPageTabs = function () {
     var tab;
     var text;
     var x = 186;
-    var y = 126;
+    var y = 142;
     var w = 214;
     var h = 38;
     var color;
@@ -326,7 +326,7 @@ GraveFallGame.scene.Rule.prototype.createPageDots = function () {
     this.pageDots = [];
 
     for (i = 0; i < this.pages.length; i++) {
-        dot = new rune.display.Graphic(startX + (i * 28), 618, 14, 14);
+        dot = new rune.display.Graphic(startX + (i * 28), 630, 14, 14);
         dot.backgroundColor = GraveFallGame.scene.Game.PLAYER_THEMES[i].accent;
         this.stage.addChild(dot);
         this.pageDots.push(dot);
@@ -356,7 +356,7 @@ GraveFallGame.scene.Rule.prototype.renderPage = function () {
         this.pageContainer.parent.removeChild(this.pageContainer, true);
     }
 
-    this.pageContainer = new rune.display.DisplayObjectContainer(74, 182, 1132, 430);
+    this.pageContainer = new rune.display.DisplayObjectContainer(74, 198, 1132, 414);
     this.stage.addChild(this.pageContainer);
 
     renderer = this.pages[this.pageIndex].renderer;
