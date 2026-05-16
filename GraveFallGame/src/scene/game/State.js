@@ -1354,16 +1354,88 @@ GraveFallGame.scene.Game.prototype.clampValue = function (value, min, max) {
     return value;
 };
 
+GraveFallGame.scene.Game.prototype.setObjectHitboxInset = function (object, insetX, insetY, insetRight, insetBottom) {
+    var scaleX;
+    var scaleY;
+    var absScaleX;
+    var absScaleY;
+    var scaledWidth;
+    var scaledHeight;
+    var insetLeft;
+    var insetTop;
+    var localX;
+    var localY;
+    var localWidth;
+    var localHeight;
+
+    if (!object || !object.hitbox || typeof object.hitbox.set !== "function") {
+        return;
+    }
+
+    scaleX = object.scaleX || 1;
+    scaleY = object.scaleY || 1;
+
+    if (scaleX === 0) {
+        scaleX = 1;
+    }
+
+    if (scaleY === 0) {
+        scaleY = 1;
+    }
+
+    absScaleX = Math.abs(scaleX);
+    absScaleY = Math.abs(scaleY);
+    scaledWidth = Math.abs((object.width || 0) * scaleX);
+    scaledHeight = Math.abs((object.height || 0) * scaleY);
+
+    insetLeft = Math.max(0, insetX || 0);
+    insetTop = Math.max(0, insetY || 0);
+    insetRight = Math.max(0, typeof insetRight === "number" ? insetRight : insetLeft);
+    insetBottom = Math.max(0, typeof insetBottom === "number" ? insetBottom : insetTop);
+
+    insetLeft = Math.min(insetLeft, scaledWidth / 2);
+    insetRight = Math.min(insetRight, Math.max(0, scaledWidth - insetLeft));
+    insetTop = Math.min(insetTop, scaledHeight / 2);
+    insetBottom = Math.min(insetBottom, Math.max(0, scaledHeight - insetTop));
+
+    // Rune hitboxes are configured in the object's local space, then exposed in
+    // scaled parent-space coordinates. Store the intended wall/collision leeway
+    // in parent-space pixels so scaled sprites clamp evenly and predictably.
+    localX = insetLeft / scaleX;
+    localY = insetTop / scaleY;
+    localWidth = Math.max(0, (scaledWidth - insetLeft - insetRight) / absScaleX);
+    localHeight = Math.max(0, (scaledHeight - insetTop - insetBottom) / absScaleY);
+
+    object.hitboxInsetX = insetLeft;
+    object.hitboxInsetY = insetTop;
+    object.hitboxInsetLeft = insetLeft;
+    object.hitboxInsetTop = insetTop;
+    object.hitboxInsetRight = insetRight;
+    object.hitboxInsetBottom = insetBottom;
+    object.hitbox.set(localX, localY, localWidth, localHeight);
+};
+
+GraveFallGame.scene.Game.prototype.setObjectClampInset = function (object, insetLeft, insetTop, insetRight, insetBottom) {
+    if (!object) {
+        return;
+    }
+
+    object.hitboxClampInsetLeft = Math.max(0, insetLeft || 0);
+    object.hitboxClampInsetTop = Math.max(0, insetTop || 0);
+    object.hitboxClampInsetRight = Math.max(0, typeof insetRight === "number" ? insetRight : object.hitboxClampInsetLeft);
+    object.hitboxClampInsetBottom = Math.max(0, typeof insetBottom === "number" ? insetBottom : object.hitboxClampInsetTop);
+};
+
 GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {
     return min + Math.random() * (max - min);
 };
 
 GraveFallGame.scene.Game.prototype.getArenaInnerBounds = function () {
-    var borderPadding = 20;
+    var borderPadding = 16;
 
-    // CHANGED: This now returns local coordinates relative to the arena itself.
-    // So inner.y starts at 20. If you spawn a projectile at inner.y - 100, 
-    // it will be at -80 (above the arena's local space) and will be cleanly masked out!
+    // These bounds are local to the arena layers and match the 16px UI frame.
+    // Movement clamps use the avatar hitbox against these bounds, so icons can
+    // touch the arena wall without letting their collision box pass through it.
     return {
         x: borderPadding,
         y: borderPadding,

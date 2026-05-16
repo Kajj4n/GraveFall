@@ -924,49 +924,102 @@ GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index) {
     this.projectiles.splice(index, 1);
 };
 
-GraveFallGame.scene.Game.prototype.getCollisionBounds = function (object) {
-    var insetX = object && typeof object.hitboxInsetX === "number" ? object.hitboxInsetX : 0;
-    var insetY = object && typeof object.hitboxInsetY === "number" ? object.hitboxInsetY : 0;
-    var width = object ? object.width || 0 : 0;
-    var height = object ? object.height || 0 : 0;
+GraveFallGame.scene.Game.prototype.getProjectileHitboxLeeway = function (options) {
+    var width = options && options.collisionWidth ? options.collisionWidth : (options && options.width ? options.width : 0);
+    var height = options && options.collisionHeight ? options.collisionHeight : (options && options.height ? options.height : 0);
+    var shortestSide = Math.min(width || 0, height || 0);
+    var requestedX = options && typeof options.hitboxInsetX === "number" ? options.hitboxInsetX : null;
+    var requestedY = options && typeof options.hitboxInsetY === "number" ? options.hitboxInsetY : null;
+    var leeway;
+
+    if (options && typeof options.hitboxLeeway === "number") {
+        leeway = options.hitboxLeeway;
+    } else if (requestedX !== null || requestedY !== null) {
+        leeway = Math.max(requestedX || 0, requestedY || 0);
+    } else if (shortestSide <= 0) {
+        leeway = 1;
+    } else {
+        leeway = Math.round(shortestSide * 0.1);
+    }
+
+    // Keep projectile forgiveness small and equal on every edge. Previously some
+    // patterns used large vertical insets, which made the lower part of sprites
+    // feel like it could phase through players.
+    leeway = Math.max(1, Math.min(2, leeway));
+
+    if (shortestSide > 0) {
+        leeway = Math.min(leeway, Math.max(0, Math.floor((shortestSide - 2) / 2)));
+    }
+
+    return leeway;
+};
+
+GraveFallGame.scene.Game.prototype.getCollisionBoundsAt = function (object, x, y) {
+    var objectX = object ? object.x || 0 : 0;
+    var objectY = object ? object.y || 0 : 0;
+    var boundsX = typeof x === "number" ? x : objectX;
+    var boundsY = typeof y === "number" ? y : objectY;
+    var hitbox = object && object.hitbox ? object.hitbox : null;
+    var insetX;
+    var insetY;
+    var width;
+    var height;
+
+    if (hitbox) {
+        return {
+            x: boundsX + (hitbox.x - objectX),
+            y: boundsY + (hitbox.y - objectY),
+            width: hitbox.width,
+            height: hitbox.height
+        };
+    }
+
+    insetX = object && typeof object.hitboxInsetLeft === "number" ? object.hitboxInsetLeft : (object && typeof object.hitboxInsetX === "number" ? object.hitboxInsetX : 0);
+    insetY = object && typeof object.hitboxInsetTop === "number" ? object.hitboxInsetTop : (object && typeof object.hitboxInsetY === "number" ? object.hitboxInsetY : 0);
+    width = object ? object.width || 0 : 0;
+    height = object ? object.height || 0 : 0;
 
     insetX = Math.max(0, Math.min(width / 2, insetX));
     insetY = Math.max(0, Math.min(height / 2, insetY));
 
     return {
-        x: (object ? object.x || 0 : 0) + insetX,
-        y: (object ? object.y || 0 : 0) + insetY,
-        width: Math.max(0, width - (insetX * 2)),
-        height: Math.max(0, height - (insetY * 2))
+        x: boundsX + insetX,
+        y: boundsY + insetY,
+        width: Math.max(0, width - insetX - (object && typeof object.hitboxInsetRight === "number" ? object.hitboxInsetRight : insetX)),
+        height: Math.max(0, height - insetY - (object && typeof object.hitboxInsetBottom === "number" ? object.hitboxInsetBottom : insetY))
     };
 };
 
-GraveFallGame.scene.Game.prototype.rectsOverlap = function (a, b) {
-    var aBounds = this.getCollisionBounds(a);
-    var bBounds = this.getCollisionBounds(b);
+GraveFallGame.scene.Game.prototype.getCollisionBounds = function (object) {
+    return this.getCollisionBoundsAt(object);
+};
 
-    return (
-        aBounds.x < bBounds.x + bBounds.width &&
-        aBounds.x + aBounds.width > bBounds.x &&
-        aBounds.y < bBounds.y + bBounds.height &&
-        aBounds.y + aBounds.height > bBounds.y
+GraveFallGame.scene.Game.prototype.rectBoundsOverlap = function (aBounds, bBounds) {
+    return rune.geom.Rectangle.intersects(
+        aBounds.x,
+        aBounds.y,
+        aBounds.width,
+        aBounds.height,
+        bBounds.x,
+        bBounds.y,
+        bBounds.width,
+        bBounds.height
     );
+};
+
+GraveFallGame.scene.Game.prototype.rectsOverlap = function (a, b) {
+    return this.rectBoundsOverlap(this.getCollisionBounds(a), this.getCollisionBounds(b));
 };
 
 GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMenu, testX, testY) {
     var i;
     var otherMenu;
-    var testAvatar = {
-        x: testX,
-        y: testY,
-        width: playerMenu.battleAvatar.width,
-        height: playerMenu.battleAvatar.height
-    };
+    var testBounds = this.getCollisionBoundsAt(playerMenu.battleAvatar, testX, testY);
 
     for (i = 0; i < this.playerMenus.length; i++) {
         otherMenu = this.playerMenus[i];
         if (otherMenu === playerMenu || otherMenu.healthCurrent <= 0) continue;
-        if (this.rectsOverlap(testAvatar, otherMenu.battleAvatar)) return true;
+        if (this.rectBoundsOverlap(testBounds, this.getCollisionBounds(otherMenu.battleAvatar))) return true;
     }
 
     return false;
@@ -1115,16 +1168,85 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
     }
 };
 
+GraveFallGame.scene.Game.prototype.getClampBoundsAt = function (object, x, y) {
+    var objectX = object ? object.x || 0 : 0;
+    var objectY = object ? object.y || 0 : 0;
+    var boundsX = typeof x === "number" ? x : objectX;
+    var boundsY = typeof y === "number" ? y : objectY;
+    var scaleX;
+    var scaleY;
+    var width;
+    var height;
+    var insetLeft;
+    var insetTop;
+    var insetRight;
+    var insetBottom;
+
+    if (!object || typeof object.hitboxClampInsetLeft !== "number") {
+        return this.getCollisionBoundsAt(object, x, y);
+    }
+
+    scaleX = object.scaleX || 1;
+    scaleY = object.scaleY || 1;
+    width = Math.abs((object.width || 0) * scaleX);
+    height = Math.abs((object.height || 0) * scaleY);
+    insetLeft = Math.max(0, Math.min(width / 2, object.hitboxClampInsetLeft || 0));
+    insetTop = Math.max(0, Math.min(height / 2, object.hitboxClampInsetTop || 0));
+    insetRight = Math.max(0, Math.min(width - insetLeft, object.hitboxClampInsetRight || insetLeft));
+    insetBottom = Math.max(0, Math.min(height - insetTop, object.hitboxClampInsetBottom || insetTop));
+
+    return {
+        x: boundsX + insetLeft,
+        y: boundsY + insetTop,
+        width: Math.max(0, width - insetLeft - insetRight),
+        height: Math.max(0, height - insetTop - insetBottom)
+    };
+};
+
+GraveFallGame.scene.Game.prototype.clampObjectHitboxToBounds = function (object, x, y, bounds) {
+    var clampedX = x;
+    var clampedY = y;
+    var objectBounds = this.getClampBoundsAt(object, clampedX, clampedY);
+    var overflow;
+
+    overflow = bounds.x - objectBounds.x;
+    if (overflow > 0) {
+        clampedX += overflow;
+        objectBounds.x += overflow;
+    }
+
+    overflow = (objectBounds.x + objectBounds.width) - (bounds.x + bounds.width);
+    if (overflow > 0) {
+        clampedX -= overflow;
+        objectBounds.x -= overflow;
+    }
+
+    overflow = bounds.y - objectBounds.y;
+    if (overflow > 0) {
+        clampedY += overflow;
+        objectBounds.y += overflow;
+    }
+
+    overflow = (objectBounds.y + objectBounds.height) - (bounds.y + bounds.height);
+    if (overflow > 0) {
+        clampedY -= overflow;
+    }
+
+    return {
+        x: clampedX,
+        y: clampedY
+    };
+};
+
 GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (playerMenu) {
     var speed = playerMenu.moveSpeed || 3;
     var avatar = playerMenu.battleAvatar;
     var inner = this.getArenaInnerBounds();
-    var maxX = inner.x + inner.width - avatar.width;
-    var maxY = inner.y + inner.height - avatar.height;
     var oldX = avatar.x;
     var oldY = avatar.y;
     var nextX = avatar.x;
     var nextY = avatar.y;
+    var clamped;
 
     if (playerMenu.healthCurrent <= 0) {
         return;
@@ -1146,8 +1268,9 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
         nextY += speed;
     }
 
-    nextX = this.clampValue(nextX, inner.x, maxX);
-    nextY = this.clampValue(nextY, inner.y, maxY);
+    clamped = this.clampObjectHitboxToBounds(avatar, nextX, nextY, inner);
+    nextX = clamped.x;
+    nextY = clamped.y;
 
     if (this.isBattleAvatarColliding(playerMenu, nextX, nextY)) {
         avatar.x = oldX;
