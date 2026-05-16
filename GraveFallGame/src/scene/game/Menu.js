@@ -300,8 +300,15 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     battleAvatar.scaleY = battleAvatarScale;
     battleAvatar.visible = false;
     battleAvatar.alpha = 0;
-    battleAvatar.hitboxInsetX = 8;
-    battleAvatar.hitboxInsetY = 8;
+    // Damage/collision should stay close to the visible avatar. Keep a little
+    // horizontal forgiveness for the class icon silhouette, but make top/bottom
+    // much tighter so vertical projectiles cannot pass through the player.
+    this.setObjectHitboxInset(battleAvatar, 8, 3, 8, 3);
+    // Top/left class icon artwork has slightly more transparent padding than
+    // the bottom/right edges, so give the wall clamp a little extra inset there.
+    // This wall clamp is intentionally separate from the damage hitbox so edge
+    // movement can stay tight without shrinking the player collision area.
+    this.setObjectClampInset(battleAvatar, 12, 12, 8, 8);
 
     characterStand.scaleX = standScale;
     characterStand.scaleY = standScale;
