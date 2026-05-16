@@ -1252,6 +1252,10 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.swayAxis = options.swayAxis || "y";
     display.previousSwayOffset = 0;
     display.fadeOutFrames = Math.max(0, Math.floor(options.fadeOutFrames || 0));
+    display.fadeOutToZero = options.fadeOutToZero === true;
+    display.faceVelocity = options.faceVelocity === true;
+    display.faceVelocityOffset = typeof options.faceVelocityOffset === "number" ? options.faceVelocityOffset : 0;
+    display.explosionFadeOutFrames = Math.max(0, Math.floor(options.explosionFadeOutFrames || 0));
 
     return display;
 };

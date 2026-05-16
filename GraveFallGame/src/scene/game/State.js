@@ -777,6 +777,29 @@ GraveFallGame.scene.Game.ENEMIES = {
             "experimental_bomb_cluster"
         ]
     },
+    fightLab: {
+        name: "Fight Lab",
+        isBoss: false,
+        debugOnly: true,
+        resource: "HyDragon_Idle_T",
+        damageStateResources: {
+            hp100: "HyDragon_Idle_T",
+            hp75: "HyDragon_Bruised_T",
+            hp50: "HyDragon_Hurt_T",
+            hp25: "HyDragon_Dying_T",
+            killed: "HyDragon_Killed_T"
+        },
+        hpMax: 205,
+        actionPhaseDuration: 440,
+        patternInterval: 42,
+        patterns: [
+            "attack_lab_fire_spray",
+            "attack_lab_homing_wisps",
+            "attack_lab_pulse_orbs",
+            "attack_lab_hunter_pack",
+            "attack_lab_fuse_minefield"
+        ]
+    },
     attackLab2: {
         name: "Attack Lab II",
         isBoss: false,
@@ -796,7 +819,6 @@ GraveFallGame.scene.Game.ENEMIES = {
             "attack_lab_fire_spray",
             "attack_lab_homing_wisps",
             "attack_lab_pulse_orbs",
-            "attack_lab_ricochet_funnel",
             "attack_lab_hunter_pack",
             "attack_lab_fuse_minefield"
         ]
@@ -1025,7 +1047,6 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "experimental_bouncing_skulls":
         case "attack_lab_homing_wisps":
         case "attack_lab_pulse_orbs":
-        case "attack_lab_ricochet_funnel":
         case "boss_diagonal_drop":
         case "ghoul_dart_ambush":
         case "ghoul_bone_shard_spread":

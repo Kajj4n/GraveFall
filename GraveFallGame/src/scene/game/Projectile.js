@@ -44,7 +44,6 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "attack_lab_fire_spray": this.spawnAttackLabFireSpray(); break;
         case "attack_lab_homing_wisps": this.spawnAttackLabHomingWisps(); break;
         case "attack_lab_pulse_orbs": this.spawnAttackLabPulseOrbs(); break;
-        case "attack_lab_ricochet_funnel": this.spawnAttackLabRicochetFunnel(); break;
         case "attack_lab_hunter_pack": this.spawnAttackLabHunterPack(); break;
         case "attack_lab_fuse_minefield": this.spawnAttackLabFuseMinefield(); break;
         case "hydragon_fireball_breath": this.spawnHyDragonFireballBreath(); break;
@@ -1088,6 +1087,7 @@ GraveFallGame.scene.Game.prototype.spawnExperimentalBombCluster = function () {
             explosionRadius: 48,
             explosionDamage: 12,
             explosionLife: 34,
+            explosionFadeOutFrames: 12,
             explosionResource: "Explosion_Circle_Attack_Big_T",
             explosionAnimation: {
                 name: "explode",
@@ -1126,7 +1126,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabFireSpray = function () {
         sweep = ((i / (count - 1)) - 0.5) * 1.3 * sweepDirection;
         angle = fromLeft ? sweep : Math.PI - sweep;
         speed = this.randomRange(3.2, 4.7) + (i * 0.018);
-        size = i % 4 === 0 ? 24 : 18;
+        size = 18;
 
         this.spawnProjectile({
             x: originX,
@@ -1152,55 +1152,56 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabFireSpray = function () {
         });
     }
 
-    for (i = 0; i < 4; i++) {
-        this.spawnProjectile({
-            x: originX + (fromLeft ? -10 : 10),
-            y: originY - 34 + (i * 22),
-            width: 32,
-            height: 16,
-            resource: "Fire_wave_Attack_T",
-            flippedX: !fromLeft,
-            vx: fromLeft ? this.randomRange(2.8, 3.7) : this.randomRange(-3.7, -2.8),
-            vy: (i - 1.5) * 0.36,
-            damage: 9,
-            life: 110,
-            startDelay: 18 + (i * 7),
-            drag: 1.003,
-            maxSpeed: 5.0,
-            fadeOutFrames: 20,
-            type: "attack_lab_fire_wave_spray",
-            hitboxInsetX: 3,
-            hitboxInsetY: 3
-        });
-    }
 };
 
 GraveFallGame.scene.Game.prototype.spawnAttackLabHomingWisps = function () {
     var inner = this.getArenaInnerBounds();
-    var count = 7;
+    var count = 8;
     var centerX = inner.x + (inner.width / 2);
     var centerY = inner.y + (inner.height / 2);
+    var margin = 42;
     var i;
-    var angle;
-    var radius;
+    var side;
+    var x;
+    var y;
+    var dx;
+    var dy;
+    var distance;
     var speed;
 
     for (i = 0; i < count; i++) {
-        angle = (Math.PI * 2 * (i / count)) + this.randomRange(-0.18, 0.18);
-        radius = 200;
+        side = i % 4;
+
+        if (side === 0) {
+            x = inner.x - margin - this.randomRange(0, 34);
+            y = inner.y + this.randomRange(28, inner.height - 44);
+        } else if (side === 1) {
+            x = inner.x + inner.width + margin + this.randomRange(0, 34);
+            y = inner.y + this.randomRange(28, inner.height - 44);
+        } else if (side === 2) {
+            x = inner.x + this.randomRange(28, inner.width - 44);
+            y = inner.y - margin - this.randomRange(0, 34);
+        } else {
+            x = inner.x + this.randomRange(28, inner.width - 44);
+            y = inner.y + inner.height + margin + this.randomRange(0, 34);
+        }
+
+        dx = centerX - x;
+        dy = centerY - y;
+        distance = Math.sqrt((dx * dx) + (dy * dy)) || 1;
         speed = this.randomRange(1.9, 2.6);
 
         this.spawnProjectile({
-            x: centerX + (Math.cos(angle) * radius) - 8,
-            y: centerY + (Math.sin(angle) * radius) - 8,
+            x: x - 8,
+            y: y - 8,
             width: 16,
             height: 16,
             resource: "Orb_Attack_T",
-            vx: Math.cos(angle + Math.PI) * speed,
-            vy: Math.sin(angle + Math.PI) * speed,
+            vx: (dx / distance) * speed,
+            vy: (dy / distance) * speed,
             damage: 7,
-            life: 240,
-            startDelay: i * 6,
+            life: 260,
+            startDelay: i * 5,
             homingFrames: 62,
             homingTurnRate: 0.075,
             homingSpeed: 2.9,
@@ -1355,7 +1356,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabHunterPack = function () {
             maxSpeed: 3.9,
             type: "attack_lab_hunter_goblin",
             hitboxInsetX: 2,
-            hitboxInsetY: 2
+            hitboxInsetY: 2,
+            faceVelocity: true,
+            faceVelocityOffset: -90
         });
     }
 };
@@ -1384,7 +1387,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabFuseMinefield = function () {
             animation: {
                 name: "fuse",
                 frames: [0, 1],
-                framerate: 7,
+                framerate: 5,
                 looped: true
             },
             vx: Math.cos(angle) * speed,
@@ -1403,6 +1406,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabFuseMinefield = function () {
             explosionRadius: 48,
             explosionDamage: 12,
             explosionLife: 34,
+            explosionFadeOutFrames: 12,
             explosionResource: "Explosion_Circle_Attack_Big_T",
             explosionAnimation: {
                 name: "explode",
@@ -1510,7 +1514,9 @@ GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
         pierce: true,
         type: "experimental_bomb_explosion",
         hitboxInsetX: 2,
-        hitboxInsetY: 2
+        hitboxInsetY: 2,
+        fadeOutFrames: projectile.explosionFadeOutFrames || 10,
+        fadeOutToZero: true
     });
 
     if (projectile.shrapnelCount > 0) {
@@ -1677,6 +1683,21 @@ GraveFallGame.scene.Game.prototype.setProjectileSpeedKeepingDirection = function
     scale = targetSpeed / speed;
     projectile.vx *= scale;
     projectile.vy *= scale;
+};
+
+GraveFallGame.scene.Game.prototype.updateProjectileFacing = function (projectile) {
+    var angle;
+
+    if (!projectile || projectile.faceVelocity !== true) {
+        return;
+    }
+
+    if (Math.abs(projectile.vx || 0) < 0.001 && Math.abs(projectile.vy || 0) < 0.001) {
+        return;
+    }
+
+    angle = Math.atan2(projectile.vy, projectile.vx) * (180 / Math.PI);
+    projectile.rotation = angle + (projectile.faceVelocityOffset || 0);
 };
 
 GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (projectile) {
@@ -2024,6 +2045,7 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
         projectile.x += projectile.vx;
         projectile.y += projectile.vy;
         this.updateProjectileBounce(projectile, inner);
+        this.updateProjectileFacing(projectile);
 
         projectile.life--;
 
@@ -2039,7 +2061,7 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
         if (projectile.explodeOnExpire === true && projectile.life <= 30) {
             projectile.alpha = projectile.life % 8 < 4 ? 0.35 : 1;
         } else if (projectile.fadeOutFrames > 0 && projectile.life <= projectile.fadeOutFrames) {
-            projectile.alpha = Math.max(0.15, (typeof projectile.baseAlpha === "number" ? projectile.baseAlpha : 1) * (projectile.life / projectile.fadeOutFrames));
+            projectile.alpha = Math.max(projectile.fadeOutToZero === true ? 0 : 0.15, (typeof projectile.baseAlpha === "number" ? projectile.baseAlpha : 1) * (projectile.life / projectile.fadeOutFrames));
         }
 
         expiredByLife = projectile.life <= 0;
