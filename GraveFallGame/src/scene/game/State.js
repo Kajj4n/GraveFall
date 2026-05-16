@@ -777,6 +777,30 @@ GraveFallGame.scene.Game.ENEMIES = {
             "experimental_bomb_cluster"
         ]
     },
+    attackLab2: {
+        name: "Attack Lab II",
+        isBoss: false,
+        debugOnly: true,
+        resource: "HyDragon_Idle_T",
+        damageStateResources: {
+            hp100: "HyDragon_Idle_T",
+            hp75: "HyDragon_Bruised_T",
+            hp50: "HyDragon_Hurt_T",
+            hp25: "HyDragon_Dying_T",
+            killed: "HyDragon_Killed_T"
+        },
+        hpMax: 205,
+        actionPhaseDuration: 440,
+        patternInterval: 42,
+        patterns: [
+            "attack_lab_fire_spray",
+            "attack_lab_homing_wisps",
+            "attack_lab_pulse_orbs",
+            "attack_lab_ricochet_funnel",
+            "attack_lab_hunter_pack",
+            "attack_lab_fuse_minefield"
+        ]
+    },
     goblinHorde: {
         name: "Goblin Horde",
         isBoss: true,
@@ -989,6 +1013,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "hydragon_fire_wave":
         case "goblin_boss_sword_pincer":
         case "goblin_boss_mob_charge":
+        case "attack_lab_fire_spray":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWEEP, 0.65);
             break;
         case "boss_orb_burst":
@@ -998,6 +1023,9 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "placeholder_orb_split":
         case "experimental_orb_split_chain":
         case "experimental_bouncing_skulls":
+        case "attack_lab_homing_wisps":
+        case "attack_lab_pulse_orbs":
+        case "attack_lab_ricochet_funnel":
         case "boss_diagonal_drop":
         case "ghoul_dart_ambush":
         case "ghoul_bone_shard_spread":
@@ -1015,12 +1043,14 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
             break;
         case "goblin_dart_fan":
         case "experimental_animated_walkers":
+        case "attack_lab_hunter_pack":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_DART, 0.6);
             break;
         case "goblin_stomp_wave":
         case "goblin_boss_mace_quake":
         case "ghoul_stomp_pulse":
         case "experimental_bomb_cluster":
+        case "attack_lab_fuse_minefield":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
             break;
     }

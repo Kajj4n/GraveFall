@@ -1177,9 +1177,21 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.vx = options.vx || 0;
     display.vy = options.vy || 0;
     display.damage = typeof options.damage === "number" ? options.damage : 8;
+    display.pendingDamage = display.damage;
+    display.baseAlpha = typeof options.alpha === "number" ? options.alpha : 1;
+    display.startDelay = Math.max(0, Math.floor(options.startDelay || 0));
+    display.activateSfx = options.activateSfx || null;
     display.life = options.life || 180;
     display.maxLife = display.life;
+    display.age = 0;
     display.type = options.type || "generic";
+
+    if (display.startDelay > 0) {
+        display.visible = false;
+        display.alpha = 0;
+        display.damage = 0;
+    }
+
     display.hitboxLeeway = this.getProjectileHitboxLeeway(options);
     this.setObjectHitboxInset(display, display.hitboxLeeway, display.hitboxLeeway);
     display.hitFlashFrames = 0;
@@ -1205,11 +1217,41 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.explosionRadius = options.explosionRadius || 72;
     display.explosionDamage = options.explosionDamage || 12;
     display.explosionLife = options.explosionLife || 22;
+    display.explosionResource = options.explosionResource || "Explosion_Circle_Attack_Big_T";
+    display.explosionAnimation = options.explosionAnimation || {
+        name: "explode",
+        frames: [0, 1, 2, 3, 4, 5],
+        framerate: 14,
+        looped: false
+    };
     display.shrapnelCount = options.shrapnelCount || 0;
     display.shrapnelSpeed = options.shrapnelSpeed || 4.2;
     display.shrapnelDamage = options.shrapnelDamage || 6;
     display.shrapnelLife = options.shrapnelLife || 150;
     display.shrapnelResource = options.shrapnelResource || "Bone_Shard_Attack_T";
+
+    display.homingFrames = Math.max(0, Math.floor(options.homingFrames || 0));
+    display.homingDelay = Math.max(0, Math.floor(options.homingDelay || 0));
+    display.homingTurnRate = typeof options.homingTurnRate === "number" ? options.homingTurnRate : 0.08;
+    display.homingSpeed = typeof options.homingSpeed === "number" ? options.homingSpeed : null;
+    display.homingStopDistance = typeof options.homingStopDistance === "number" ? options.homingStopDistance : 0;
+    display.drag = typeof options.drag === "number" ? options.drag : 1;
+    display.accelX = options.accelX || 0;
+    display.accelY = options.accelY || 0;
+    display.speedMultiplier = typeof options.speedMultiplier === "number" ? options.speedMultiplier : 1;
+    display.speedMultiplierStart = Math.max(0, Math.floor(options.speedMultiplierStart || 0));
+    display.maxSpeed = typeof options.maxSpeed === "number" ? options.maxSpeed : null;
+    display.minSpeed = typeof options.minSpeed === "number" ? options.minSpeed : null;
+    display.pulseSpeedAmplitude = options.pulseSpeedAmplitude || 0;
+    display.pulseSpeedFrequency = options.pulseSpeedFrequency || 0;
+    display.pulseSpeedPhase = options.pulseSpeedPhase || 0;
+    display.baseSpeed = typeof options.baseSpeed === "number" ? options.baseSpeed : Math.sqrt((display.vx * display.vx) + (display.vy * display.vy));
+    display.swayAmplitude = options.swayAmplitude || 0;
+    display.swayFrequency = options.swayFrequency || 0;
+    display.swayPhase = options.swayPhase || 0;
+    display.swayAxis = options.swayAxis || "y";
+    display.previousSwayOffset = 0;
+    display.fadeOutFrames = Math.max(0, Math.floor(options.fadeOutFrames || 0));
 
     return display;
 };
