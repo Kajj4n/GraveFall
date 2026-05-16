@@ -708,13 +708,12 @@ GraveFallGame.scene.Game.ENEMIES = {
         resource: "Ghoul_Idle_T",
         damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
         hpMax: 95,
-        actionPhaseDuration: 230,
-        patternInterval: 46,
+        actionPhaseDuration: 260,
+        patternInterval: 44,
         patterns: [
             "ghoul_orb_crawl",
             "ghoul_dart_ambush",
             "ghoul_stomp_pulse",
-            "ghoul_impaled_sword_drop",
             "ghoul_bone_shard_spread",
             "ghoul_skull_drift"
         ]
@@ -725,8 +724,8 @@ GraveFallGame.scene.Game.ENEMIES = {
         resource: "Ghoul_Idle_T",
         damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
         hpMax: 120,
-        actionPhaseDuration: 245,
-        patternInterval: 44,
+        actionPhaseDuration: 270,
+        patternInterval: 42,
         patterns: [
             "placeholder_spear_corridor",
             "ghoul_impaled_sword_drop",
@@ -739,9 +738,10 @@ GraveFallGame.scene.Game.ENEMIES = {
         resource: "Ghoul_Idle_T",
         damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
         hpMax: 105,
-        actionPhaseDuration: 235,
-        patternInterval: 46,
+        actionPhaseDuration: 280,
+        patternInterval: 38,
         patterns: [
+            "placeholder_skull_ring",
             "placeholder_bone_shard_arc",
             "placeholder_skull_ring",
             "ghoul_bone_shard_spread"
@@ -753,28 +753,14 @@ GraveFallGame.scene.Game.ENEMIES = {
         resource: "Ghoul_Idle_T",
         damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
         hpMax: 135,
-        actionPhaseDuration: 255,
-        patternInterval: 52,
+        actionPhaseDuration: 300,
+        patternInterval: 36,
         patterns: [
+            "placeholder_crystal_wall",
             "placeholder_crystal_rain",
             "placeholder_crystal_wall",
-            "placeholder_orb_split"
-        ]
-    },
-    projectileLab: {
-        name: "Projectile Lab",
-        isBoss: false,
-        debugOnly: true,
-        resource: "Goblin_Idle_T",
-        damageStateResources: GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
-        hpMax: 180,
-        actionPhaseDuration: 370,
-        patternInterval: 58,
-        patterns: [
-            "experimental_animated_walkers",
-            "experimental_orb_split_chain",
-            "experimental_bouncing_skulls",
-            "experimental_bomb_cluster"
+            "placeholder_orb_split",
+            "placeholder_crystal_wall"
         ]
     },
     fightLab: {
@@ -789,33 +775,14 @@ GraveFallGame.scene.Game.ENEMIES = {
             hp25: "HyDragon_Dying_T",
             killed: "HyDragon_Killed_T"
         },
-        hpMax: 205,
-        actionPhaseDuration: 440,
-        patternInterval: 42,
+        hpMax: 240,
+        actionPhaseDuration: 470,
+        patternInterval: 40,
         patterns: [
-            "attack_lab_fire_spray",
-            "attack_lab_homing_wisps",
-            "attack_lab_pulse_orbs",
-            "attack_lab_hunter_pack",
-            "attack_lab_fuse_minefield"
-        ]
-    },
-    attackLab2: {
-        name: "Attack Lab II",
-        isBoss: false,
-        debugOnly: true,
-        resource: "HyDragon_Idle_T",
-        damageStateResources: {
-            hp100: "HyDragon_Idle_T",
-            hp75: "HyDragon_Bruised_T",
-            hp50: "HyDragon_Hurt_T",
-            hp25: "HyDragon_Dying_T",
-            killed: "HyDragon_Killed_T"
-        },
-        hpMax: 205,
-        actionPhaseDuration: 440,
-        patternInterval: 42,
-        patterns: [
+            "experimental_animated_walkers",
+            "experimental_orb_split_chain",
+            "experimental_bouncing_skulls",
+            "experimental_bomb_cluster",
             "attack_lab_fire_spray",
             "attack_lab_homing_wisps",
             "attack_lab_pulse_orbs",
@@ -829,14 +796,15 @@ GraveFallGame.scene.Game.ENEMIES = {
         resource: "Goblin_Idle_T",
         damageStateResources: GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
         hpMax: 225,
-        actionPhaseDuration: 315,
-        patternInterval: 48,
+        actionPhaseDuration: 345,
+        patternInterval: 44,
         patterns: [
             "goblin_boss_mace_quake",
             "goblin_boss_sword_pincer",
             "goblin_boss_head_toss",
             "goblin_boss_mob_charge",
-            "goblin_boss_blade_trap"
+            "goblin_boss_blade_trap",
+            "goblin_boss_fuse_bombs"
         ]
     },
     hyDragon: {
@@ -851,15 +819,16 @@ GraveFallGame.scene.Game.ENEMIES = {
             killed: "HyDragon_Killed_T"
         },
         hpMax: 275,
-        actionPhaseDuration: 340,
-        patternInterval: 48,
+        actionPhaseDuration: 375,
+        patternInterval: 42,
         patterns: [
             "hydragon_fireball_breath",
             "hydragon_fire_wave",
-            "hydragon_orb_breath",
+            "hydragon_sword_hunt",
             "hydragon_sword_storm",
             "hydragon_cross_sweep",
-            "hydragon_fang_fan"
+            "hydragon_fang_fan",
+            "hydragon_roar_quake"
         ]
     }
 };
@@ -1028,6 +997,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
     switch (patternId) {
         case "boss_sword_rain":
         case "hydragon_sword_storm":
+        case "hydragon_sword_hunt":
         case "ghoul_impaled_sword_drop":
         case "goblin_boss_blade_trap":
         case "boss_vertical_sweep":
@@ -1036,6 +1006,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "goblin_boss_sword_pincer":
         case "goblin_boss_mob_charge":
         case "attack_lab_fire_spray":
+        case "hydragon_fireball_breath":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWEEP, 0.65);
             break;
         case "boss_orb_burst":
@@ -1069,8 +1040,10 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
             break;
         case "goblin_stomp_wave":
         case "goblin_boss_mace_quake":
+        case "hydragon_roar_quake":
         case "ghoul_stomp_pulse":
         case "experimental_bomb_cluster":
+        case "goblin_boss_fuse_bombs":
         case "attack_lab_fuse_minefield":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
             break;

@@ -1229,6 +1229,12 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.shrapnelDamage = options.shrapnelDamage || 6;
     display.shrapnelLife = options.shrapnelLife || 150;
     display.shrapnelResource = options.shrapnelResource || "Bone_Shard_Attack_T";
+    display.shrapnelWidth = options.shrapnelWidth || 16;
+    display.shrapnelHeight = options.shrapnelHeight || 8;
+    display.shrapnelBounce = options.shrapnelBounce === true;
+    display.shrapnelBouncesRemaining = typeof options.shrapnelBouncesRemaining === "number" ? options.shrapnelBouncesRemaining : 999;
+    display.shrapnelMaxSpeed = typeof options.shrapnelMaxSpeed === "number" ? options.shrapnelMaxSpeed : null;
+    display.shrapnelFadeOutFrames = Math.max(0, Math.floor(options.shrapnelFadeOutFrames || 0));
 
     display.homingFrames = Math.max(0, Math.floor(options.homingFrames || 0));
     display.homingDelay = Math.max(0, Math.floor(options.homingDelay || 0));
