@@ -525,6 +525,14 @@ GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
     killed: "Ghoul_Killed_T"
 };
 
+GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
+    hp100: "Goblin_Idle_T",
+    hp75: "Goblin_Bruised_T",
+    hp50: "Goblin_Hurt_T",
+    hp25: "Goblin_Dying_T",
+    killed: "Goblin_Killed_T"
+};
+
 GraveFallGame.scene.Game.ENEMIES = {
     ghoul: {
         name: "Ghoul",
@@ -585,17 +593,27 @@ GraveFallGame.scene.Game.ENEMIES = {
             "placeholder_orb_split"
         ]
     },
+    projectileLab: {
+        name: "Projectile Lab",
+        isBoss: false,
+        debugOnly: true,
+        resource: "Goblin_Idle_T",
+        damageStateResources: GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
+        hpMax: 180,
+        actionPhaseDuration: 370,
+        patternInterval: 58,
+        patterns: [
+            "experimental_animated_walkers",
+            "experimental_orb_split_chain",
+            "experimental_bouncing_skulls",
+            "experimental_bomb_cluster"
+        ]
+    },
     goblinHorde: {
         name: "Goblin Horde",
         isBoss: true,
         resource: "Goblin_Idle_T",
-        damageStateResources: {
-            hp100: "Goblin_Idle_T",
-            hp75: "Goblin_Bruised_T",
-            hp50: "Goblin_Hurt_T",
-            hp25: "Goblin_Dying_T",
-            killed: "Goblin_Killed_T"
-        },
+        damageStateResources: GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
         hpMax: 225,
         actionPhaseDuration: 315,
         patternInterval: 48,
@@ -762,8 +780,6 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "hydragon_sword_storm":
         case "ghoul_impaled_sword_drop":
         case "goblin_boss_blade_trap":
-            this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWORD_RAIN, 0.65);
-            break;
         case "boss_vertical_sweep":
         case "hydragon_cross_sweep":
         case "hydragon_fire_wave":
@@ -776,10 +792,8 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "ghoul_skull_drift":
         case "placeholder_skull_ring":
         case "placeholder_orb_split":
-        case "hydragon_orb_breath":
-        case "hydragon_fireball_breath":
-            this.playSfx(GraveFallGame.SOUNDS.ATTACK_ORB, 0.65);
-            break;
+        case "experimental_orb_split_chain":
+        case "experimental_bouncing_skulls":
         case "boss_diagonal_drop":
         case "ghoul_dart_ambush":
         case "ghoul_bone_shard_spread":
@@ -796,11 +810,13 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_PEBBLE, 0.55);
             break;
         case "goblin_dart_fan":
+        case "experimental_animated_walkers":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_DART, 0.6);
             break;
         case "goblin_stomp_wave":
         case "goblin_boss_mace_quake":
         case "ghoul_stomp_pulse":
+        case "experimental_bomb_cluster":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
             break;
     }
@@ -1047,7 +1063,11 @@ GraveFallGame.scene.Game.prototype.getEnemyTypesByBossFlag = function (isBoss) {
     var enemyType;
 
     for (enemyType in enemies) {
-        if (enemies.hasOwnProperty(enemyType) && enemies[enemyType].isBoss === isBoss) {
+        if (
+            enemies.hasOwnProperty(enemyType) &&
+            enemies[enemyType].isBoss === isBoss &&
+            enemies[enemyType].debugOnly !== true
+        ) {
             enemyTypes.push(enemyType);
         }
     }
@@ -1398,9 +1418,6 @@ GraveFallGame.scene.Game.prototype.setObjectHitboxInset = function (object, inse
     insetTop = Math.min(insetTop, scaledHeight / 2);
     insetBottom = Math.min(insetBottom, Math.max(0, scaledHeight - insetTop));
 
-    // Rune hitboxes are configured in the object's local space, then exposed in
-    // scaled parent-space coordinates. Store the intended wall/collision leeway
-    // in parent-space pixels so scaled sprites clamp evenly and predictably.
     localX = insetLeft / scaleX;
     localY = insetTop / scaleY;
     localWidth = Math.max(0, (scaledWidth - insetLeft - insetRight) / absScaleX);
@@ -1431,11 +1448,11 @@ GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {
 };
 
 GraveFallGame.scene.Game.prototype.getArenaInnerBounds = function () {
-    var borderPadding = 16;
+    var borderPadding = 20;
 
-    // These bounds are local to the arena layers and match the 16px UI frame.
-    // Movement clamps use the avatar hitbox against these bounds, so icons can
-    // touch the arena wall without letting their collision box pass through it.
+    // CHANGED: This now returns local coordinates relative to the arena itself.
+    // So inner.y starts at 20. If you spawn a projectile at inner.y - 100, 
+    // it will be at -80 (above the arena's local space) and will be cleanly masked out!
     return {
         x: borderPadding,
         y: borderPadding,

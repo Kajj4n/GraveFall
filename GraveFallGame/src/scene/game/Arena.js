@@ -1312,12 +1312,16 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function () {
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
 
+    options = options || {};
+
     if (options.resource) {
         display = new rune.display.Sprite(options.x, options.y, options.width, options.height, options.resource);
         this.applyPaletteSwaps(
             display,
             this.getProjectilePaletteSwaps(options.projectilePalette)
         );
+
+        this.applyProjectileAnimation(display, options.animation);
     } else {
         display = new rune.display.Graphic(options.x, options.y, options.width, options.height);
         display.backgroundColor = options.color || "#FFFFFF";
@@ -1331,17 +1335,65 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
         display.flippedX = true;
     }
 
+    if (typeof options.alpha === "number") {
+        display.alpha = options.alpha;
+    }
+
     display.vx = options.vx || 0;
     display.vy = options.vy || 0;
-    display.damage = options.damage || 8;
+    display.damage = typeof options.damage === "number" ? options.damage : 8;
     display.life = options.life || 180;
+    display.maxLife = display.life;
     display.type = options.type || "generic";
     display.hitboxLeeway = this.getProjectileHitboxLeeway(options);
     this.setObjectHitboxInset(display, display.hitboxLeeway, display.hitboxLeeway);
     display.hitFlashFrames = 0;
     display.hit = false;
+    display.pierce = options.pierce === true;
+    display.hitPlayers = {};
+    display.spin = options.spin || 0;
+    display.bounce = options.bounce === true;
+    display.bouncesRemaining = typeof options.bouncesRemaining === "number" ? options.bouncesRemaining : 999;
+    display.splitAt = typeof options.splitAt === "number" ? options.splitAt : null;
+    display.splitDone = false;
+    display.splitCount = options.splitCount || 0;
+    display.splitSpeed = options.splitSpeed || 3;
+    display.splitLife = options.splitLife || 160;
+    display.splitDamage = options.splitDamage || Math.max(1, Math.ceil(display.damage * 0.6));
+    display.splitResource = options.splitResource || options.resource || "Orb_Attack_T";
+    display.splitWidth = options.splitWidth || Math.max(8, Math.floor(options.width || 16));
+    display.splitHeight = options.splitHeight || Math.max(8, Math.floor(options.height || 16));
+    display.splitRemoveParent = options.splitRemoveParent === true;
+    display.explodeOnExpire = options.explodeOnExpire === true;
+    display.explodeOnHit = options.explodeOnHit === true;
+    display.exploded = false;
+    display.explosionRadius = options.explosionRadius || 72;
+    display.explosionDamage = options.explosionDamage || 12;
+    display.explosionLife = options.explosionLife || 22;
+    display.shrapnelCount = options.shrapnelCount || 0;
+    display.shrapnelSpeed = options.shrapnelSpeed || 4.2;
+    display.shrapnelDamage = options.shrapnelDamage || 6;
+    display.shrapnelLife = options.shrapnelLife || 150;
+    display.shrapnelResource = options.shrapnelResource || "Bone_Shard_Attack_T";
 
     return display;
+};
+
+GraveFallGame.scene.Game.prototype.applyProjectileAnimation = function (display, animation) {
+    var animationName;
+
+    if (!display || !animation || !display.animation || typeof display.animation.create !== "function") {
+        return;
+    }
+
+    animationName = animation.name || "move";
+    display.animation.create(
+        animationName,
+        animation.frames || [0],
+        animation.framerate || 8,
+        animation.looped !== false
+    );
+    display.animation.gotoAndPlay(animationName, animation.startFrame || 0);
 };
 
 GraveFallGame.scene.Game.prototype.spawnProjectile = function (options) {

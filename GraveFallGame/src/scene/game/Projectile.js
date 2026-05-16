@@ -37,6 +37,10 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "placeholder_crystal_rain": this.spawnPlaceholderCrystalRain(); break;
         case "placeholder_crystal_wall": this.spawnPlaceholderCrystalWall(); break;
         case "placeholder_orb_split": this.spawnPlaceholderOrbSplit(); break;
+        case "experimental_animated_walkers": this.spawnExperimentalAnimatedWalkers(); break;
+        case "experimental_orb_split_chain": this.spawnExperimentalOrbSplitChain(); break;
+        case "experimental_bouncing_skulls": this.spawnExperimentalBouncingSkulls(); break;
+        case "experimental_bomb_cluster": this.spawnExperimentalBombCluster(); break;
         case "hydragon_fireball_breath": this.spawnHyDragonFireballBreath(); break;
         case "hydragon_fire_wave": this.spawnHyDragonFireWave(); break;
         case "hydragon_orb_breath": this.spawnHyDragonOrbBreath(); break;
@@ -917,6 +921,322 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderOrbSplit = function () {
     }
 };
 
+
+GraveFallGame.scene.Game.prototype.spawnExperimentalAnimatedWalkers = function () {
+    var inner = this.getArenaInnerBounds();
+    var lanes = [0.16, 0.34, 0.52, 0.70, 0.88];
+    var i;
+    var speed;
+    var x;
+
+    // The placeholder goblin walk frames face downward, so these test walkers
+    // enter from above and walk down through the arena instead of sliding sideways.
+    for (i = 0; i < lanes.length; i++) {
+        speed = this.randomRange(2.2, 3.1);
+        x = inner.x + Math.round(inner.width * lanes[i]) - 12;
+
+        this.spawnProjectile({
+            x: x,
+            y: inner.y - 44 - (i * 18),
+            width: 24,
+            height: 24,
+            resource: "Goblin_Walk_Attack_T",
+            animation: {
+                name: "walk",
+                frames: [0, 1, 2],
+                framerate: 10,
+                looped: true
+            },
+            vx: this.randomRange(-0.12, 0.12),
+            vy: speed,
+            damage: 8,
+            life: 330,
+            type: "experimental_animated_walker",
+            hitboxInsetX: 2,
+            hitboxInsetY: 2
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnExperimentalOrbSplitChain = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 3;
+    var i;
+    var originX;
+
+    for (i = 0; i < count; i++) {
+        originX = inner.x + 90 + (i * ((inner.width - 180) / (count - 1)));
+
+        this.spawnProjectile({
+            x: originX - 12,
+            y: inner.y - 36 - (i * 20),
+            width: 24,
+            height: 24,
+            resource: "Orb_Attack_T",
+            vx: this.randomRange(-0.55, 0.55),
+            vy: this.randomRange(1.7, 2.35),
+            damage: 9,
+            life: 285,
+            splitAt: 190 - (i * 18),
+            splitCount: 7,
+            splitSpeed: 3.2 + (i * 0.18),
+            splitLife: 230,
+            splitDamage: 5,
+            splitResource: "Orb_Attack_T",
+            splitWidth: 16,
+            splitHeight: 16,
+            splitRemoveParent: true,
+            type: "experimental_orb_split_parent",
+            spin: i % 2 === 0 ? 3 : -3
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnExperimentalBouncingSkulls = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 4;
+    var i;
+    var side;
+    var speed;
+    var x;
+    var y;
+    var vx;
+    var vy;
+
+    for (i = 0; i < count; i++) {
+        side = i % 4;
+        speed = this.randomRange(2.7, 3.8);
+
+        if (side === 0) {
+            x = inner.x - 42 - (i * 8);
+            y = inner.y + this.randomRange(24, inner.height - 56);
+            vx = speed;
+            vy = this.randomRange(-1.4, 1.4);
+        } else if (side === 1) {
+            x = inner.x + inner.width + 10 + (i * 8);
+            y = inner.y + this.randomRange(24, inner.height - 56);
+            vx = -speed;
+            vy = this.randomRange(-1.4, 1.4);
+        } else if (side === 2) {
+            x = inner.x + this.randomRange(24, inner.width - 56);
+            y = inner.y - 42 - (i * 8);
+            vx = this.randomRange(-1.4, 1.4);
+            vy = speed;
+        } else {
+            x = inner.x + this.randomRange(24, inner.width - 56);
+            y = inner.y + inner.height + 10 + (i * 8);
+            vx = this.randomRange(-1.4, 1.4);
+            vy = -speed;
+        }
+
+        this.spawnProjectile({
+            x: x,
+            y: y,
+            width: 32,
+            height: 32,
+            resource: "Skull_Attack_T",
+            vx: vx,
+            vy: vy,
+            damage: 8,
+            life: 390,
+            bounce: true,
+            bouncesRemaining: 14,
+            type: "experimental_bouncing_skull",
+            hitboxInsetX: 2,
+            hitboxInsetY: 2,
+            spin: this.randomRange(-5, 5)
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnExperimentalBombCluster = function () {
+    var inner = this.getArenaInnerBounds();
+    var count = 3;
+    var i;
+    var angle;
+    var speed;
+
+    for (i = 0; i < count; i++) {
+        angle = this.randomRange(0, Math.PI * 2);
+        speed = this.randomRange(0.55, 1.05);
+
+        this.spawnProjectile({
+            x: inner.x + this.randomRange(70, inner.width - 94),
+            y: inner.y + this.randomRange(70, inner.height - 94),
+            width: 24,
+            height: 24,
+            resource: "Goblin_Head_Attack_T",
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            damage: 7,
+            life: 120 + (i * 22),
+            bounce: true,
+            bouncesRemaining: 10,
+            explodeOnExpire: true,
+            explosionRadius: 72,
+            explosionDamage: 12,
+            explosionLife: 24,
+            shrapnelCount: 10,
+            shrapnelSpeed: 3.7,
+            shrapnelDamage: 5,
+            shrapnelLife: 220,
+            shrapnelResource: "Bone_Shard_Attack_T",
+            explodeOnHit: true,
+            type: "experimental_bomb",
+            hitboxInsetX: 4,
+            hitboxInsetY: 4,
+            spin: 5
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnRadialProjectiles = function (options) {
+    var count = options.count || 8;
+    var speed = options.speed || 3.5;
+    var width = options.width || 16;
+    var height = options.height || 16;
+    var angleOffset = typeof options.angleOffset === "number" ? options.angleOffset : this.randomRange(0, Math.PI * 2);
+    var i;
+    var angle;
+
+    for (i = 0; i < count; i++) {
+        angle = angleOffset + ((Math.PI * 2) * (i / count));
+        this.spawnProjectile({
+            x: options.x - (width / 2),
+            y: options.y - (height / 2),
+            width: width,
+            height: height,
+            resource: options.resource || "Orb_Attack_T",
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            rotation: angle * (180 / Math.PI),
+            damage: options.damage || 6,
+            life: options.life || 180,
+            type: options.type || "radial_projectile",
+            hitboxInsetX: options.hitboxInsetX || 0,
+            hitboxInsetY: options.hitboxInsetY || 0,
+            spin: options.spin || 0
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.splitProjectile = function (projectile) {
+    var centerX = projectile.x + (projectile.width / 2);
+    var centerY = projectile.y + (projectile.height / 2);
+
+    if (!projectile || projectile.splitDone === true || projectile.splitCount <= 0) {
+        return;
+    }
+
+    projectile.splitDone = true;
+    this.playSfx(GraveFallGame.SOUNDS.ATTACK_ORB, 0.45);
+
+    this.spawnRadialProjectiles({
+        x: centerX,
+        y: centerY,
+        count: projectile.splitCount,
+        speed: projectile.splitSpeed,
+        width: projectile.splitWidth,
+        height: projectile.splitHeight,
+        resource: projectile.splitResource,
+        damage: projectile.splitDamage,
+        life: projectile.splitLife,
+        type: "experimental_split_child",
+        spin: projectile.spin ? projectile.spin * -1 : 0
+    });
+};
+
+GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
+    var centerX;
+    var centerY;
+    var radius;
+
+    if (!projectile || projectile.exploded === true) {
+        return;
+    }
+
+    projectile.exploded = true;
+    centerX = projectile.x + (projectile.width / 2);
+    centerY = projectile.y + (projectile.height / 2);
+    radius = projectile.explosionRadius || 72;
+
+    this.spawnProjectile({
+        x: centerX - radius,
+        y: centerY - radius,
+        width: radius * 2,
+        height: radius * 2,
+        color: "#FDD835",
+        alpha: 0.55,
+        damage: projectile.explosionDamage || 12,
+        life: projectile.explosionLife || 22,
+        pierce: true,
+        type: "experimental_bomb_aoe"
+    });
+
+    if (projectile.shrapnelCount > 0) {
+        this.spawnRadialProjectiles({
+            x: centerX,
+            y: centerY,
+            count: projectile.shrapnelCount,
+            speed: projectile.shrapnelSpeed || 4,
+            width: 16,
+            height: 8,
+            resource: projectile.shrapnelResource || "Bone_Shard_Attack_T",
+            damage: projectile.shrapnelDamage || 5,
+            life: projectile.shrapnelLife || 180,
+            type: "experimental_bomb_shrapnel",
+            hitboxInsetX: 2,
+            hitboxInsetY: 1,
+            spin: 8
+        });
+    }
+
+    this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.85);
+    this.shakeCamera(260, 8, 6, true);
+};
+
+GraveFallGame.scene.Game.prototype.updateProjectileBounce = function (projectile, inner) {
+    var maxX;
+    var maxY;
+    var bounced = false;
+
+    if (!projectile || projectile.bounce !== true) {
+        return;
+    }
+
+    maxX = inner.x + inner.width - projectile.width;
+    maxY = inner.y + inner.height - projectile.height;
+
+    if (projectile.x < inner.x && projectile.vx < 0) {
+        projectile.x = inner.x;
+        projectile.vx *= -1;
+        bounced = true;
+    } else if (projectile.x > maxX && projectile.vx > 0) {
+        projectile.x = maxX;
+        projectile.vx *= -1;
+        bounced = true;
+    }
+
+    if (projectile.y < inner.y && projectile.vy < 0) {
+        projectile.y = inner.y;
+        projectile.vy *= -1;
+        bounced = true;
+    } else if (projectile.y > maxY && projectile.vy > 0) {
+        projectile.y = maxY;
+        projectile.vy *= -1;
+        bounced = true;
+    }
+
+    if (bounced) {
+        projectile.bouncesRemaining--;
+        projectile.flippedX = projectile.vx < 0;
+
+        if (projectile.bouncesRemaining <= 0) {
+            projectile.life = Math.min(projectile.life, 20);
+        }
+    }
+};
+
 GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index) {
     var projectile = this.projectiles[index];
     if (!projectile) return;
@@ -942,9 +1262,6 @@ GraveFallGame.scene.Game.prototype.getProjectileHitboxLeeway = function (options
         leeway = Math.round(shortestSide * 0.1);
     }
 
-    // Keep projectile forgiveness small and equal on every edge. Previously some
-    // patterns used large vertical insets, which made the lower part of sprites
-    // feel like it could phase through players.
     leeway = Math.max(1, Math.min(2, leeway));
 
     if (shortestSide > 0) {
@@ -1106,7 +1423,7 @@ GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
     for (i = this.projectiles.length - 1; i >= 0; i--) {
         projectile = this.projectiles[i];
 
-        if (!projectile || projectile.hit) {
+        if (!projectile || projectile.hit || projectile.damage <= 0) {
             continue;
         }
 
@@ -1117,13 +1434,26 @@ GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
                 continue;
             }
 
+            if (projectile.pierce === true && projectile.hitPlayers && projectile.hitPlayers[j] === true) {
+                continue;
+            }
+
             if (this.rectsOverlap(projectile, playerMenu.battleAvatar)) {
                 this.applyDamageToPlayer(playerMenu, projectile.damage);
-                projectile.hit = true;
-                projectile.hitFlashFrames = 6;
-                projectile.vx = 0;
-                projectile.vy = 0;
-                break;
+
+                if (projectile.pierce === true) {
+                    projectile.hitPlayers[j] = true;
+                } else {
+                    if (projectile.explodeOnHit === true) {
+                        this.explodeProjectile(projectile);
+                    }
+
+                    projectile.hit = true;
+                    projectile.hitFlashFrames = 6;
+                    projectile.vx = 0;
+                    projectile.vy = 0;
+                    break;
+                }
             }
         }
     }
@@ -1133,6 +1463,8 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
     var inner = this.getArenaInnerBounds();
     var i;
     var projectile;
+    var expiredByLife;
+    var outsideBounds;
 
     for (i = this.projectiles.length - 1; i >= 0; i--) {
         projectile = this.projectiles[i];
@@ -1152,17 +1484,42 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
             continue;
         }
 
+        if (projectile.spin) {
+            projectile.rotation += projectile.spin;
+        }
+
         projectile.x += projectile.vx;
         projectile.y += projectile.vy;
+        this.updateProjectileBounce(projectile, inner);
+
         projectile.life--;
 
-        if (
-            projectile.life <= 0 ||
+        if (typeof projectile.splitAt === "number" && projectile.splitDone !== true && projectile.life <= projectile.splitAt) {
+            this.splitProjectile(projectile);
+
+            if (projectile.splitRemoveParent === true) {
+                this.removeProjectileAt(i);
+                continue;
+            }
+        }
+
+        if (projectile.explodeOnExpire === true && projectile.life <= 30) {
+            projectile.alpha = projectile.life % 8 < 4 ? 0.35 : 1;
+        }
+
+        expiredByLife = projectile.life <= 0;
+        outsideBounds = (
             projectile.x < inner.x - 220 ||
             projectile.x > inner.x + inner.width + 220 ||
             projectile.y < inner.y - 220 ||
             projectile.y > inner.y + inner.height + 220
-        ) {
+        );
+
+        if (expiredByLife || outsideBounds) {
+            if (expiredByLife && projectile.explodeOnExpire === true) {
+                this.explodeProjectile(projectile);
+            }
+
             this.removeProjectileAt(i);
         }
     }
