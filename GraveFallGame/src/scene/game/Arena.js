@@ -227,9 +227,12 @@ GraveFallGame.scene.Game.prototype.getCurrentPartyName = function () {
     return String(GraveFallGame.scene.Game.PARTY_NAME);
 };
 
+// --- DYNAMIC LOCALSTORAGE SAVING DIRECTLY IN ARENA.JS ---
 GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function () {
     var partyName;
     var partySize;
+    var key;
+    var scores = [];
 
     if (this.gameOverLeaderboardSaved === true) {
         return;
@@ -242,8 +245,26 @@ GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function () {
         (this.playerMenus && this.playerMenus.length) ||
         1;
 
-    if (typeof GraveFallGame.scene.Game.saveHighscore === "function") {
-        GraveFallGame.scene.Game.saveHighscore(partyName, this.score || 0, partySize);
+    key = "gravefall_highscores_" + partySize;
+
+    try {
+        var data = window.localStorage.getItem(key);
+        if (data) {
+            scores = JSON.parse(data);
+        }
+    } catch (e) {
+        console.warn("Failed to load highscores", e);
+    }
+
+    scores.push({ name: partyName, score: this.score || 0 });
+    scores.sort(function (a, b) { return b.score - a.score; });
+    
+    scores = scores.slice(0, 10);
+
+    try {
+        window.localStorage.setItem(key, JSON.stringify(scores));
+    } catch (e) {
+        console.warn("Failed to save highscores", e);
     }
 };
 
@@ -659,6 +680,9 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     this.encounterAllyDowned = false;
 
     this.currentEnemyType = enemyType;
+    if (typeof this.registerEnemyEncounter === "function") {
+        this.registerEnemyEncounter(enemyType);
+    }
     enemyConfig = this.getCurrentEnemyConfig();
     this.enemyHealthMax = enemyConfig.hpMax;
     this.enemyHealthCurrent = this.enemyHealthMax;
@@ -1146,6 +1170,10 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function () {
 
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
+    
+    // SCALE CONSTANTS
+    var dmgMulti = this.getDifficultyMultiplier ? this.getDifficultyMultiplier() : 1.0;
+    var spdMulti = this.getDifficultySpeedMultiplier ? this.getDifficultySpeedMultiplier() : 1.0;
 
     options = options || {};
 
@@ -1174,9 +1202,9 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
         display.alpha = options.alpha;
     }
 
-    display.vx = options.vx || 0;
-    display.vy = options.vy || 0;
-    display.damage = typeof options.damage === "number" ? options.damage : 8;
+    display.vx = (options.vx || 0) * spdMulti;
+    display.vy = (options.vy || 0) * spdMulti;
+    display.damage = Math.ceil((typeof options.damage === "number" ? options.damage : 8) * dmgMulti);
     display.pendingDamage = display.damage;
     display.baseAlpha = typeof options.alpha === "number" ? options.alpha : 1;
     display.startDelay = Math.max(0, Math.floor(options.startDelay || 0));
@@ -1204,9 +1232,9 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.splitAt = typeof options.splitAt === "number" ? options.splitAt : null;
     display.splitDone = false;
     display.splitCount = options.splitCount || 0;
-    display.splitSpeed = options.splitSpeed || 3;
+    display.splitSpeed = (options.splitSpeed || 3) * spdMulti;
     display.splitLife = options.splitLife || 160;
-    display.splitDamage = options.splitDamage || Math.max(1, Math.ceil(display.damage * 0.6));
+    display.splitDamage = Math.ceil((options.splitDamage || Math.max(1, Math.ceil((options.damage||8) * 0.6))) * dmgMulti);
     display.splitResource = options.splitResource || options.resource || "Orb_Attack_T";
     display.splitWidth = options.splitWidth || Math.max(8, Math.floor(options.width || 16));
     display.splitHeight = options.splitHeight || Math.max(8, Math.floor(options.height || 16));
@@ -1215,7 +1243,7 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.explodeOnHit = options.explodeOnHit === true;
     display.exploded = false;
     display.explosionRadius = options.explosionRadius || 72;
-    display.explosionDamage = options.explosionDamage || 12;
+    display.explosionDamage = Math.ceil((options.explosionDamage || 12) * dmgMulti);
     display.explosionLife = options.explosionLife || 22;
     display.explosionResource = options.explosionResource || "Explosion_Circle_Attack_Big_T";
     display.explosionAnimation = options.explosionAnimation || {
@@ -1225,35 +1253,53 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
         looped: false
     };
     display.shrapnelCount = options.shrapnelCount || 0;
-    display.shrapnelSpeed = options.shrapnelSpeed || 4.2;
-    display.shrapnelDamage = options.shrapnelDamage || 6;
+    display.shrapnelSpeed = (options.shrapnelSpeed || 4.2) * spdMulti;
+    display.shrapnelDamage = Math.ceil((options.shrapnelDamage || 6) * dmgMulti);
     display.shrapnelLife = options.shrapnelLife || 150;
     display.shrapnelResource = options.shrapnelResource || "Bone_Shard_Attack_T";
     display.shrapnelWidth = options.shrapnelWidth || 16;
     display.shrapnelHeight = options.shrapnelHeight || 8;
     display.shrapnelBounce = options.shrapnelBounce === true;
     display.shrapnelBouncesRemaining = typeof options.shrapnelBouncesRemaining === "number" ? options.shrapnelBouncesRemaining : 999;
-    display.shrapnelMaxSpeed = typeof options.shrapnelMaxSpeed === "number" ? options.shrapnelMaxSpeed : null;
+    
+    var baseShrapnelMaxSpeed = typeof options.shrapnelMaxSpeed === "number" ? options.shrapnelMaxSpeed : null;
+    display.shrapnelMaxSpeed = baseShrapnelMaxSpeed !== null ? baseShrapnelMaxSpeed * spdMulti : null;
+    
     display.shrapnelFadeOutFrames = Math.max(0, Math.floor(options.shrapnelFadeOutFrames || 0));
 
     display.homingFrames = Math.max(0, Math.floor(options.homingFrames || 0));
     display.homingDelay = Math.max(0, Math.floor(options.homingDelay || 0));
     display.homingTurnRate = typeof options.homingTurnRate === "number" ? options.homingTurnRate : 0.08;
-    display.homingSpeed = typeof options.homingSpeed === "number" ? options.homingSpeed : null;
+    
+    var baseHomingSpeed = typeof options.homingSpeed === "number" ? options.homingSpeed : null;
+    display.homingSpeed = baseHomingSpeed !== null ? baseHomingSpeed * spdMulti : null;
+    
     display.homingStopDistance = typeof options.homingStopDistance === "number" ? options.homingStopDistance : 0;
     display.drag = typeof options.drag === "number" ? options.drag : 1;
-    display.accelX = options.accelX || 0;
-    display.accelY = options.accelY || 0;
+    display.accelX = (options.accelX || 0) * spdMulti;
+    display.accelY = (options.accelY || 0) * spdMulti;
     display.speedMultiplier = typeof options.speedMultiplier === "number" ? options.speedMultiplier : 1;
     display.speedMultiplierStart = Math.max(0, Math.floor(options.speedMultiplierStart || 0));
-    display.maxSpeed = typeof options.maxSpeed === "number" ? options.maxSpeed : null;
-    display.minSpeed = typeof options.minSpeed === "number" ? options.minSpeed : null;
-    display.pulseSpeedAmplitude = options.pulseSpeedAmplitude || 0;
+    
+    var baseMaxSpeed = typeof options.maxSpeed === "number" ? options.maxSpeed : null;
+    display.maxSpeed = baseMaxSpeed !== null ? baseMaxSpeed * spdMulti : null;
+    
+    var baseMinSpeed = typeof options.minSpeed === "number" ? options.minSpeed : null;
+    display.minSpeed = baseMinSpeed !== null ? baseMinSpeed * spdMulti : null;
+    
+    display.pulseSpeedAmplitude = (options.pulseSpeedAmplitude || 0) * spdMulti;
     display.pulseSpeedFrequency = options.pulseSpeedFrequency || 0;
     display.pulseSpeedPhase = options.pulseSpeedPhase || 0;
-    display.baseSpeed = typeof options.baseSpeed === "number" ? options.baseSpeed : Math.sqrt((display.vx * display.vx) + (display.vy * display.vy));
-    display.swayAmplitude = options.swayAmplitude || 0;
-    display.swayFrequency = options.swayFrequency || 0;
+    
+    var givenBaseSpeed = typeof options.baseSpeed === "number" ? options.baseSpeed : Math.sqrt((display.vx * display.vx) + (display.vy * display.vy));
+    if (typeof options.baseSpeed === "number") {
+        display.baseSpeed = options.baseSpeed * spdMulti;
+    } else {
+        display.baseSpeed = givenBaseSpeed;
+    }
+
+    display.swayAmplitude = options.swayAmplitude || 0; 
+    display.swayFrequency = options.swayFrequency || 0; 
     display.swayPhase = options.swayPhase || 0;
     display.swayAxis = options.swayAxis || "y";
     display.previousSwayOffset = 0;
@@ -1291,6 +1337,9 @@ GraveFallGame.scene.Game.prototype.spawnProjectile = function (options) {
 };
 
 GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (options) {
+    var dmgMulti = this.getDifficultyMultiplier ? this.getDifficultyMultiplier() : 1.0;
+    var spdMulti = this.getDifficultySpeedMultiplier ? this.getDifficultySpeedMultiplier() : 1.0;
+    
     var hitbox = new rune.display.DisplayObjectContainer(
         options.x,
         options.y,
@@ -1319,9 +1368,9 @@ GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (opti
     }
 
     hitbox.addChild(sweepSprite);
-    hitbox.vx = options.vx || 0;
-    hitbox.vy = options.vy || 0;
-    hitbox.damage = options.damage || 8;
+    hitbox.vx = (options.vx || 0) * spdMulti;
+    hitbox.vy = (options.vy || 0) * spdMulti;
+    hitbox.damage = Math.ceil((typeof options.damage === "number" ? options.damage : 8) * dmgMulti);
     hitbox.life = options.life || 180;
     hitbox.type = options.type || "generic";
     hitbox.hitboxLeeway = this.getProjectileHitboxLeeway(options);
@@ -1382,12 +1431,11 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
     var speed = playerMenu.moveSpeed || 3;
     var avatar = playerMenu.battleAvatar;
     var inner = this.getArenaInnerBounds();
-    var maxX = inner.x + inner.width - avatar.width;
-    var maxY = inner.y + inner.height - avatar.height;
     var oldX = avatar.x;
     var oldY = avatar.y;
     var nextX = avatar.x;
     var nextY = avatar.y;
+    var clamped;
 
     if (playerMenu.healthCurrent <= 0) {
         return;
@@ -1409,8 +1457,9 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
         nextY += speed;
     }
 
-    nextX = this.clampValue(nextX, inner.x, maxX);
-    nextY = this.clampValue(nextY, inner.y, maxY);
+    clamped = this.clampObjectHitboxToBounds(avatar, nextX, nextY, inner);
+    nextX = clamped.x;
+    nextY = clamped.y;
 
     if (this.isBattleAvatarColliding(playerMenu, nextX, nextY)) {
         avatar.x = oldX;
@@ -1422,27 +1471,70 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
     avatar.y = nextY;
 };
 
-GraveFallGame.scene.Game.prototype.rectsOverlap = function (a, b) {
-    return (a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y);
-};
-
-GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMenu, testX, testY) {
-    var i;
-    var otherMenu;
-    var testAvatar = {
-        x: testX,
-        y: testY,
-        width: playerMenu.battleAvatar.width,
-        height: playerMenu.battleAvatar.height
-    };
-
-    for (i = 0; i < this.playerMenus.length; i++) {
-        otherMenu = this.playerMenus[i];
-        if (otherMenu === playerMenu || otherMenu.healthCurrent <= 0) continue;
-        if (this.rectsOverlap(testAvatar, otherMenu.battleAvatar)) return true;
+GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
+    if (this.arenaItem && this.arenaItem.parent) {
+        this.arenaItem.parent.removeChild(this.arenaItem, true);
     }
 
-    return false;
+    this.arenaItem = null;
+};
+
+GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
+    var inner = this.getArenaInnerBounds();
+    var itemScale = 0.45;
+    var itemTypes = ["maxHp", "attack", "defense", "speed"];
+    var itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+    var item = new rune.display.Sprite(0, 0, 100, 100, this.getItemIconResource(itemType));
+    var maxX;
+    var maxY;
+
+    item.scaleX = itemScale;
+    item.scaleY = itemScale;
+    this.applyMonochromeIconColor(item, "#FFFFFF");
+    item.buffType = itemType;
+
+    maxX = inner.x + inner.width - (item.width * item.scaleX);
+    maxY = inner.y + inner.height - (item.height * item.scaleY);
+
+    item.x = this.randomRange(inner.x, maxX);
+    item.y = this.randomRange(inner.y, maxY);
+
+    this.arenaAvatarLayer.addChild(item);
+    this.arenaItem = item;
+    this.playSfx(GraveFallGame.SOUNDS.ITEM_SPAWN, 0.45);
+};
+
+GraveFallGame.scene.Game.prototype.updateArenaItem = function () {
+    if (this.arenaItem) return;
+    if (this.itemSpawnTimer > 0) {
+        this.itemSpawnTimer--;
+        return;
+    }
+    this.spawnArenaItem();
+};
+
+GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
+    var i;
+    var playerMenu;
+
+    if (!this.arenaItem) return;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        playerMenu = this.playerMenus[i];
+
+        if (playerMenu.healthCurrent <= 0) {
+            continue;
+        }
+
+        if (this.rectsOverlap(playerMenu.battleAvatar, this.arenaItem)) {
+            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.65);
+            this.givePlayerItem(playerMenu, this.arenaItem.buffType || "attack");
+            this.spawnItemPickupEffect(playerMenu, this.arenaItem.buffType || "attack", 650);
+            this.clearArenaItem();
+            this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
+            break;
+        }
+    }
 };
 
 GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
@@ -1464,11 +1556,6 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
 
     this.actionPhaseTimer--;
     this.nextPatternIn--;
-
-    // BLINK WARNING TEXT
-    if (this.avoidDamageText && this.avoidDamageText.visible) {
-        this.avoidDamageText.alpha = (Math.floor(this.actionPhaseTimer / 10) % 2 === 0) ? 1 : 0.2;
-    }
 
     this.updateArenaItem();
     this.checkItemCollisions();

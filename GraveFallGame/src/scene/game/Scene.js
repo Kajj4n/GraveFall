@@ -12,6 +12,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
 
     this.encounterIndex = 0;
     this.currentEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
+    this.enemyDifficultyCounts = {};
+    this.currentEnemyDifficulty = null;
     this.actionPhaseTimer = 0;
     this.nextPatternIn = 0;
     this.minigameTimer = 0;
@@ -132,7 +134,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     var eBarWidth = 300;
     var eBarHeight = 32;
     var eBarX = (this.application.screen.width / 2) - (eBarWidth / 2);
-    var eBarY = 200;
+    var eBarY = 150;
     this.enemyHealthBarWidth = eBarWidth;
     this.enemyHealthBarX = eBarX; 
 

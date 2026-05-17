@@ -199,7 +199,6 @@ GraveFallGame.scene.Game.saveHighscore = function (name, score, partySize) {
             window.localStorage.setItem(key, serialized);
         }
     } catch (e) {
-        // Fall back to the in-memory cache above.
     }
 
     return scores;
@@ -453,8 +452,6 @@ GraveFallGame.scene.Game.UI_SKINS = {
     }
 };
 
-// Add future run palettes here. A run chooses one entry once and then uses the
-// matching inside + outside skins until that run ends.
 GraveFallGame.scene.Game.RUN_PALETTES = [
     {
         key: "dullBrown",
@@ -534,8 +531,6 @@ GraveFallGame.scene.Game.getRunPalette = function (key) {
 // Attack minigame data
 //------------------------------------------------------------------------------
 
-// These ids are deliberately data-driven. Characters point to one of these ids
-// through PARTY_MEMBERS.attackMinigame, so any character can use any minigame.
 GraveFallGame.scene.Game.DEFAULT_ATTACK_MINIGAME = "buttonSequence";
 
 GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
@@ -582,8 +577,6 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
     }
 };
 
-// Sprite names the minigames will try to use if those resources are baked into
-// Requests.js later. Until then, runtime Graphics are used as placeholders.
 GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
     { name: "MG_Ranger_Bullseye", size: "16x16", purpose: "Center scoring mark / bullseye for the ranger target" },
     { name: "MG_Ranger_Reticle", size: "16x16", purpose: "Moving ranger reticle / crosshair" },
@@ -593,8 +586,6 @@ GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
     { name: "MG_Sequence_Slot", size: "42x42", purpose: "Optional wizard sequence slot frame" }
 ];
 
-// --- DYNAMIC CHARACTER SELECTION TEMPLATES ---
-// These are the raw classes players can choose from in the Character Select Menu
 GraveFallGame.scene.Game.CLASS_TEMPLATES = [
     {
         id: "fighter",
@@ -642,11 +633,9 @@ GraveFallGame.scene.Game.CLASS_TEMPLATES = [
     }
 ];
 
-// This will be dynamically populated by the Character Select screen right before the game starts.
 GraveFallGame.scene.Game.PARTY_MEMBERS = [];
 GraveFallGame.scene.Game.PARTY_NAME = "THE FALLEN";
 
-// Party-facing is based on the rendered party order, not controller id.
 GraveFallGame.scene.Game.getPartyMemberFlippedX = function (renderIndex, partySize) {
     if (partySize === 2) {
         return renderIndex === 1;
@@ -663,9 +652,6 @@ GraveFallGame.scene.Game.getPartyMemberFlippedX = function (renderIndex, partySi
     return false;
 };
 
-// Returns the bottom command/start UI x-position for a party member.
-// Smaller parties are distributed across the whole screen instead of being
-// packed into the left-most four-player slots.
 GraveFallGame.scene.Game.getPartyMenuX = function (renderIndex, partySize, menuWidth, screenWidth) {
     menuWidth = menuWidth || 320;
     screenWidth = screenWidth || 1280;
@@ -679,12 +665,6 @@ GraveFallGame.scene.Game.getPartyMenuX = function (renderIndex, partySize, menuW
     return Math.round(((screenWidth / partySize) * renderIndex) + ((screenWidth / partySize) / 2) - (menuWidth / 2));
 };
 
-/**
- * Enemy / phase prototype data.
- *
- * Add more enemies by creating a new entry and mapping its pattern ids in
- * spawnEnemyPatternById().
- */
 GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
     hp100: "Ghoul_Idle_T",
     hp75: "Ghoul_Bruised_T",
@@ -699,6 +679,72 @@ GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
     hp50: "Goblin_Hurt_T",
     hp25: "Goblin_Dying_T",
     killed: "Goblin_Killed_T"
+};
+
+// --- DYNAMIC ENEMY SCALING ---
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_REPEAT = 10;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_REPEAT = 0.03;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_SPEED_BONUS_PER_REPEAT = 0.02;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_PATTERN_INTERVAL_REDUCTION_PER_REPEAT = 0.02;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_ACTION_DURATION_REDUCTION_PER_REPEAT = 0.015;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MAX_SPEED_MULTIPLIER = 1.75;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MIN_PATTERN_INTERVAL_SCALE = 0.65;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MIN_ACTION_DURATION_SCALE = 0.75;
+
+GraveFallGame.scene.Game.prototype.getEnemyDifficultyProfile = function (enemyType) {
+    var counts = this.enemyDifficultyCounts || {};
+    var floor = Math.max(1, this.floorNumber || 1);
+    var floorIndex = Math.max(0, floor - 1);
+    var resolvedEnemyType = enemyType || this.currentEnemyType || "ghoul";
+    var encounterCount = counts[resolvedEnemyType] || 0;
+    var repeatCount = Math.max(0, encounterCount - 1);
+    var hpBonus = (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_REPEAT) + (floorIndex * 4);
+
+    return {
+        enemyType: resolvedEnemyType,
+        encounterCount: encounterCount,
+        repeatCount: repeatCount,
+        hpBonus: hpBonus,
+        damageMultiplier: 1.0 + (floorIndex * 0.02) + (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_REPEAT),
+        speedMultiplier: Math.min(
+            GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MAX_SPEED_MULTIPLIER,
+            1.0 + (floorIndex * 0.01) + (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_SPEED_BONUS_PER_REPEAT)
+        ),
+        patternIntervalScale: Math.max(
+            GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MIN_PATTERN_INTERVAL_SCALE,
+            1.0 - (floorIndex * 0.01) - (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_PATTERN_INTERVAL_REDUCTION_PER_REPEAT)
+        ),
+        actionDurationScale: Math.max(
+            GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MIN_ACTION_DURATION_SCALE,
+            1.0 - (floorIndex * 0.005) - (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_ACTION_DURATION_REDUCTION_PER_REPEAT)
+        )
+    };
+};
+
+GraveFallGame.scene.Game.prototype.registerEnemyEncounter = function (enemyType) {
+    var key;
+    var profile;
+
+    if (!this.enemyDifficultyCounts) {
+        this.enemyDifficultyCounts = {};
+    }
+
+    key = enemyType || this.currentEnemyType || "ghoul";
+    this.enemyDifficultyCounts[key] = (this.enemyDifficultyCounts[key] || 0) + 1;
+    profile = this.getEnemyDifficultyProfile(key);
+    this.currentEnemyDifficulty = profile;
+
+    return profile;
+};
+
+GraveFallGame.scene.Game.prototype.getDifficultyMultiplier = function () {
+    var profile = this.getEnemyDifficultyProfile(this.currentEnemyType);
+    return profile.damageMultiplier;
+};
+
+GraveFallGame.scene.Game.prototype.getDifficultySpeedMultiplier = function () {
+    var profile = this.getEnemyDifficultyProfile(this.currentEnemyType);
+    return profile.speedMultiplier;
 };
 
 GraveFallGame.scene.Game.ENEMIES = {
@@ -763,33 +809,6 @@ GraveFallGame.scene.Game.ENEMIES = {
             "placeholder_crystal_wall"
         ]
     },
-    fightLab: {
-        name: "Fight Lab",
-        isBoss: false,
-        debugOnly: true,
-        resource: "HyDragon_Idle_T",
-        damageStateResources: {
-            hp100: "HyDragon_Idle_T",
-            hp75: "HyDragon_Bruised_T",
-            hp50: "HyDragon_Hurt_T",
-            hp25: "HyDragon_Dying_T",
-            killed: "HyDragon_Killed_T"
-        },
-        hpMax: 240,
-        actionPhaseDuration: 470,
-        patternInterval: 40,
-        patterns: [
-            "experimental_animated_walkers",
-            "experimental_orb_split_chain",
-            "experimental_bouncing_skulls",
-            "experimental_bomb_cluster",
-            "attack_lab_fire_spray",
-            "attack_lab_homing_wisps",
-            "attack_lab_pulse_orbs",
-            "attack_lab_hunter_pack",
-            "attack_lab_fuse_minefield"
-        ]
-    },
     goblinHorde: {
         name: "Goblin Horde",
         isBoss: true,
@@ -833,15 +852,41 @@ GraveFallGame.scene.Game.ENEMIES = {
     }
 };
 
+GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
+    var baseConfig = GraveFallGame.scene.Game.ENEMIES[this.currentEnemyType] || GraveFallGame.scene.Game.ENEMIES.ghoul;
+    var profile = this.getEnemyDifficultyProfile ? this.getEnemyDifficultyProfile(this.currentEnemyType) : null;
+    var scaledConfig = {};
+    var key;
+    var repeatCount;
+    var actionScale;
+
+    for (key in baseConfig) {
+        if (baseConfig.hasOwnProperty(key)) {
+            scaledConfig[key] = baseConfig[key];
+        }
+    }
+
+    repeatCount = profile ? profile.repeatCount : 0;
+    actionScale = profile ? profile.actionDurationScale : 1.0;
+
+    scaledConfig.hpMax = Math.max(1, Math.floor((baseConfig.hpMax || 1) + (profile ? profile.hpBonus : 0)));
+    scaledConfig.actionPhaseDuration = Math.max(1, Math.floor((baseConfig.actionPhaseDuration || 230) * actionScale));
+    scaledConfig.patternInterval = Math.max(
+        1,
+        Math.floor((baseConfig.patternInterval || 1) * (profile ? profile.patternIntervalScale : 1.0))
+    );
+    scaledConfig.damageMultiplier = profile ? profile.damageMultiplier : 1.0;
+    scaledConfig.speedMultiplier = profile ? profile.speedMultiplier : 1.0;
+    scaledConfig.repeatCount = repeatCount;
+    scaledConfig.difficultyProfile = profile;
+
+    return scaledConfig;
+};
 
 //------------------------------------------------------------------------------
 // Audio IDs and helpers
 //------------------------------------------------------------------------------
 
-// Keep these IDs identical to the names in src/data/resource/Requests.js.
-// To replace the placeholder sounds, export WAVs from ChipTone, bake/convert them
-// into data:audio/wav;base64 strings, then paste them into the matching this.add()
-// lines in Requests.js.
 GraveFallGame.MUSIC = {
     DUNGEON_LOOP: "GraveFall_Dungeon_Loop"
 };
@@ -1106,11 +1151,6 @@ GraveFallGame.scene.Game.prototype.createDamageStateGroup = function (x, y, widt
     group.stateSprites = [];
     group.currentDamageState = null;
     group.damageStateFlippedX = options.flippedX === true;
-
-    // Rune applies flippedX to every DisplayObject during rendering. Do not flip
-    // both this container and its child sprites, because that mirrors twice and
-    // visually cancels the party-facing flip. The metadata above is the source of
-    // truth; the visible state sprite is flipped by setDamageStateGroupFlippedX().
     group.flippedX = false;
 
     for (i = 0; i < stateConfigs.length; i++) {
@@ -1134,10 +1174,6 @@ GraveFallGame.scene.Game.prototype.setDamageStateGroupFlippedX = function (group
     }
 
     group.damageStateFlippedX = flippedX === true;
-
-    // Keep the container unflipped. Flipping the container and the children causes
-    // a double mirror in Rune's renderer, which is why previous fixes appeared to
-    // work only when one flippedX assignment was changed back to false.
     group.flippedX = false;
 
     if (!group.stateSprites) {
@@ -1279,10 +1315,6 @@ GraveFallGame.scene.Game.prototype.areAllPlayersDown = function () {
 
 GraveFallGame.scene.Game.prototype.getPlayerTheme = function (index) {
     return GraveFallGame.scene.Game.PLAYER_THEMES[index % GraveFallGame.scene.Game.PLAYER_THEMES.length];
-};
-
-GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
-    return GraveFallGame.scene.Game.ENEMIES[this.currentEnemyType] || GraveFallGame.scene.Game.ENEMIES.ghoul;
 };
 
 GraveFallGame.scene.Game.prototype.getEnemyTypesByBossFlag = function (isBoss) {
@@ -1494,8 +1526,6 @@ GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, op
         this.applyMonochromeIconColor(parts.actions[i], theme.accentLight);
     }
 
-    // Standing sprites and portraits always keep their player-assigned palette,
-    // including knocked-out/dead damage states. Only the class icons grey out.
     this.applyPaletteSwapsToDamageStateGroup(
         parts.stand,
         options.standPaletteSwaps || defaultClothingPalette,
@@ -1538,9 +1568,6 @@ GraveFallGame.scene.Game.prototype.layoutPlayerHealthText = function (playerMenu
     currentWidth = this.getBitmapTextWidth(playerMenu.healthCurrentText, characterWidth);
     maxWidth = this.getBitmapTextWidth(playerMenu.healthMaxText, characterWidth);
 
-    // Anchor the full "current/max" string to the right side of this player's
-    // own menu. This lets 3+ digit health values shift only that player's text
-    // left, and lets it shift back automatically when the value drops below 100.
     playerMenu.healthMaxText.x = rightX - maxWidth;
     playerMenu.healthCurrentText.x = playerMenu.healthMaxText.x - gap - currentWidth;
     playerMenu.healthMaxText.y = y;
@@ -1678,9 +1705,6 @@ GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {
 GraveFallGame.scene.Game.prototype.getArenaInnerBounds = function () {
     var borderPadding = 20;
 
-    // CHANGED: This now returns local coordinates relative to the arena itself.
-    // So inner.y starts at 20. If you spawn a projectile at inner.y - 100, 
-    // it will be at -80 (above the arena's local space) and will be cleanly masked out!
     return {
         x: borderPadding,
         y: borderPadding,
