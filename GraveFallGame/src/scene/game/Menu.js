@@ -236,8 +236,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
             80,
             this.getPortraitDamageStates(targetMember.portrait)
         );
-        targetIcon.scaleX = 0.52;
-        targetIcon.scaleY = 0.52;
+        targetIcon.scaleX = 0.82;
+        targetIcon.scaleY = 0.82;
         targetIcon.visible = false;
         targetIcon.targetPartyIndex = targetPartyIndex;
         this.applyPaletteSwapsToDamageStateGroup(
@@ -2453,3 +2453,200 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
 
     this.updateCharacterMenuVisuals(playerMenu);
 };
+
+//------------------------------------------------------------------------------
+// Stats tracking wrappers
+//------------------------------------------------------------------------------
+
+(function () {
+    var originalCreateCharacterMenu = GraveFallGame.scene.Game.prototype.createCharacterMenu;
+    var originalApplyDamageToEnemy = GraveFallGame.scene.Game.prototype.applyDamageToEnemy;
+    var originalApplyDamageToPlayer = GraveFallGame.scene.Game.prototype.applyDamageToPlayer;
+    var originalApplyHealthGainToPlayer = GraveFallGame.scene.Game.prototype.applyHealthGainToPlayer;
+    var originalRevivePlayerFromHealthGain = GraveFallGame.scene.Game.prototype.revivePlayerFromHealthGain;
+    var originalApplyDefendActionForPlayer = GraveFallGame.scene.Game.prototype.applyDefendActionForPlayer;
+    var originalApplyClassBuffForPlayer = GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer;
+    var originalApplyCommandActionForPlayer = GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer;
+    var originalConsumePlayerItem = GraveFallGame.scene.Game.prototype.consumePlayerItem;
+    var originalApplyPermanentItemBuff = GraveFallGame.scene.Game.prototype.applyPermanentItemBuff;
+
+    GraveFallGame.scene.Game.prototype.ensurePlayerStats = function (playerMenu) {
+        var stats;
+        var defaults;
+
+        if (!playerMenu) {
+            return playerMenu;
+        }
+
+        defaults = {
+            damageDealt: 0,
+            damageTaken: 0,
+            healingDone: 0,
+            healingReceived: 0,
+            timesDowned: 0,
+            timesRevived: 0,
+            attacksUsed: 0,
+            defendsUsed: 0,
+            buffsUsed: 0,
+            itemsUsed: 0,
+            enemiesDefeated: 0
+        };
+
+        stats = playerMenu.stats || {};
+        playerMenu.stats = stats;
+
+        for (var key in defaults) {
+            if (defaults.hasOwnProperty(key) && typeof stats[key] !== "number") {
+                stats[key] = defaults[key];
+            }
+        }
+
+        return playerMenu;
+    };
+
+    GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
+        var playerMenu = originalCreateCharacterMenu.call(this, options);
+        return this.ensurePlayerStats(playerMenu);
+    };
+
+    GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor, skipDefaultSfx, sourceMenu) {
+        var activeSourceMenu = sourceMenu || this._activeDamageSourceMenu || null;
+        var before = typeof this.enemyHealthCurrent === "number" ? this.enemyHealthCurrent : 0;
+        var result = originalApplyDamageToEnemy.call(this, amount, playerColor, skipDefaultSfx);
+        var dealt = Math.max(0, before - (typeof this.enemyHealthCurrent === "number" ? this.enemyHealthCurrent : before));
+
+        if (activeSourceMenu) {
+            this.ensurePlayerStats(activeSourceMenu);
+            if (dealt > 0) {
+                activeSourceMenu.stats.damageDealt += dealt;
+            }
+            if (before > 0 && this.enemyHealthCurrent <= 0) {
+                activeSourceMenu.stats.enemiesDefeated += 1;
+            }
+        }
+
+        return result;
+    };
+
+    GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
+        var before = playerMenu && typeof playerMenu.healthCurrent === "number" ? playerMenu.healthCurrent : 0;
+        var result = originalApplyDamageToPlayer.call(this, playerMenu, amount);
+        var after = playerMenu && typeof playerMenu.healthCurrent === "number" ? playerMenu.healthCurrent : before;
+        var actual = Math.max(0, before - after);
+
+        if (playerMenu) {
+            this.ensurePlayerStats(playerMenu);
+            if (actual > 0) {
+                playerMenu.stats.damageTaken += actual;
+            }
+            if (before > 0 && after <= 0) {
+                playerMenu.stats.timesDowned += 1;
+            }
+        }
+
+        return result;
+    };
+
+    GraveFallGame.scene.Game.prototype.applyHealthGainToPlayer = function (playerMenu, amount, sourceMenu) {
+        var activeSourceMenu = sourceMenu || this._activeHealingSourceMenu || null;
+        var before = playerMenu && typeof playerMenu.healthCurrent === "number" ? playerMenu.healthCurrent : 0;
+        var result = originalApplyHealthGainToPlayer.call(this, playerMenu, amount, sourceMenu);
+        var after = playerMenu && typeof playerMenu.healthCurrent === "number" ? playerMenu.healthCurrent : before;
+        var actual = Math.max(0, after - before);
+
+        if (playerMenu) {
+            this.ensurePlayerStats(playerMenu);
+            if (actual > 0) {
+                playerMenu.stats.healingReceived += actual;
+            }
+        }
+
+        if (activeSourceMenu) {
+            this.ensurePlayerStats(activeSourceMenu);
+            if (actual > 0) {
+                activeSourceMenu.stats.healingDone += actual;
+            }
+        }
+
+        return result;
+    };
+
+    GraveFallGame.scene.Game.prototype.revivePlayerFromHealthGain = function (playerMenu) {
+        var wasDowned = !!(playerMenu && playerMenu.healthCurrent <= 0);
+        var result = originalRevivePlayerFromHealthGain.call(this, playerMenu);
+
+        if (playerMenu && wasDowned && playerMenu.healthCurrent > 0) {
+            this.ensurePlayerStats(playerMenu);
+            playerMenu.stats.timesRevived += 1;
+        }
+
+        return result;
+    };
+
+    GraveFallGame.scene.Game.prototype.applyDefendActionForPlayer = function (playerMenu) {
+        this.ensurePlayerStats(playerMenu);
+        if (playerMenu) {
+            playerMenu.stats.defendsUsed += 1;
+        }
+
+        var previousSource = this._activeHealingSourceMenu;
+        this._activeHealingSourceMenu = playerMenu;
+        try {
+            return originalApplyDefendActionForPlayer.call(this, playerMenu);
+        } finally {
+            this._activeHealingSourceMenu = previousSource;
+        }
+    };
+
+    GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMenu) {
+        this.ensurePlayerStats(playerMenu);
+        if (playerMenu) {
+            playerMenu.stats.buffsUsed += 1;
+        }
+
+        var previousSource = this._activeHealingSourceMenu;
+        this._activeHealingSourceMenu = playerMenu;
+        try {
+            return originalApplyClassBuffForPlayer.call(this, playerMenu);
+        } finally {
+            this._activeHealingSourceMenu = previousSource;
+        }
+    };
+
+    GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playerMenu) {
+        this.ensurePlayerStats(playerMenu);
+
+        if (playerMenu && playerMenu.selectedAction === 0 && playerMenu.healthCurrent > 0 && playerMenu.actionPreviewResolved !== true) {
+            playerMenu.stats.attacksUsed += 1;
+        }
+
+        var previousDamageSource = this._activeDamageSourceMenu;
+        this._activeDamageSourceMenu = playerMenu;
+        try {
+            return originalApplyCommandActionForPlayer.call(this, playerMenu);
+        } finally {
+            this._activeDamageSourceMenu = previousDamageSource;
+        }
+    };
+
+    GraveFallGame.scene.Game.prototype.consumePlayerItem = function (playerMenu, buffType) {
+        var consumed = originalConsumePlayerItem.call(this, playerMenu, buffType);
+
+        if (consumed && playerMenu) {
+            this.ensurePlayerStats(playerMenu);
+            playerMenu.stats.itemsUsed += 1;
+        }
+
+        return consumed;
+    };
+
+    GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, sourceMenu) {
+        var previousSource = this._activeHealingSourceMenu;
+        this._activeHealingSourceMenu = sourceMenu || previousSource;
+        try {
+            return originalApplyPermanentItemBuff.call(this, buffType, sourceMenu);
+        } finally {
+            this._activeHealingSourceMenu = previousSource;
+        }
+    };
+})();

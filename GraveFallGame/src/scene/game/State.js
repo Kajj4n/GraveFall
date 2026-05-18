@@ -452,6 +452,7 @@ GraveFallGame.scene.Game.UI_SKINS = {
     }
 };
 
+
 GraveFallGame.scene.Game.RUN_PALETTES = [
     {
         key: "dullBrown",
@@ -467,6 +468,123 @@ GraveFallGame.scene.Game.RUN_PALETTES = [
     }
 ];
 
+(function () {
+    var themeNames = [
+        "Midnight Rose",
+        "Ash Violet",
+        "Charcoal Teal",
+        "Faded Indigo",
+        "Obsidian Amber",
+        "Slate Moss",
+        "Smoky Sapphire",
+        "Dust Plum",
+        "Night Orchid",
+        "Pale Ember",
+        "Storm Brass",
+        "Dusk Fern",
+        "Moonstone Blue",
+        "Tarnished Coral",
+        "Hollow Jade",
+        "Cinder Lilac",
+        "Fog Citrine",
+        "Worn Garnet",
+        "Silver Thistle",
+        "Quiet Umber",
+        "Bleak Cyan",
+        "Muted Honey",
+        "Dark Quartz",
+        "Soft Rust",
+        "Winter Pine",
+        "Pale Onyx",
+        "Deep Mauve",
+        "Drift Sand"
+    ];
+    var i;
+    var baseHue;
+    var insideKey;
+    var outsideKey;
+    var paletteKey;
+    var paletteName;
+
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    function hslToHex(h, s, l) {
+        var hue = ((h % 360) + 360) % 360;
+        var sat = clamp(s, 0, 100) / 100;
+        var light = clamp(l, 0, 100) / 100;
+        var c = (1 - Math.abs((2 * light) - 1)) * sat;
+        var x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+        var m = light - (c / 2);
+        var r = 0;
+        var g = 0;
+        var b = 0;
+        var r255;
+        var g255;
+        var b255;
+
+        if (hue < 60) {
+            r = c; g = x; b = 0;
+        } else if (hue < 120) {
+            r = x; g = c; b = 0;
+        } else if (hue < 180) {
+            r = 0; g = c; b = x;
+        } else if (hue < 240) {
+            r = 0; g = x; b = c;
+        } else if (hue < 300) {
+            r = x; g = 0; b = c;
+        } else {
+            r = c; g = 0; b = x;
+        }
+
+        r255 = Math.round((r + m) * 255);
+        g255 = Math.round((g + m) * 255);
+        b255 = Math.round((b + m) * 255);
+
+        return (
+            "#" +
+            ("0" + r255.toString(16)).slice(-2) +
+            ("0" + g255.toString(16)).slice(-2) +
+            ("0" + b255.toString(16)).slice(-2)
+        ).toUpperCase();
+    }
+
+    for (i = 0; i < themeNames.length; i++) {
+        baseHue = (18 + (i * 12)) % 360;
+        paletteKey = "nocturne" + String(i + 1);
+        paletteName = themeNames[i];
+        insideKey = paletteKey + "Inside";
+        outsideKey = paletteKey + "Outside";
+
+        GraveFallGame.scene.Game.UI_SKINS[insideKey] = {
+            panelTop: hslToHex(baseHue, 16, 13),
+            panelBottom: hslToHex(baseHue, 14, 9),
+            frame: {
+                light: hslToHex(baseHue, 14, 58),
+                mid: hslToHex(baseHue, 16, 34),
+                dark: hslToHex(baseHue, 18, 18)
+            }
+        };
+
+        GraveFallGame.scene.Game.UI_SKINS[outsideKey] = {
+            panelTop: hslToHex(baseHue, 10, 10),
+            panelBottom: hslToHex(baseHue, 9, 7),
+            frame: {
+                light: hslToHex(baseHue, 10, 52),
+                mid: hslToHex(baseHue, 12, 28),
+                dark: hslToHex(baseHue, 14, 14)
+            }
+        };
+
+        GraveFallGame.scene.Game.RUN_PALETTES.push({
+            key: paletteKey,
+            name: paletteName,
+            insideSkin: insideKey,
+            outsideSkin: outsideKey
+        });
+    }
+})();
 GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = null;
 
 GraveFallGame.scene.Game.resolveRunPaletteKey = function (key) {

@@ -284,6 +284,8 @@ GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
 
     this.phase = GraveFallGame.scene.Game.PHASE_GAME_OVER;
     this.gameOverTimer = 0;
+    this.gameOverTimerMs = 0;
+    this.gameOverDisplayDurationMs = 20000;
     this.gameOverPartySize = this.playerMenus ? this.playerMenus.length : 1;
     this.playSfx(GraveFallGame.SOUNDS.GAME_OVER, 0.85);
 
@@ -380,10 +382,18 @@ GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
     this.gameOverInstruction.x = centerX - ((promptStr.length * 6 * 1.5) / 2);
     this.gameOverInstruction.visible = true;
     this.gameOverInstruction.alpha = 1;
+
+    if (typeof this.renderGameOverStats === "function") {
+        this.renderGameOverStats();
+    }
 };
 
 GraveFallGame.scene.Game.prototype.updateGameOver = function () {
     this.gameOverTimer++;
+
+    if (typeof this.renderGameOverStats === "function" && !this.gameOverStatsPanel) {
+        this.renderGameOverStats();
+    }
 
     if (this.gameOverInstruction) {
         this.gameOverInstruction.alpha = (Math.floor(this.gameOverTimer / 30) % 2 === 0) ? 1 : 0;
@@ -1582,3 +1592,513 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
         this.endActionPhase();
     }
 };
+
+//------------------------------------------------------------------------------
+
+// Game over stats and leaderboard transition
+//------------------------------------------------------------------------------
+
+(function () {
+    var originalSaveCurrentRunToLeaderboard = GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard;
+    var originalShowGameOverAndReturnToMenu = GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu;
+    var originalUpdateGameOver = GraveFallGame.scene.Game.prototype.updateGameOver;
+    var originalDispose = GraveFallGame.scene.Game.prototype.dispose;
+
+    GraveFallGame.scene.Game.prototype.buildGameOverSummary = function () {
+        var summary = {
+            partyName: this.getCurrentPartyName ? this.getCurrentPartyName() : "THE FALLEN",
+            score: typeof this.score === "number" ? this.score : 0,
+            partySize: this.gameOverPartySize || (this.partyMembers && this.partyMembers.length) || (this.playerMenus && this.playerMenus.length) || 1,
+            players: []
+        };
+        var menus = this.playerMenus || [];
+        var i;
+        var menu;
+        var stats;
+        var bestStat;
+
+        for (i = 0; i < menus.length; i++) {
+            menu = menus[i];
+            if (!menu) {
+                continue;
+            }
+
+            stats = menu.stats || {};
+            bestStat = this.getGameOverBestStat(stats);
+
+            summary.players.push({
+                name: menu.characterName || (menu.controller && menu.controller.label) || (menu.controller && menu.controller.id) || ("PLAYER " + (i + 1)),
+                controllerId: menu.controller && menu.controller.id ? menu.controller.id : ("P" + (i + 1)),
+                themeIndex: typeof menu.themeIndex === "number" ? menu.themeIndex : (menu.controller && typeof menu.controller.themeIndex === "number" ? menu.controller.themeIndex : 0),
+                standResource: menu.standResource || null,
+                flipStandX: menu.flipStandX === true,
+                stats: {
+                    damageDealt: typeof stats.damageDealt === "number" ? stats.damageDealt : 0,
+                    damageTaken: typeof stats.damageTaken === "number" ? stats.damageTaken : 0,
+                    healingDone: typeof stats.healingDone === "number" ? stats.healingDone : 0,
+                    healingReceived: typeof stats.healingReceived === "number" ? stats.healingReceived : 0,
+                    timesDowned: typeof stats.timesDowned === "number" ? stats.timesDowned : 0,
+                    timesRevived: typeof stats.timesRevived === "number" ? stats.timesRevived : 0,
+                    attacksUsed: typeof stats.attacksUsed === "number" ? stats.attacksUsed : 0,
+                    defendsUsed: typeof stats.defendsUsed === "number" ? stats.defendsUsed : 0,
+                    buffsUsed: typeof stats.buffsUsed === "number" ? stats.buffsUsed : 0,
+                    itemsUsed: typeof stats.itemsUsed === "number" ? stats.itemsUsed : 0,
+                    enemiesDefeated: typeof stats.enemiesDefeated === "number" ? stats.enemiesDefeated : 0
+                },
+                bestStat: bestStat
+            });
+        }
+
+        return summary;
+    };
+
+    GraveFallGame.scene.Game.prototype.getGameOverBestStat = function (stats) {
+        var candidates = [
+            { key: "damageDealt", label: "DAMAGE DEALT", value: typeof stats.damageDealt === "number" ? stats.damageDealt : 0 },
+            { key: "healingDone", label: "HEALING DONE", value: typeof stats.healingDone === "number" ? stats.healingDone : 0 },
+            { key: "healingReceived", label: "HEALING RECEIVED", value: typeof stats.healingReceived === "number" ? stats.healingReceived : 0 },
+            { key: "enemiesDefeated", label: "ENEMIES DEFEATED", value: typeof stats.enemiesDefeated === "number" ? stats.enemiesDefeated : 0 },
+            { key: "attacksUsed", label: "ATTACKS USED", value: typeof stats.attacksUsed === "number" ? stats.attacksUsed : 0 },
+            { key: "defendsUsed", label: "DEFENDS USED", value: typeof stats.defendsUsed === "number" ? stats.defendsUsed : 0 },
+            { key: "buffsUsed", label: "BUFFS USED", value: typeof stats.buffsUsed === "number" ? stats.buffsUsed : 0 },
+            { key: "itemsUsed", label: "ITEMS USED", value: typeof stats.itemsUsed === "number" ? stats.itemsUsed : 0 },
+            { key: "timesRevived", label: "REVIVES", value: typeof stats.timesRevived === "number" ? stats.timesRevived : 0 }
+        ];
+        var best = null;
+        var i;
+
+        for (i = 0; i < candidates.length; i++) {
+            if (!best || candidates[i].value > best.value) {
+                best = candidates[i];
+            }
+        }
+
+        if (!best || best.value <= 0) {
+            return {
+                key: "survival",
+                label: "SURVIVAL",
+                value: 0
+            };
+        }
+
+        return best;
+    };
+
+    GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function () {
+        var partyName;
+        var partySize;
+        var summary;
+
+        if (this.gameOverLeaderboardSaved === true) {
+            return;
+        }
+
+        this.gameOverLeaderboardSaved = true;
+        partyName = this.getCurrentPartyName();
+        partySize = this.gameOverPartySize || (this.partyMembers && this.partyMembers.length) || (this.playerMenus && this.playerMenus.length) || 1;
+        summary = this.buildGameOverSummary();
+
+        if (summary) {
+            this.gameOverSummary = summary;
+        }
+
+        try {
+            if (typeof GraveFallGame.scene.Game.saveHighscore === "function") {
+                GraveFallGame.scene.Game.saveHighscore(partyName, this.score || 0, partySize);
+                return;
+            }
+        } catch (e) {
+        }
+
+        try {
+            if (typeof window !== "undefined" && window.localStorage) {
+                var key = "gravefall_highscores_" + partySize;
+                var scores = [];
+                var raw = window.localStorage.getItem(key);
+
+                if (raw) {
+                    scores = JSON.parse(raw) || [];
+                }
+
+                scores.push({ name: partyName, score: this.score || 0, partySize: partySize, savedAt: new Date().toISOString() });
+                scores.sort(function (a, b) { return b.score - a.score; });
+                scores = scores.slice(0, 10);
+                window.localStorage.setItem(key, JSON.stringify(scores));
+            }
+        } catch (e2) {
+        }
+    };
+
+    GraveFallGame.scene.Game.prototype.createGameOverPortrait = function (playerEntry, theme, cardWidth) {
+        var sprite;
+        var standResource = playerEntry && playerEntry.standResource ? playerEntry.standResource : null;
+        var portraitScale = 1.0;
+        var portraitWidth = 100;
+        var portraitHeight = 100;
+        var portraitX = Math.round((cardWidth / 2) - ((portraitWidth * portraitScale) / 2));
+        var portraitY = 34;
+
+        if (!standResource || !this.resourceExists(standResource)) {
+            sprite = new rune.display.Graphic(Math.round((cardWidth / 2) - 42), portraitY + 8, 84, 84);
+            sprite.backgroundColor = theme.accentDark;
+            sprite.alpha = 0.92;
+            return sprite;
+        }
+
+        sprite = new rune.display.Sprite(portraitX, portraitY, portraitWidth, portraitHeight, standResource);
+        sprite.scaleX = portraitScale;
+        sprite.scaleY = portraitScale;
+        sprite.alpha = 1;
+        sprite.flippedX = playerEntry.flipStandX === true;
+        this.applyPaletteSwaps(sprite, this.getClothingPaletteSwaps(theme));
+
+        return sprite;
+    };
+
+
+    GraveFallGame.scene.Game.prototype.sanitizeBitmapText = function (text) {
+        var safeText;
+    
+        safeText = text === undefined || text === null ? "" : String(text);
+        safeText = safeText.toUpperCase();
+    
+        // Rune's bitmap font in this project is safest with plain ASCII letters,
+        // numbers and common punctuation. Replace anything else so stat screens
+        // and leaderboard names never crash when they are rendered.
+        safeText = safeText.replace(/[^A-Z0-9 \-.:,!?\/\[\]\(\)\+]/g, " ");
+        safeText = safeText.replace(/\s{2,}/g, " ").trim();
+    
+        return safeText;
+    };
+
+    GraveFallGame.scene.Game.prototype.createGameOverStatLine = function (text, x, y, width, color) {
+        var safeText = this.sanitizeBitmapText ? this.sanitizeBitmapText(text) : String(text || "");
+        var field = new rune.text.BitmapField(safeText);
+
+        field.width = width;
+        field.scaleX = 0.95;
+        field.scaleY = 0.95;
+        field.x = x;
+        field.y = y;
+
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(field, color || "#FFFFFF", true);
+        }
+
+        return field;
+    };
+
+    GraveFallGame.scene.Game.prototype.createGameOverStatsCard = function (x, y, width, height, playerEntry, uiSkin) {
+        var card = new rune.display.DisplayObjectContainer(x, y, width, height);
+        var bgTop = new rune.display.Graphic(0, 0, width, Math.round(height * 0.38));
+        var bgBottom = new rune.display.Graphic(0, Math.round(height * 0.38), width, Math.round(height * 0.62));
+        var accent = new rune.display.Graphic(0, 0, 8, height);
+        var portraitBg = new rune.display.Graphic(14, 28, width - 28, 132);
+        var badgeBg = new rune.display.Graphic(18, 10, width - 36, 22);
+        var badgeText = new rune.text.BitmapField("");
+        var nameText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText(playerEntry.name || "PLAYER") : String(playerEntry.name || "PLAYER"));
+        var stats = playerEntry.stats || {};
+        var bestStat = playerEntry.bestStat || this.getGameOverBestStat(stats);
+        var theme = this.getPlayerTheme(playerEntry.themeIndex || 0);
+        var portrait = this.createGameOverPortrait(playerEntry, theme, width);
+        var statRowsLeft = [
+            { label: "DMG DEALT", value: stats.damageDealt },
+            { label: "DMG TAKEN", value: stats.damageTaken },
+            { label: "HEAL DONE", value: stats.healingDone },
+            { label: "HEAL RCVD", value: stats.healingReceived },
+            { label: "DOWNED", value: stats.timesDowned }
+        ];
+        var statRowsRight = [
+            { label: "ATTACKS", value: stats.attacksUsed },
+            { label: "DEFENDS", value: stats.defendsUsed },
+            { label: "BUFFS", value: stats.buffsUsed },
+            { label: "ITEMS", value: stats.itemsUsed },
+            { label: "KOs", value: stats.enemiesDefeated }
+        ];
+        var statTextY = 188;
+        var statLeftX = 18;
+        var statRightX = Math.floor(width / 2) + 4;
+        var statLineGap = 21;
+        var i;
+        var statLine;
+        var footerText;
+
+        bgTop.backgroundColor = uiSkin.panelTop;
+        bgBottom.backgroundColor = uiSkin.panelBottom;
+        bgBottom.alpha = 0.97;
+        accent.backgroundColor = theme.accent;
+        portraitBg.backgroundColor = uiSkin.panelTop;
+        portraitBg.alpha = 0.88;
+        badgeBg.backgroundColor = theme.accentDark;
+        badgeBg.alpha = 0.98;
+
+        badgeText.text = this.sanitizeBitmapText ? this.sanitizeBitmapText("BEST: " + (bestStat.label || "")) : ("BEST: " + (bestStat.label || ""));
+        badgeText.width = width - 44;
+        badgeText.scaleX = 1.0;
+        badgeText.scaleY = 1.0;
+        badgeText.x = 28;
+        badgeText.y = 14;
+
+        nameText.width = width - 24;
+        nameText.scaleX = 1.5;
+        nameText.scaleY = 1.5;
+        nameText.x = Math.round((width / 2) - ((nameText.text.length * 6 * 1.5) / 2));
+        nameText.y = 150;
+
+        if (portrait) {
+            card.addChild(portrait);
+        }
+
+        card.addChild(bgTop);
+        card.addChild(bgBottom);
+        card.addChild(portraitBg);
+        card.addChild(badgeBg);
+        card.addChild(accent);
+        card.addChild(badgeText);
+        card.addChild(nameText);
+
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(badgeText, theme.accentLight, true);
+            this.tintBitmapFieldText(nameText, theme.accentLight, true);
+        }
+
+        for (i = 0; i < statRowsLeft.length; i++) {
+            statLine = this.createGameOverStatLine(
+                statRowsLeft[i].label + ": " + String(statRowsLeft[i].value || 0),
+                statLeftX,
+                statTextY + (i * statLineGap),
+                Math.floor(width / 2) - 24,
+                uiSkin.frame.light
+            );
+            card.addChild(statLine);
+        }
+
+        for (i = 0; i < statRowsRight.length; i++) {
+            statLine = this.createGameOverStatLine(
+                statRowsRight[i].label + ": " + String(statRowsRight[i].value || 0),
+                statRightX,
+                statTextY + (i * statLineGap),
+                Math.floor(width / 2) - 24,
+                uiSkin.frame.light
+            );
+            card.addChild(statLine);
+        }
+
+        footerText = this.createGameOverStatLine(
+            "BEST: " + (this.sanitizeBitmapText ? this.sanitizeBitmapText(bestStat.label || "") : (bestStat.label || "")) + " - " + String(bestStat.value || 0),
+            18,
+            height - 26,
+            width - 36,
+            theme.accentLight
+        );
+        card.addChild(footerText);
+
+        card.addChild(this.createBoxFrame(0, 0, width, height, this.getFramePaletteSwaps(uiSkin)));
+
+        return card;
+    };
+
+    GraveFallGame.scene.Game.prototype.renderGameOverStats = function () {
+        var screen = this.application.screen;
+        var summary = this.gameOverSummary || this.buildGameOverSummary();
+        var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+        var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
+        var panelX = 44;
+        var panelY = 34;
+        var panelW = screen.width - 88;
+        var panelH = screen.height - 112;
+        var headerY = 16;
+        var cardsY = 122;
+        var cardGap = 16;
+        var cardWidth;
+        var cardHeight = 330;
+        var totalWidth;
+        var startX;
+        var i;
+        var card;
+        var titleText;
+        var partyText;
+        var scoreText;
+
+        if (this.gameOverStatsPanel && this.gameOverStatsPanel.parent) {
+            this.gameOverStatsPanel.parent.removeChild(this.gameOverStatsPanel, true);
+        }
+
+        this.gameOverStatsPanel = new rune.display.DisplayObjectContainer(panelX, panelY, panelW, panelH);
+        this.gameOverStatsPanel.backgroundColor = uiSkin.panelBottom;
+        this.gameOverStatsPanel.alpha = 0.98;
+        this.gameOverStatsPanel.addChild(this.createBoxFrame(0, 0, panelW, panelH, framePaletteSwaps));
+        this.stage.addChild(this.gameOverStatsPanel);
+
+        titleText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("POST-BATTLE STATS") : "POST-BATTLE STATS");
+        titleText.width = 1200;
+        titleText.scaleX = 3;
+        titleText.scaleY = 3;
+        titleText.x = Math.round((panelW / 2) - ((titleText.text.length * 6 * 3) / 2));
+        titleText.y = headerY;
+        this.gameOverStatsPanel.addChild(titleText);
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(titleText, uiSkin.frame.light, true);
+        }
+
+        partyText = new rune.text.BitmapField("PARTY: " + (this.sanitizeBitmapText ? this.sanitizeBitmapText(summary.partyName || "THE FALLEN") : String(summary.partyName || "THE FALLEN")));
+        partyText.width = 1200;
+        partyText.scaleX = 2;
+        partyText.scaleY = 2;
+        partyText.x = Math.round((panelW / 2) - ((partyText.text.length * 6 * 2) / 2));
+        partyText.y = 56;
+        this.gameOverStatsPanel.addChild(partyText);
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(partyText, uiSkin.frame.light, true);
+        }
+
+        scoreText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("FINAL SCORE: " + String(summary.score)) : ("FINAL SCORE: " + String(summary.score)));
+        scoreText.width = 800;
+        scoreText.scaleX = 1.8;
+        scoreText.scaleY = 1.8;
+        scoreText.x = Math.round((panelW / 2) - ((scoreText.text.length * 6 * 1.8) / 2));
+        scoreText.y = 86;
+        this.gameOverStatsPanel.addChild(scoreText);
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(scoreText, uiSkin.frame.light, true);
+        }
+
+        if (this.gameOverCards) {
+            for (i = 0; i < this.gameOverCards.length; i++) {
+                if (this.gameOverCards[i] && this.gameOverCards[i].parent) {
+                    this.gameOverCards[i].parent.removeChild(this.gameOverCards[i], true);
+                }
+            }
+        }
+
+        this.gameOverCards = [];
+
+        if (!summary.players || summary.players.length <= 0) {
+            var noPlayers = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("NO PARTY DATA AVAILABLE") : "NO PARTY DATA AVAILABLE");
+            noPlayers.width = 1000;
+            noPlayers.scaleX = 1.6;
+            noPlayers.scaleY = 1.6;
+            noPlayers.x = Math.round((panelW / 2) - ((noPlayers.text.length * 6 * 1.6) / 2));
+            noPlayers.y = 210;
+            this.gameOverStatsPanel.addChild(noPlayers);
+            if (typeof this.tintBitmapFieldText === "function") {
+                this.tintBitmapFieldText(noPlayers, uiSkin.frame.light, true);
+            }
+        } else {
+            cardGap = summary.players.length > 4 ? 10 : 16;
+            cardWidth = Math.floor((panelW - 40 - (cardGap * (summary.players.length - 1))) / summary.players.length);
+            cardWidth = Math.max(230, Math.min(280, cardWidth));
+            totalWidth = (cardWidth * summary.players.length) + (cardGap * (summary.players.length - 1));
+            startX = Math.round((panelW - totalWidth) / 2);
+
+            for (i = 0; i < summary.players.length; i++) {
+                card = this.createGameOverStatsCard(startX + (i * (cardWidth + cardGap)), cardsY, cardWidth, cardHeight, summary.players[i], uiSkin);
+                this.gameOverStatsPanel.addChild(card);
+                this.gameOverCards.push(card);
+            }
+        }
+
+        if (!this.gameOverCountdownText) {
+            this.gameOverCountdownText = new rune.text.BitmapField("");
+            this.gameOverCountdownText.width = 1200;
+            this.gameOverCountdownText.scaleX = 1.5;
+            this.gameOverCountdownText.scaleY = 1.5;
+            this.gameOverStatsPanel.addChild(this.gameOverCountdownText);
+        }
+
+        this.gameOverCountdownText.text = this.sanitizeBitmapText ? this.sanitizeBitmapText("LEADERBOARD IN 20 SECONDS") : "LEADERBOARD IN 20 SECONDS";
+        this.gameOverCountdownText.x = Math.round((panelW / 2) - ((this.gameOverCountdownText.text.length * 6 * 1.5) / 2));
+        this.gameOverCountdownText.y = panelH - 54;
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(this.gameOverCountdownText, uiSkin.frame.light, true);
+        }
+
+        if (!this.gameOverInstruction) {
+            this.gameOverInstruction = new rune.text.BitmapField("");
+            this.gameOverInstruction.width = 1200;
+            this.gameOverInstruction.scaleX = 1.5;
+            this.gameOverInstruction.scaleY = 1.5;
+            this.gameOverStatsPanel.addChild(this.gameOverInstruction);
+        }
+
+        this.gameOverInstruction.text = this.sanitizeBitmapText ? this.sanitizeBitmapText("PRESS [SPACE] OR [A] TO CONTINUE") : "PRESS [SPACE] OR [A] TO CONTINUE";
+        this.gameOverInstruction.x = Math.round((panelW / 2) - ((this.gameOverInstruction.text.length * 6 * 1.5) / 2));
+        this.gameOverInstruction.y = panelH - 28;
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(this.gameOverInstruction, uiSkin.frame.light, true);
+        }
+    };
+
+    GraveFallGame.scene.Game.prototype.updateGameOver = function (step) {
+        var continuePressed = false;
+        var i;
+        var gp;
+        var remainingSeconds;
+        var stepMs;
+
+        stepMs = typeof step === "number" && isFinite(step) ? step : 16;
+        this.gameOverTimer++;
+        this.gameOverTimerMs = (this.gameOverTimerMs || 0) + stepMs;
+
+        if (this.gameOverInstruction) {
+            this.gameOverInstruction.alpha = (Math.floor(this.gameOverTimer / 30) % 2 === 0) ? 1 : 0;
+        }
+
+        remainingSeconds = Math.max(0, Math.ceil(((this.gameOverDisplayDurationMs || 20000) - this.gameOverTimerMs) / 1000));
+
+        if (this.gameOverCountdownText) {
+            this.gameOverCountdownText.text = "LEADERBOARD IN " + remainingSeconds + " SECONDS";
+            this.gameOverCountdownText.x = Math.round((this.gameOverStatsPanel.width / 2) - ((this.gameOverCountdownText.text.length * 6 * 1.5) / 2));
+        }
+
+        if (this.keyboard.justPressed("space") || this.keyboard.justPressed("enter")) {
+            continuePressed = true;
+        }
+
+        for (i = 0; i < 4 && continuePressed !== true; i++) {
+            try {
+                gp = this.gamepads.get(i);
+            } catch (e) {
+                gp = null;
+            }
+
+            if (gp && gp.connected && gp.justPressed(0)) {
+                continuePressed = true;
+            }
+        }
+
+        if (!(this.isDevConsoleInputActive && this.isDevConsoleInputActive()) && (continuePressed === true || this.gameOverTimerMs >= (this.gameOverDisplayDurationMs || 20000))) {
+            this.application.scenes.load([
+                new GraveFallGame.scene.Leaderboard(this.gameOverPartySize)
+            ]);
+        }
+    };
+
+    GraveFallGame.scene.Game.prototype.dispose = function () {
+        var i;
+
+        if (this.gameOverCards) {
+            for (i = 0; i < this.gameOverCards.length; i++) {
+                if (this.gameOverCards[i] && this.gameOverCards[i].parent) {
+                    this.gameOverCards[i].parent.removeChild(this.gameOverCards[i], true);
+                }
+            }
+        }
+
+        if (this.gameOverStatsPanel && this.gameOverStatsPanel.parent) {
+            this.gameOverStatsPanel.parent.removeChild(this.gameOverStatsPanel, true);
+        }
+
+        this.gameOverStatsPanel = null;
+        this.gameOverCards = null;
+        this.gameOverTitleText = null;
+        this.gameOverScoreText = null;
+        this.gameOverCountdownText = null;
+        this.gameOverInstruction = null;
+
+        if (typeof originalDispose === "function") {
+            originalDispose.call(this);
+        }
+    };
+})();
+

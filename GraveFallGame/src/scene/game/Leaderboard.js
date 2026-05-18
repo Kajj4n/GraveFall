@@ -51,6 +51,17 @@ GraveFallGame.scene.Leaderboard.prototype.isDevConsoleInputActive = GraveFallGam
 // Overrides
 //------------------------------------------------------------------------------
 
+GraveFallGame.scene.Leaderboard.prototype.sanitizeBitmapText = function (text) {
+    var safeText;
+
+    safeText = text === undefined || text === null ? "" : String(text);
+    safeText = safeText.toUpperCase();
+    safeText = safeText.replace(/[^A-Z0-9 \-.:,!?\/\[\]\(\)\+]/g, " ");
+    safeText = safeText.replace(/\s{2,}/g, " ").trim();
+
+    return safeText;
+};
+
 GraveFallGame.scene.Leaderboard.prototype.init = function () {
     rune.scene.Scene.prototype.init.call(this);
     var screen = this.application.screen;
@@ -80,7 +91,7 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
     shell.addChild(this.createBoxFrame(0, 0, shell.width, shell.height, framePaletteSwaps));
     this.stage.addChild(shell);
 
-    var title = new rune.text.BitmapField("HALL OF FAME");
+    var title = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("HALL OF FAME") : "HALL OF FAME");
     title.width = 1000;
     title.scaleX = 3.3; title.scaleY = 3.3;
     title.x = Math.round(screen.centerX - ((title.text.length * 6 * 3.3) / 2));
@@ -94,7 +105,7 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
     footer.addChild(this.createSeparator(0, 0, screen.width, framePaletteSwaps));
     this.stage.addChild(footer);
 
-    var footerText = new rune.text.BitmapField("LEFT/RIGHT OR D-PAD CHANGE TAB    B/BACKSPACE/ESC RETURN TO MENU");
+    var footerText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("LEFT/RIGHT OR D-PAD CHANGE TAB    B/BACKSPACE/ESC RETURN TO MENU") : "LEFT/RIGHT OR D-PAD CHANGE TAB    B/BACKSPACE/ESC RETURN TO MENU");
     footerText.width = 1200;
     footerText.scaleX = 1.2; footerText.scaleY = 1.2;
     footerText.x = Math.round(screen.centerX - ((footerText.text.length * 6 * 1.2) / 2));
@@ -205,7 +216,7 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
     startY = 30;
 
     if (scores.length === 0) {
-        var emptyText = new rune.text.BitmapField("NO RECORDS YET");
+        var emptyText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("NO RECORDS YET") : "NO RECORDS YET");
         emptyText.width = 800;
         emptyText.scaleX = 2;
         emptyText.scaleY = 2;
@@ -218,7 +229,7 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
             var entry = scores[i];
             var rankStr = String(i + 1) + ".";
             var rankText = new rune.text.BitmapField(rankStr);
-            var nameText = new rune.text.BitmapField(entry.name || "UNKNOWN PARTY");
+            var nameText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText(entry.name || "UNKNOWN PARTY") : String(entry.name || "UNKNOWN PARTY"));
             var scoreText = new rune.text.BitmapField(String(entry.score));
 
             var scale = 1.8;
