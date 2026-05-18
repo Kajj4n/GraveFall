@@ -1844,7 +1844,7 @@ GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, 
         target = targets[i];
 
         if (buffType === "maxHp") {
-            amount = Math.max(4, Math.ceil(target.healthMax * 0.08));
+            amount = 30;
             target.healthMax += amount;
             this.applyHealthGainToPlayer(target, amount);
         } else if (buffType === "attack") {

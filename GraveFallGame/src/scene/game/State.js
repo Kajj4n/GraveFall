@@ -869,7 +869,10 @@ GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
     repeatCount = profile ? profile.repeatCount : 0;
     actionScale = profile ? profile.actionDurationScale : 1.0;
 
-    scaledConfig.hpMax = Math.max(1, Math.floor((baseConfig.hpMax || 1) + (profile ? profile.hpBonus : 0)));
+    playerCount = this.partyMembers ? this.partyMembers.length : (this.getAllPlayerMenus ? this.getAllPlayerMenus().length : (this.playerMenus ? this.playerMenus.length : 1));
+    playerCount = Math.max(1, playerCount || 1);
+
+    scaledConfig.hpMax = Math.max(1, Math.floor(((baseConfig.hpMax || 1) + (profile ? profile.hpBonus : 0)) * playerCount));
     scaledConfig.actionPhaseDuration = Math.max(1, Math.floor((baseConfig.actionPhaseDuration || 230) * actionScale));
     scaledConfig.patternInterval = Math.max(
         1,
