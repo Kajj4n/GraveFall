@@ -863,6 +863,17 @@ GraveFallGame.scene.Game.prototype.getEnemyDifficultyProfile = function (enemyTy
     };
 };
 
+GraveFallGame.scene.Game.prototype.rememberLastEncounterType = function (enemyType) {
+    var key = enemyType || this.currentEnemyType || "ghoul";
+    var config = GraveFallGame.scene.Game.ENEMIES[key] || GraveFallGame.scene.Game.ENEMIES.ghoul;
+
+    if (config && config.isBoss === true) {
+        this.lastBossEnemyType = key;
+    } else {
+        this.lastNormalEnemyType = key;
+    }
+};
+
 GraveFallGame.scene.Game.prototype.registerEnemyEncounter = function (enemyType) {
     var key;
     var profile;
@@ -873,6 +884,7 @@ GraveFallGame.scene.Game.prototype.registerEnemyEncounter = function (enemyType)
 
     key = enemyType || this.currentEnemyType || "ghoul";
     this.enemyDifficultyCounts[key] = (this.enemyDifficultyCounts[key] || 0) + 1;
+    this.rememberLastEncounterType(key);
     profile = this.getEnemyDifficultyProfile(key);
     this.currentEnemyDifficulty = profile;
 
@@ -1480,23 +1492,40 @@ GraveFallGame.scene.Game.prototype.getEnemyTypesByBossFlag = function (isBoss) {
     return enemyTypes;
 };
 
-GraveFallGame.scene.Game.prototype.getRandomEnemyType = function (enemyTypes) {
+GraveFallGame.scene.Game.prototype.getRandomEnemyType = function (enemyTypes, avoidEnemyType) {
+    var candidates = [];
+    var i;
+
     if (!enemyTypes || enemyTypes.length <= 0) {
         return "ghoul";
     }
 
-    return enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+    if (avoidEnemyType && enemyTypes.length > 1) {
+        for (i = 0; i < enemyTypes.length; i++) {
+            if (enemyTypes[i] !== avoidEnemyType) {
+                candidates.push(enemyTypes[i]);
+            }
+        }
+    }
+
+    if (candidates.length <= 0) {
+        candidates = enemyTypes;
+    }
+
+    return candidates[Math.floor(Math.random() * candidates.length)];
 };
 
 GraveFallGame.scene.Game.prototype.getEnemyTypeForEncounter = function (encounterIndex) {
     var isBossEncounter = (encounterIndex + 1) % 3 === 0;
     var enemyTypes = this.getEnemyTypesByBossFlag(isBossEncounter);
+    var avoidEnemyType = isBossEncounter === true ? this.lastBossEnemyType : this.lastNormalEnemyType;
 
     if (enemyTypes.length <= 0) {
         enemyTypes = this.getEnemyTypesByBossFlag(!isBossEncounter);
+        avoidEnemyType = isBossEncounter === true ? this.lastNormalEnemyType : this.lastBossEnemyType;
     }
 
-    return this.getRandomEnemyType(enemyTypes);
+    return this.getRandomEnemyType(enemyTypes, avoidEnemyType);
 };
 
 GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {

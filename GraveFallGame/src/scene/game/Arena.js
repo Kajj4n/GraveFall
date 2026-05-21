@@ -667,6 +667,8 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     );
     this.enemySprite.scaleX = 3.2;
     this.enemySprite.scaleY = 3.2;
+    this.enemyEntranceBaseScaleX = this.enemySprite.scaleX;
+    this.enemyEntranceBaseScaleY = this.enemySprite.scaleY;
     this.enemySprite.x = (this.application.screen.width / 1) - ((this.enemySprite.width * this.enemySprite.scaleX) / 1.28);
     this.enemySprite.y = 180;
     this.enemyPreviewBaseX = this.enemySprite.x;
@@ -699,6 +701,7 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     this.enemyDefeatedSoundPlayed = false;
 
     this.rebuildEnemySprite(fadeIn);
+    this.resetBossEntranceState();
     this.updateEnemyHealthBarUi();
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(alpha);
@@ -933,6 +936,118 @@ GraveFallGame.scene.Game.prototype.startNextEnemyEncounter = function () {
     this.finishEnemyDefeatedTransitionToCommand();
 };
 
+GraveFallGame.scene.Game.prototype.resetBossEntranceState = function () {
+    this.bossEntranceState = null;
+    this.bossEntranceComplete = false;
+
+    if (this.enemySprite) {
+        this.enemySprite.x = typeof this.enemyPreviewBaseX === "number" ? this.enemyPreviewBaseX : this.enemySprite.x;
+        this.enemySprite.y = typeof this.enemyPreviewBaseY === "number" ? this.enemyPreviewBaseY : this.enemySprite.y;
+        this.enemySprite.scaleX = typeof this.enemyEntranceBaseScaleX === "number" ? this.enemyEntranceBaseScaleX : this.enemySprite.scaleX;
+        this.enemySprite.scaleY = typeof this.enemyEntranceBaseScaleY === "number" ? this.enemyEntranceBaseScaleY : this.enemySprite.scaleY;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.isBossEntranceRequiredForCurrentEncounter = function () {
+    var enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+
+    return !!(enemyConfig && enemyConfig.isBoss === true && this.passageTransitionEncounterLoaded === true);
+};
+
+GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function (elapsedMs, entranceStartMs) {
+    var localMs = elapsedMs - entranceStartMs;
+    var stomps = [
+        { time: 0, alpha: 0.18, shakeX: 8, shakeY: 6, volume: 0.45 },
+        { time: 360, alpha: 0.38, shakeX: 10, shakeY: 8, volume: 0.52 },
+        { time: 720, alpha: 0.62, shakeX: 12, shakeY: 10, volume: 0.6 },
+        { time: 1080, alpha: 0.84, shakeX: 14, shakeY: 12, volume: 0.68 },
+        { time: 1440, alpha: 1, shakeX: 18, shakeY: 15, volume: 0.78 }
+    ];
+    var roars = [
+        { time: 1740, shakeX: 22, shakeY: 18, volume: 0.9 },
+        { time: 2040, shakeX: 18, shakeY: 14, volume: 0.82 },
+        { time: 2340, shakeX: 14, shakeY: 11, volume: 0.74 }
+    ];
+    var completeMs = 2780;
+    var alpha = 0;
+    var stompIndex = -1;
+    var state;
+    var i;
+    var impactAge;
+    var impactStrength;
+
+    if (!this.bossEntranceState || this.bossEntranceState.enemyType !== this.currentEnemyType) {
+        this.bossEntranceState = {
+            enemyType: this.currentEnemyType,
+            lastStompIndex: -1,
+            lastRoarIndex: -1
+        };
+        this.bossEntranceComplete = false;
+    }
+
+    state = this.bossEntranceState;
+
+    if (localMs < 0) {
+        this.setEnemyUiAlpha(0);
+        return false;
+    }
+
+    for (i = 0; i < stomps.length; i++) {
+        if (localMs >= stomps[i].time) {
+            stompIndex = i;
+            alpha = stomps[i].alpha;
+        }
+    }
+
+    if (stompIndex >= 0) {
+        while (state.lastStompIndex < stompIndex) {
+            state.lastStompIndex++;
+            this.shakeCamera(280, stomps[state.lastStompIndex].shakeX, stomps[state.lastStompIndex].shakeY, true);
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, stomps[state.lastStompIndex].volume);
+        }
+    }
+
+    for (i = 0; i < roars.length; i++) {
+        if (localMs >= roars[i].time && state.lastRoarIndex < i) {
+            state.lastRoarIndex = i;
+            this.shakeCamera(i === 0 ? 520 : 360, roars[i].shakeX, roars[i].shakeY, true);
+            this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, roars[i].volume);
+        }
+    }
+
+    this.setEnemyUiAlpha(alpha);
+
+    if (this.enemySprite) {
+        if (stompIndex >= 0) {
+            impactAge = localMs - stomps[stompIndex].time;
+            impactStrength = impactAge < 180 ? (1 - (impactAge / 180)) : 0;
+        } else {
+            impactStrength = 0;
+        }
+
+        this.enemySprite.x = (typeof this.enemyPreviewBaseX === "number" ? this.enemyPreviewBaseX : this.enemySprite.x);
+        this.enemySprite.y = (typeof this.enemyPreviewBaseY === "number" ? this.enemyPreviewBaseY : this.enemySprite.y) - Math.round(12 * impactStrength);
+        this.enemySprite.scaleX = (typeof this.enemyEntranceBaseScaleX === "number" ? this.enemyEntranceBaseScaleX : 3.2) + (0.14 * impactStrength);
+        this.enemySprite.scaleY = (typeof this.enemyEntranceBaseScaleY === "number" ? this.enemyEntranceBaseScaleY : 3.2) + (0.14 * impactStrength);
+    }
+
+    if (localMs >= completeMs) {
+        this.bossEntranceComplete = true;
+        this.setEnemyUiAlpha(1);
+
+        if (this.enemySprite) {
+            this.enemySprite.x = typeof this.enemyPreviewBaseX === "number" ? this.enemyPreviewBaseX : this.enemySprite.x;
+            this.enemySprite.y = typeof this.enemyPreviewBaseY === "number" ? this.enemyPreviewBaseY : this.enemySprite.y;
+            this.enemySprite.scaleX = typeof this.enemyEntranceBaseScaleX === "number" ? this.enemyEntranceBaseScaleX : this.enemySprite.scaleX;
+            this.enemySprite.scaleY = typeof this.enemyEntranceBaseScaleY === "number" ? this.enemyEntranceBaseScaleY : this.enemySprite.scaleY;
+        }
+
+        return true;
+    }
+
+    return false;
+};
+
 GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step) {
     var elapsedMs;
     var playerFadeStartMs;
@@ -948,6 +1063,7 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     var playerFadeOutEndMs;
     var walkStartMs;
     var blackStartMs;
+    var bossEntranceComplete;
 
     this.enemyDefeatedTimerMs -= step;
     this.passageTransitionTimerMs += step;
@@ -1012,61 +1128,88 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     }
 
     if (this.passageTransitionEncounterLoaded === true) {
-        if (elapsedMs < enemyFadeStartMs) {
-            enemyAlpha = 0;
-        } else if (elapsedMs < enemyFadeEndMs) {
-            enemyAlpha = this.easePassageTransition((elapsedMs - enemyFadeStartMs) / Math.max(1, enemyFadeEndMs - enemyFadeStartMs));
-        } else {
-            enemyAlpha = 1;
-        }
+        if (this.isBossEntranceRequiredForCurrentEncounter()) {
+            bossEntranceComplete = this.updateBossEntranceDuringTransition(elapsedMs, enemyFadeStartMs);
 
-        this.setEnemyUiAlpha(enemyAlpha);
-
-        if (elapsedMs < playerFadeStartMs) {
-            playerAlpha = 0;
-        } else if (elapsedMs < playerFadeEndMs) {
-            playerAlpha = this.easePassageTransition((elapsedMs - playerFadeStartMs) / Math.max(1, playerFadeEndMs - playerFadeStartMs));
-        } else {
-            playerAlpha = 1;
-        }
-
-        if (elapsedMs < actionsFadeStartMs) {
-            actionsAlpha = 0;
-            this.setPlayerTransitionVisibility(playerAlpha > 0, false);
-            this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
-            this.turnTimerText.visible = false;
-            this.turnTimerText.alpha = 0;
-        } else if (elapsedMs < actionsFadeEndMs) {
-            actionsAlpha = this.easePassageTransition((elapsedMs - actionsFadeStartMs) / Math.max(1, actionsFadeEndMs - actionsFadeStartMs));
-            this.setPlayerTransitionVisibility(true, true);
-            if (elapsedMs < playerFadeEndMs) {
+            if (elapsedMs < playerFadeStartMs) {
+                playerAlpha = 0;
+            } else if (elapsedMs < playerFadeEndMs) {
                 playerAlpha = this.easePassageTransition((elapsedMs - playerFadeStartMs) / Math.max(1, playerFadeEndMs - playerFadeStartMs));
             } else {
                 playerAlpha = 1;
             }
-            this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
-            this.turnTimerText.visible = true;
-            this.turnTimerText.alpha = actionsAlpha;
-            this.turnTimerText.text = this.getTurnTimerLabel();
-        } else {
-            actionsAlpha = 1;
-            this.setEnemyUiAlpha(1);
-            this.setPlayerTransitionVisibility(true, true);
-            this.setPlayerTransitionAlpha(1, 1);
-            this.setPlayerActionMenusVisible(true);
-            this.turnTimerText.visible = true;
-            this.turnTimerText.alpha = 1;
-            this.turnTimerText.text = this.getTurnTimerLabel();
 
-            if (this.passageTransitionActionsShown !== true) {
+            this.setPlayerTransitionVisibility(playerAlpha > 0, false);
+            this.setPlayerTransitionAlpha(playerAlpha, 0);
+            this.turnTimerText.visible = false;
+            this.turnTimerText.alpha = 0;
+
+            if (bossEntranceComplete === true && this.passageTransitionActionsShown !== true) {
                 this.passageTransitionActionsShown = true;
                 this.finishEnemyDefeatedTransitionToCommand();
                 return;
+            }
+        } else {
+            if (elapsedMs < enemyFadeStartMs) {
+                enemyAlpha = 0;
+            } else if (elapsedMs < enemyFadeEndMs) {
+                enemyAlpha = this.easePassageTransition((elapsedMs - enemyFadeStartMs) / Math.max(1, enemyFadeEndMs - enemyFadeStartMs));
+            } else {
+                enemyAlpha = 1;
+            }
+
+            this.setEnemyUiAlpha(enemyAlpha);
+
+            if (elapsedMs < playerFadeStartMs) {
+                playerAlpha = 0;
+            } else if (elapsedMs < playerFadeEndMs) {
+                playerAlpha = this.easePassageTransition((elapsedMs - playerFadeStartMs) / Math.max(1, playerFadeEndMs - playerFadeStartMs));
+            } else {
+                playerAlpha = 1;
+            }
+
+            if (elapsedMs < actionsFadeStartMs) {
+                actionsAlpha = 0;
+                this.setPlayerTransitionVisibility(playerAlpha > 0, false);
+                this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
+                this.turnTimerText.visible = false;
+                this.turnTimerText.alpha = 0;
+            } else if (elapsedMs < actionsFadeEndMs) {
+                actionsAlpha = this.easePassageTransition((elapsedMs - actionsFadeStartMs) / Math.max(1, actionsFadeEndMs - actionsFadeStartMs));
+                this.setPlayerTransitionVisibility(true, true);
+                if (elapsedMs < playerFadeEndMs) {
+                    playerAlpha = this.easePassageTransition((elapsedMs - playerFadeStartMs) / Math.max(1, playerFadeEndMs - playerFadeStartMs));
+                } else {
+                    playerAlpha = 1;
+                }
+                this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
+                this.turnTimerText.visible = true;
+                this.turnTimerText.alpha = actionsAlpha;
+                this.turnTimerText.text = this.getTurnTimerLabel();
+            } else {
+                actionsAlpha = 1;
+                this.setEnemyUiAlpha(1);
+                this.setPlayerTransitionVisibility(true, true);
+                this.setPlayerTransitionAlpha(1, 1);
+                this.setPlayerActionMenusVisible(true);
+                this.turnTimerText.visible = true;
+                this.turnTimerText.alpha = 1;
+                this.turnTimerText.text = this.getTurnTimerLabel();
+
+                if (this.passageTransitionActionsShown !== true) {
+                    this.passageTransitionActionsShown = true;
+                    this.finishEnemyDefeatedTransitionToCommand();
+                    return;
+                }
             }
         }
     }
 
     if (this.enemyDefeatedTimerMs <= 0) {
+        if (this.isBossEntranceRequiredForCurrentEncounter() && this.bossEntranceComplete !== true) {
+            return;
+        }
+
         this.finishEnemyDefeatedTransitionToCommand();
     }
 };

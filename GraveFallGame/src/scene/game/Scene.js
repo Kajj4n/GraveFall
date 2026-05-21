@@ -11,6 +11,8 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.outsideUiSkin = this.runPalette.outside;
 
     this.encounterIndex = 0;
+    this.lastNormalEnemyType = null;
+    this.lastBossEnemyType = null;
     this.currentEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
     this.enemyDifficultyCounts = {};
     this.currentEnemyDifficulty = null;
@@ -57,6 +59,10 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyFadeTimerMs = 0;
     this.enemyFadeDurationMs = 1500;
     this.enemyDefeatedTimerMs = 0;
+    this.bossEntranceState = null;
+    this.bossEntranceComplete = false;
+    this.enemyEntranceBaseScaleX = 3.2;
+    this.enemyEntranceBaseScaleY = 3.2;
 
     // --- SCORE SYSTEM ---
     this.score = 0;
@@ -937,6 +943,12 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyFadeTimerMs = null;
     this.enemyFadeDurationMs = null;
     this.enemyDefeatedTimerMs = null;
+    this.bossEntranceState = null;
+    this.bossEntranceComplete = null;
+    this.enemyEntranceBaseScaleX = null;
+    this.enemyEntranceBaseScaleY = null;
+    this.lastNormalEnemyType = null;
+    this.lastBossEnemyType = null;
     this.encounterIndex = null;
     this.commandMenuResetDone = null;
     this.passageTransitionTimerMs = null;
