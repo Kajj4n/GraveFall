@@ -799,6 +799,30 @@ GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
     killed: "Goblin_Killed_T"
 };
 
+GraveFallGame.scene.Game.CRYPT_IMPALER_DAMAGE_STATE_RESOURCES = {
+    hp100: "CryptImpaler_Idle_T",
+    hp75: "CryptImpaler_Bruised_T",
+    hp50: "CryptImpaler_Hurt_T",
+    hp25: "CryptImpaler_Dying_T",
+    killed: "CryptImpaler_Killed_T"
+};
+
+GraveFallGame.scene.Game.BONE_CALLER_DAMAGE_STATE_RESOURCES = {
+    hp100: "BoneCaller_Idle_T",
+    hp75: "BoneCaller_Bruised_T",
+    hp50: "BoneCaller_Hurt_T",
+    hp25: "BoneCaller_Dying_T",
+    killed: "BoneCaller_Killed_T"
+};
+
+GraveFallGame.scene.Game.CRYSTAL_HUSK_DAMAGE_STATE_RESOURCES = {
+    hp100: "CrystalHusk_Idle_T",
+    hp75: "CrystalHusk_Bruised_T",
+    hp50: "CrystalHusk_Hurt_T",
+    hp25: "CrystalHusk_Dying_T",
+    killed: "CrystalHusk_Killed_T"
+};
+
 // --- DYNAMIC ENEMY SCALING ---
 GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_REPEAT = 10;
 GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_REPEAT = 0.03;
@@ -885,8 +909,8 @@ GraveFallGame.scene.Game.ENEMIES = {
     cryptImpaler: {
         name: "Crypt Impaler",
         isBoss: false,
-        resource: "Ghoul_Idle_T",
-        damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
+        resource: "CryptImpaler_Idle_T",
+        damageStateResources: GraveFallGame.scene.Game.CRYPT_IMPALER_DAMAGE_STATE_RESOURCES,
         hpMax: 120,
         actionPhaseDuration: 270,
         patternInterval: 42,
@@ -899,8 +923,8 @@ GraveFallGame.scene.Game.ENEMIES = {
     boneCaller: {
         name: "Bone Caller",
         isBoss: false,
-        resource: "Ghoul_Idle_T",
-        damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
+        resource: "BoneCaller_Idle_T",
+        damageStateResources: GraveFallGame.scene.Game.BONE_CALLER_DAMAGE_STATE_RESOURCES,
         hpMax: 105,
         actionPhaseDuration: 280,
         patternInterval: 38,
@@ -914,8 +938,8 @@ GraveFallGame.scene.Game.ENEMIES = {
     crystalHusk: {
         name: "Crystal Husk",
         isBoss: false,
-        resource: "Ghoul_Idle_T",
-        damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
+        resource: "CrystalHusk_Idle_T",
+        damageStateResources: GraveFallGame.scene.Game.CRYSTAL_HUSK_DAMAGE_STATE_RESOURCES,
         hpMax: 135,
         actionPhaseDuration: 300,
         patternInterval: 36,
