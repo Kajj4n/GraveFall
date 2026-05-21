@@ -1045,7 +1045,8 @@ GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
 //------------------------------------------------------------------------------
 
 GraveFallGame.MUSIC = {
-    DUNGEON_LOOP: "GraveFall_Dungeon_Loop"
+    DUNGEON_LOOP: "GraveFall_Dungeon_Loop",
+    BOSS_LOOP: "GraveFall_Boss_Loop"
 };
 
 GraveFallGame.SOUNDS = {
@@ -1071,6 +1072,8 @@ GraveFallGame.SOUNDS = {
     ATTACK_PEBBLE: "SFX_Attack_Pebble",
     ATTACK_DART: "SFX_Attack_Dart",
     ATTACK_STOMP: "SFX_Attack_Stomp",
+    BOSS_STOMP: "SFX_Boss_Stomp",
+    BOSS_ROAR: "SFX_Boss_Roar",
     GAME_OVER: "SFX_Game_Over"
 };
 
@@ -1182,17 +1185,209 @@ GraveFallGame.scene.Game.prototype.queueSfx = function (delayMs, soundName, volu
     });
 };
 
-GraveFallGame.scene.Game.prototype.startDungeonMusic = function () {
+GraveFallGame.scene.Game.prototype.getMusicVolume = function (music, fallbackVolume) {
+    if (music && typeof music.volume === "number") {
+        return music.volume;
+    }
+
+    return typeof fallbackVolume === "number" ? fallbackVolume : 0;
+};
+
+GraveFallGame.scene.Game.prototype.setMusicVolume = function (music, volume) {
+    try {
+        if (music) {
+            music.volume = Math.max(0, Math.min(1, volume));
+        }
+    } catch (e) {
+    }
+};
+
+GraveFallGame.scene.Game.prototype.cancelMusicFade = function (music) {
+    var i;
+
+    if (!music || !this.musicFades) {
+        return;
+    }
+
+    for (i = this.musicFades.length - 1; i >= 0; i--) {
+        if (this.musicFades[i].music === music) {
+            this.musicFades.splice(i, 1);
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.fadeMusic = function (music, targetVolume, durationMs, stopWhenComplete) {
+    var fade;
+    var startVolume;
+
+    if (!music) {
+        return null;
+    }
+
+    if (!this.musicFades) {
+        this.musicFades = [];
+    }
+
+    targetVolume = Math.max(0, Math.min(1, typeof targetVolume === "number" ? targetVolume : 0));
+    durationMs = Math.max(0, durationMs || 0);
+    this.cancelMusicFade(music);
+
+    if (durationMs <= 0) {
+        this.setMusicVolume(music, targetVolume);
+
+        if (stopWhenComplete === true) {
+            GraveFallGame.stopMusic(music);
+
+            if (music === this.dungeonMusic) {
+                this.dungeonMusic = null;
+            }
+
+            if (music === this.bossMusic) {
+                this.bossMusic = null;
+            }
+        }
+
+        return null;
+    }
+
+    startVolume = this.getMusicVolume(music, targetVolume);
+    fade = {
+        music: music,
+        elapsedMs: 0,
+        durationMs: durationMs,
+        startVolume: startVolume,
+        targetVolume: targetVolume,
+        stopWhenComplete: stopWhenComplete === true
+    };
+    this.musicFades.push(fade);
+
+    return fade;
+};
+
+GraveFallGame.scene.Game.prototype.updateMusicFades = function (step) {
+    var i;
+    var fade;
+    var ratio;
+    var volume;
+
+    if (!this.musicFades) {
+        return;
+    }
+
+    for (i = this.musicFades.length - 1; i >= 0; i--) {
+        fade = this.musicFades[i];
+
+        if (!fade || !fade.music) {
+            this.musicFades.splice(i, 1);
+            continue;
+        }
+
+        fade.elapsedMs += Math.max(0, step || 0);
+        ratio = Math.min(1, fade.elapsedMs / Math.max(1, fade.durationMs));
+        volume = fade.startVolume + ((fade.targetVolume - fade.startVolume) * ratio);
+        this.setMusicVolume(fade.music, volume);
+
+        if (ratio >= 1) {
+            this.setMusicVolume(fade.music, fade.targetVolume);
+
+            if (fade.stopWhenComplete === true) {
+                GraveFallGame.stopMusic(fade.music);
+
+                if (fade.music === this.dungeonMusic) {
+                    this.dungeonMusic = null;
+                }
+
+                if (fade.music === this.bossMusic) {
+                    this.bossMusic = null;
+                }
+            }
+
+            this.musicFades.splice(i, 1);
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.startDungeonMusic = function (fadeMs) {
+    var targetVolume = typeof this.dungeonMusicDefaultVolume === "number" ? this.dungeonMusicDefaultVolume : 0.32;
+
     if (!this.dungeonMusic) {
-        this.dungeonMusic = GraveFallGame.playMusic(this.application, GraveFallGame.MUSIC.DUNGEON_LOOP, 0.32);
+        this.dungeonMusic = GraveFallGame.playMusic(
+            this.application,
+            GraveFallGame.MUSIC.DUNGEON_LOOP,
+            fadeMs > 0 ? 0 : targetVolume
+        );
+    }
+
+    if (this.dungeonMusic) {
+        if (fadeMs > 0) {
+            this.fadeMusic(this.dungeonMusic, targetVolume, fadeMs, false);
+        } else {
+            this.cancelMusicFade(this.dungeonMusic);
+            this.setMusicVolume(this.dungeonMusic, targetVolume);
+        }
     }
 
     return this.dungeonMusic;
 };
 
-GraveFallGame.scene.Game.prototype.stopDungeonMusic = function () {
-    GraveFallGame.stopMusic(this.dungeonMusic);
-    this.dungeonMusic = null;
+GraveFallGame.scene.Game.prototype.stopDungeonMusic = function (fadeMs) {
+    if (!this.dungeonMusic) {
+        return;
+    }
+
+    if (fadeMs > 0) {
+        this.fadeMusic(this.dungeonMusic, 0, fadeMs, true);
+    } else {
+        this.cancelMusicFade(this.dungeonMusic);
+        GraveFallGame.stopMusic(this.dungeonMusic);
+        this.dungeonMusic = null;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.startBossMusic = function (fadeMs) {
+    var targetVolume = typeof this.bossMusicDefaultVolume === "number" ? this.bossMusicDefaultVolume : 0.44;
+
+    if (!this.bossMusic) {
+        this.bossMusic = GraveFallGame.playMusic(
+            this.application,
+            GraveFallGame.MUSIC.BOSS_LOOP,
+            fadeMs > 0 ? 0 : targetVolume
+        );
+    }
+
+    if (this.bossMusic) {
+        if (fadeMs > 0) {
+            this.fadeMusic(this.bossMusic, targetVolume, fadeMs, false);
+        } else {
+            this.cancelMusicFade(this.bossMusic);
+            this.setMusicVolume(this.bossMusic, targetVolume);
+        }
+    }
+
+    return this.bossMusic;
+};
+
+GraveFallGame.scene.Game.prototype.stopBossMusic = function (fadeMs) {
+    if (!this.bossMusic) {
+        return;
+    }
+
+    if (fadeMs > 0) {
+        this.fadeMusic(this.bossMusic, 0, fadeMs, true);
+    } else {
+        this.cancelMusicFade(this.bossMusic);
+        GraveFallGame.stopMusic(this.bossMusic);
+        this.bossMusic = null;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.prepareBossEncounterMusic = function () {
+    this.stopDungeonMusic(2200);
+};
+
+GraveFallGame.scene.Game.prototype.returnToDungeonMusicAfterBoss = function () {
+    this.stopBossMusic(1800);
+    this.startDungeonMusic(2200);
 };
 
 GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {

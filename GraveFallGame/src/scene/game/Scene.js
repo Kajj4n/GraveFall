@@ -53,6 +53,10 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.lastTurnWarningSecond = null;
     this.enemyDefeatedSoundPlayed = false;
     this.dungeonMusic = null;
+    this.bossMusic = null;
+    this.musicFades = [];
+    this.dungeonMusicDefaultVolume = 0.32;
+    this.bossMusicDefaultVolume = 0.44;
 
     this.commandMenuResetDone = false;
     
@@ -615,6 +619,8 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     rune.scene.Scene.prototype.update.call(this, step);
 
+    this.updateMusicFades(step);
+
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
         return;
     }
@@ -898,6 +904,8 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     }
 
     this.stopDungeonMusic();
+    this.stopBossMusic();
+    this.musicFades = [];
     this.clearProjectiles();
     this.clearArenaItem();
     this.clearBuffVisualEffects();
@@ -1011,6 +1019,10 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.gameOverText = null;
     this.gameOverTimer = null;
     this.dungeonMusic = null;
+    this.bossMusic = null;
+    this.musicFades = null;
+    this.dungeonMusicDefaultVolume = null;
+    this.bossMusicDefaultVolume = null;
 
     rune.scene.Scene.prototype.dispose.call(this);
 };

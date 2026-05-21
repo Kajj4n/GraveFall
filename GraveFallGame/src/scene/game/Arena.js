@@ -700,6 +700,10 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     this.enemyHealthCurrent = this.enemyHealthMax;
     this.enemyDefeatedSoundPlayed = false;
 
+    if (enemyConfig && enemyConfig.isBoss === true && typeof this.prepareBossEncounterMusic === "function") {
+        this.prepareBossEncounterMusic();
+    }
+
     this.rebuildEnemySprite(fadeIn);
     this.resetBossEntranceState();
     this.updateEnemyHealthBarUi();
@@ -859,12 +863,22 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
 };
 
 GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = function () {
+    var enemyConfig;
+
     if (this.passageTransitionEncounterLoaded !== true) {
         this.loadNextEnemyEncounterDuringTransition();
     }
 
+    enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
     this.resetPassageCameraTransition();
-    this.startDungeonMusic();
+
+    if (enemyConfig && enemyConfig.isBoss === true) {
+        this.stopDungeonMusic(450);
+        this.startBossMusic(1000);
+    } else {
+        this.startDungeonMusic(1000);
+    }
+
     this.phase = GraveFallGame.scene.Game.PHASE_COMMAND;
     this.resetCommandTurnTimer(true, 1);
     this.enemyFadeTimerMs = this.enemyFadeDurationMs;
@@ -878,6 +892,7 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
 
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     var i;
+    var defeatedEnemyConfig;
 
     if (this.phase === GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
         return;
@@ -889,6 +904,11 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
 
     this.clearActionPreviewState();
     this.applyEnemyDefeatedRecovery();
+
+    defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && typeof this.returnToDungeonMusicAfterBoss === "function") {
+        this.returnToDungeonMusicAfterBoss();
+    }
 
     this.addScorePopup(1000, "ENEMY DEFEATED");
     
@@ -956,31 +976,41 @@ GraveFallGame.scene.Game.prototype.isBossEntranceRequiredForCurrentEncounter = f
 
 GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function (elapsedMs, entranceStartMs) {
     var localMs = elapsedMs - entranceStartMs;
+    var warningStartMs = 600;
     var stomps = [
-        { time: 0, alpha: 0.18, shakeX: 8, shakeY: 6, volume: 0.45 },
-        { time: 360, alpha: 0.38, shakeX: 10, shakeY: 8, volume: 0.52 },
-        { time: 720, alpha: 0.62, shakeX: 12, shakeY: 10, volume: 0.6 },
-        { time: 1080, alpha: 0.84, shakeX: 14, shakeY: 12, volume: 0.68 },
-        { time: 1440, alpha: 1, shakeX: 18, shakeY: 15, volume: 0.78 }
+        { time: 1500, alpha: 0.16, offsetX: 52, offsetY: 0, shakeX: 10, shakeY: 8, volume: 0.5, duration: 360 },
+        { time: 2650, alpha: 0.34, offsetX: 38, offsetY: 0, shakeX: 13, shakeY: 10, volume: 0.58, duration: 420 },
+        { time: 3900, alpha: 0.56, offsetX: 25, offsetY: 0, shakeX: 16, shakeY: 13, volume: 0.66, duration: 480 },
+        { time: 5250, alpha: 0.78, offsetX: 13, offsetY: 0, shakeX: 19, shakeY: 16, volume: 0.76, duration: 540 },
+        { time: 6700, alpha: 1, offsetX: 0, offsetY: 0, shakeX: 25, shakeY: 21, volume: 0.9, duration: 680 }
     ];
     var roars = [
-        { time: 1740, shakeX: 22, shakeY: 18, volume: 0.9 },
-        { time: 2040, shakeX: 18, shakeY: 14, volume: 0.82 },
-        { time: 2340, shakeX: 14, shakeY: 11, volume: 0.74 }
+        { time: 7950, shakeX: 30, shakeY: 24, volume: 0.95, duration: 760 },
+        { time: 8700, shakeX: 24, shakeY: 19, volume: 0.86, duration: 560 },
+        { time: 9400, shakeX: 18, shakeY: 15, volume: 0.78, duration: 460 }
     ];
-    var completeMs = 2780;
+    var completeMs = 10450;
     var alpha = 0;
+    var offsetX = 70;
+    var offsetY = 8;
     var stompIndex = -1;
     var state;
     var i;
     var impactAge;
     var impactStrength;
+    var warningAge;
+    var warningShake;
+    var baseX;
+    var baseY;
+    var baseScaleX;
+    var baseScaleY;
 
     if (!this.bossEntranceState || this.bossEntranceState.enemyType !== this.currentEnemyType) {
         this.bossEntranceState = {
             enemyType: this.currentEnemyType,
             lastStompIndex: -1,
-            lastRoarIndex: -1
+            lastRoarIndex: -1,
+            warningShakePlayed: false
         };
         this.bossEntranceComplete = false;
     }
@@ -992,26 +1022,42 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
         return false;
     }
 
+    if (localMs >= warningStartMs && state.warningShakePlayed !== true) {
+        state.warningShakePlayed = true;
+        this.shakeCamera(520, 4, 3, true);
+    }
+
     for (i = 0; i < stomps.length; i++) {
         if (localMs >= stomps[i].time) {
             stompIndex = i;
             alpha = stomps[i].alpha;
+            offsetX = stomps[i].offsetX;
+            offsetY = stomps[i].offsetY;
         }
     }
 
     if (stompIndex >= 0) {
         while (state.lastStompIndex < stompIndex) {
             state.lastStompIndex++;
-            this.shakeCamera(280, stomps[state.lastStompIndex].shakeX, stomps[state.lastStompIndex].shakeY, true);
-            this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, stomps[state.lastStompIndex].volume);
+            this.shakeCamera(
+                stomps[state.lastStompIndex].duration,
+                stomps[state.lastStompIndex].shakeX,
+                stomps[state.lastStompIndex].shakeY,
+                true
+            );
+            this.playSfx(GraveFallGame.SOUNDS.BOSS_STOMP, stomps[state.lastStompIndex].volume, 0, true);
         }
+    } else if (localMs >= warningStartMs) {
+        alpha = 0.08;
+        offsetX = 76;
+        offsetY = 10;
     }
 
     for (i = 0; i < roars.length; i++) {
         if (localMs >= roars[i].time && state.lastRoarIndex < i) {
             state.lastRoarIndex = i;
-            this.shakeCamera(i === 0 ? 520 : 360, roars[i].shakeX, roars[i].shakeY, true);
-            this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, roars[i].volume);
+            this.shakeCamera(roars[i].duration, roars[i].shakeX, roars[i].shakeY, true);
+            this.playSfx(GraveFallGame.SOUNDS.BOSS_ROAR, roars[i].volume, 0, i === 0);
         }
     }
 
@@ -1020,15 +1066,27 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
     if (this.enemySprite) {
         if (stompIndex >= 0) {
             impactAge = localMs - stomps[stompIndex].time;
-            impactStrength = impactAge < 180 ? (1 - (impactAge / 180)) : 0;
+            impactStrength = impactAge < 320 ? (1 - (impactAge / 320)) : 0;
         } else {
             impactStrength = 0;
         }
 
-        this.enemySprite.x = (typeof this.enemyPreviewBaseX === "number" ? this.enemyPreviewBaseX : this.enemySprite.x);
-        this.enemySprite.y = (typeof this.enemyPreviewBaseY === "number" ? this.enemyPreviewBaseY : this.enemySprite.y) - Math.round(12 * impactStrength);
-        this.enemySprite.scaleX = (typeof this.enemyEntranceBaseScaleX === "number" ? this.enemyEntranceBaseScaleX : 3.2) + (0.14 * impactStrength);
-        this.enemySprite.scaleY = (typeof this.enemyEntranceBaseScaleY === "number" ? this.enemyEntranceBaseScaleY : 3.2) + (0.14 * impactStrength);
+        if (localMs >= warningStartMs && stompIndex < 0) {
+            warningAge = localMs - warningStartMs;
+            warningShake = Math.sin(warningAge / 52) * Math.max(0, 1 - (warningAge / Math.max(1, stomps[0].time - warningStartMs)));
+        } else {
+            warningShake = 0;
+        }
+
+        baseX = typeof this.enemyPreviewBaseX === "number" ? this.enemyPreviewBaseX : this.enemySprite.x;
+        baseY = typeof this.enemyPreviewBaseY === "number" ? this.enemyPreviewBaseY : this.enemySprite.y;
+        baseScaleX = typeof this.enemyEntranceBaseScaleX === "number" ? this.enemyEntranceBaseScaleX : 3.2;
+        baseScaleY = typeof this.enemyEntranceBaseScaleY === "number" ? this.enemyEntranceBaseScaleY : 3.2;
+
+        this.enemySprite.x = baseX + Math.round(offsetX + (warningShake * 7));
+        this.enemySprite.y = baseY + offsetY - Math.round(18 * impactStrength);
+        this.enemySprite.scaleX = baseScaleX + (0.2 * impactStrength);
+        this.enemySprite.scaleY = baseScaleY + (0.2 * impactStrength);
     }
 
     if (localMs >= completeMs) {
