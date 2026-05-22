@@ -98,8 +98,13 @@ GraveFallGame.scene.Menu.prototype.init = function () {
         height: 88,
         title: "START GAME",
         description: "BUILD A LOCAL 1-4 PLAYER PARTY",
-        icon: "Fight_Icon_T",
-        accent: GraveFallGame.scene.Game.PLAYER_THEMES[0].accent
+        icon: "Start_Menu_Button_T",
+        iconScale: 0.72,
+        iconInactiveScale: 0.66,
+        iconX: 20,
+        iconY: 15,
+        accent: GraveFallGame.scene.Game.PLAYER_THEMES[0].accent,
+        accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[0].accentLight
     }));
     this.optionCards.push(this.createOptionCard({
         x: 378,
@@ -108,8 +113,13 @@ GraveFallGame.scene.Menu.prototype.init = function () {
         height: 88,
         title: "HOW TO PLAY",
         description: "CONTROLS, RULES, MINIGAMES",
-        icon: "Item_Icon_T",
-        accent: GraveFallGame.scene.Game.PLAYER_THEMES[1].accent
+        icon: "Help_Menu_Button_T",
+        iconScale: 0.72,
+        iconInactiveScale: 0.66,
+        iconX: 20,
+        iconY: 15,
+        accent: GraveFallGame.scene.Game.PLAYER_THEMES[1].accent,
+        accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[1].accentLight
     }));
     this.optionCards.push(this.createOptionCard({
         x: 378,
@@ -118,8 +128,13 @@ GraveFallGame.scene.Menu.prototype.init = function () {
         height: 88,
         title: "LEADERBOARDS",
         description: "VIEW TOP 10 PARTIES",
-        icon: "Skull_Attack_T",
-        accent: GraveFallGame.scene.Game.PLAYER_THEMES[2].accent
+        icon: "Score_Menu_Button_T",
+        iconScale: 0.72,
+        iconInactiveScale: 0.66,
+        iconX: 20,
+        iconY: 15,
+        accent: GraveFallGame.scene.Game.PLAYER_THEMES[2].accent,
+        accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight
     }));
 
     this.pointer = new rune.ui.VTMenuPointer();
@@ -271,9 +286,11 @@ GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     var backgroundBottom = new rune.display.Graphic(0, Math.round(options.height / 2), options.width, Math.round(options.height / 2));
     var accent = new rune.display.Graphic(0, 0, 6, options.height);
     var selectGlow = new rune.display.Graphic(12, options.height - 9, options.width - 24, 4);
-    var icon = new rune.display.Sprite(20, 14, 100, 100, options.icon);
-    var title = this.createText(options.title, 92, 20, 2.35, 360);
-    var description = this.createText(options.description, 94, 56, 1.15, 380);
+    var icon = new rune.display.Sprite(options.iconX || 20, options.iconY || 14, options.iconSize || 80, options.iconSize || 80, options.icon);
+    var title = this.createText(options.title, 104, 20, 2.35, 360);
+    var description = this.createText(options.description, 106, 56, 1.15, 380);
+    var iconScale = options.iconScale || 0.54;
+    var iconInactiveScale = options.iconInactiveScale || Math.max(0.1, iconScale - 0.04);
 
     backgroundTop.backgroundColor = this.menuSkin.panelTop;
     backgroundBottom.backgroundColor = this.menuSkin.panelBottom;
@@ -281,8 +298,10 @@ GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     selectGlow.backgroundColor = options.accent;
     selectGlow.alpha = 0.32;
 
-    icon.scaleX = 0.54;
-    icon.scaleY = 0.54;
+    icon.scaleX = iconScale;
+    icon.scaleY = iconScale;
+    icon.baseScale = iconScale;
+    icon.inactiveScale = iconInactiveScale;
     this.applyMonochromeIconColor(icon, options.accentLight || options.accent);
 
     card.addChild(backgroundTop);
@@ -368,8 +387,8 @@ GraveFallGame.scene.Menu.prototype.updateVisuals = function () {
         card.glow.visible = i === this.index;
         card.glow.alpha = i === this.index ? 0.42 : 0.18;
         card.accent.width = i === this.index ? 10 : 6;
-        card.icon.scaleX = i === this.index ? 0.54 : 0.5;
-        card.icon.scaleY = i === this.index ? 0.54 : 0.5;
+        card.icon.scaleX = i === this.index ? card.icon.baseScale : card.icon.inactiveScale;
+        card.icon.scaleY = i === this.index ? card.icon.baseScale : card.icon.inactiveScale;
     }
 
     if (this.pointer && this.optionCards[this.index]) {
