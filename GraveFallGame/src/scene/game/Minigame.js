@@ -650,6 +650,607 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
     minigame.mashFill.scaleX = ratio;
 };
 
+
+//------------------------------------------------------------------------------
+// Boss final charge / final strike logic
+//------------------------------------------------------------------------------
+
+GraveFallGame.scene.Game.prototype.setEnemyHealthBarVisible = function (visible) {
+    var alpha = visible === true ? 1 : 0;
+
+    if (this.enemyHealthBg) {
+        this.enemyHealthBg.visible = visible === true;
+        this.enemyHealthBg.alpha = alpha;
+    }
+
+    if (this.enemyHealthFill) {
+        this.enemyHealthFill.visible = visible === true;
+        this.enemyHealthFill.alpha = alpha;
+    }
+
+    if (this.enemyHealthFrame) {
+        this.enemyHealthFrame.visible = visible === true;
+        this.enemyHealthFrame.alpha = alpha;
+    }
+
+    if (this.enemyHealthText) {
+        this.enemyHealthText.visible = visible === true;
+        this.enemyHealthText.alpha = alpha;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.centerFinalChargeText = function (textField, containerWidth, y) {
+    if (!textField) {
+        return;
+    }
+
+    textField.autoSize = true;
+    textField.x = Math.round((containerWidth / 2) - (textField.width / 2));
+    textField.y = y;
+};
+
+GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
+    var screenW = this.application.screen.width;
+    var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
+    var width = 840;
+    var height = 126;
+    var x = Math.round((screenW / 2) - (width / 2));
+    var y = 118;
+    var group = new rune.display.DisplayObjectContainer(0, 0, screenW, 260);
+    var title = new rune.text.BitmapField("MASH TO CHARGE ATTACK");
+    var bg = new rune.display.Graphic(x, y, width, height);
+    var innerBg = new rune.display.Graphic(x + 4, y + 4, width - 8, height - 8);
+    var subtitle = new rune.text.BitmapField("MASH EVERY PROMPT TO BUILD THE FINAL HIT!");
+    var barBack = new rune.display.Graphic(x + 36, y + 96, width - 72, 8);
+    var barFill = new rune.display.Graphic(x + 36, y + 96, width - 72, 8);
+    var powerText = new rune.text.BitmapField("PARTY POWER SCORE 0%  +0");
+    var frame = this.createBoxFrame(x, y, width, height, framePaletteSwaps);
+
+    bg.backgroundColor = uiSkin.panelBottom || "#151515";
+    innerBg.backgroundColor = uiSkin.panelTop || "#202020";
+    barBack.backgroundColor = "#171717";
+    barFill.backgroundColor = this.getPlayerTheme(0).accent;
+    barFill.scaleX = 0;
+
+    title.autoSize = true;
+    title.scaleX = 2.4;
+    title.scaleY = 2.4;
+    title.x = Math.round((screenW / 2) - ((title.text.length * 6 * title.scaleX) / 2));
+    title.y = 56;
+
+    subtitle.autoSize = true;
+    subtitle.scaleX = 1.2;
+    subtitle.scaleY = 1.2;
+    subtitle.x = x + Math.round((width / 2) - ((subtitle.text.length * 6 * subtitle.scaleX) / 2));
+    subtitle.y = y + 42;
+
+    powerText.autoSize = true;
+    powerText.scaleX = 1;
+    powerText.scaleY = 1;
+    powerText.x = x + Math.round((width / 2) - ((powerText.text.length * 6) / 2));
+    powerText.y = y + 108;
+
+    group.addChild(title);
+    group.addChild(bg);
+    group.addChild(innerBg);
+    group.addChild(subtitle);
+    group.addChild(barBack);
+    group.addChild(barFill);
+    group.addChild(frame);
+    group.addChild(powerText);
+
+    group.finalChargeTitle = title;
+    group.finalChargeBarFill = barFill;
+    group.finalChargePowerText = powerText;
+    group.finalChargePanelWidth = width;
+    this.stage.addChild(group);
+
+    return group;
+};
+
+GraveFallGame.scene.Game.prototype.preparePlayerMenusForFinalCharge = function () {
+    var i;
+    var menu;
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu) {
+            continue;
+        }
+
+        menu.confirmed = true;
+        menu.selectedAction = null;
+        menu.selectedDefendTargetPartyIndex = null;
+        menu.menuState = "main";
+        menu.standActionState = null;
+
+        if (menu.container) {
+            menu.container.y = menu.confirmedY;
+            menu.container.visible = true;
+            menu.container.alpha = 1;
+        }
+
+        if (menu.actionsContainer) {
+            menu.actionsContainer.visible = false;
+            menu.actionsContainer.alpha = 0;
+        }
+
+        if (menu.selectionBar) {
+            menu.selectionBar.visible = false;
+            menu.selectionBar.alpha = 0;
+        }
+
+        if (menu.stand && !menu.healingStandSprite) {
+            menu.stand.visible = menu.healthCurrent > 0;
+            menu.stand.alpha = menu.healthCurrent > 0 ? 1 : 0;
+        }
+
+        if (menu.battleAvatar) {
+            menu.battleAvatar.visible = false;
+            menu.battleAvatar.alpha = 0;
+        }
+
+        if (typeof this.hideCharacterMenuTooltip === "function") {
+            this.hideCharacterMenuTooltip(menu);
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
+    var definition = {
+        id: "finalChargeMash",
+        damagePerCycle: 18,
+        maxUsefulPresses: 10
+    };
+    var group = this.createMinigamePanel(menu, "FINAL STRIKE CHARGE", 256, 154);
+    var title = new rune.text.BitmapField("FINAL STRIKE CHARGE");
+    var prompt = new rune.text.BitmapField("MASH PROMPT");
+    var barBack = new rune.display.Graphic(36, 98, 184, 8);
+    var barFill = new rune.display.Graphic(36, 98, 184, 8);
+    var powerText = new rune.text.BitmapField("POWER SCORE 0%  +0");
+
+    if (group.minigameScoreText) {
+        group.minigameScoreText.visible = false;
+    }
+
+    barBack.backgroundColor = "#171717";
+    barFill.backgroundColor = menu.theme.accent;
+    barFill.scaleX = 0;
+
+    title.autoSize = true;
+    title.scaleX = 1;
+    title.scaleY = 1;
+    this.centerMinigameText(title, group.width, 22);
+
+    prompt.autoSize = true;
+    prompt.scaleX = 1;
+    prompt.scaleY = 1;
+    this.centerMinigameText(prompt, group.width, 38);
+
+    powerText.autoSize = true;
+    powerText.scaleX = 1;
+    powerText.scaleY = 1;
+    this.centerMinigameText(powerText, group.width, 112);
+
+    group.addChild(title);
+    group.addChild(prompt);
+    group.addChild(barBack);
+    group.addChild(barFill);
+    group.addChild(powerText);
+
+    menu.minigame = {
+        active: true,
+        type: definition.id,
+        definition: definition,
+        isFinalCharge: true,
+        storedDamage: 0,
+        pressCount: 0,
+        maxUsefulPresses: definition.maxUsefulPresses,
+        damagePerCycle: definition.damagePerCycle,
+        currentMashDirection: null,
+        group: group,
+        mashFill: barFill,
+        buttonIcon: null,
+        buttonIcons: [],
+        powerText: powerText,
+        promptText: prompt,
+        feedbackText: null
+    };
+
+    this.stage.addChild(group);
+    this.rollButtonMashButton(menu);
+    this.layoutPlayerMinigame(menu);
+    this.updateFinalChargeMinigameHud(menu);
+};
+
+GraveFallGame.scene.Game.prototype.getFinalChargeMenuPowerScore = function (menu) {
+    var minigame;
+    var partial;
+
+    if (!menu || !menu.minigame) {
+        return 0;
+    }
+
+    minigame = menu.minigame;
+    partial = 0;
+
+    if (minigame.maxUsefulPresses > 0) {
+        partial = Math.floor((minigame.pressCount / minigame.maxUsefulPresses) * (minigame.damagePerCycle || 0));
+    }
+
+    return Math.max(0, Math.floor((minigame.storedDamage || 0) + partial));
+};
+
+GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu) {
+    var minigame;
+    var score;
+    var percent;
+    var text;
+    var timerScale;
+
+    if (!menu || !menu.minigame || menu.minigame.isFinalCharge !== true) {
+        return;
+    }
+
+    minigame = menu.minigame;
+    score = this.getFinalChargeMenuPowerScore(menu);
+    percent = minigame.maxUsefulPresses > 0 ? Math.floor(Math.min(1, minigame.pressCount / minigame.maxUsefulPresses) * 100) : 0;
+    text = "POWER SCORE " + percent + "%  +" + score;
+
+    if (minigame.powerText) {
+        minigame.powerText.text = text;
+        this.centerMinigameText(minigame.powerText, minigame.group.width, minigame.powerText.y);
+    }
+
+    if (minigame.group && minigame.group.minigameTimerFill) {
+        timerScale = this.finalChargeDurationMs > 0 ? this.finalChargeTimerMs / this.finalChargeDurationMs : 0;
+        minigame.group.minigameTimerFill.scaleX = Math.max(0, Math.min(1, timerScale));
+    }
+};
+
+GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerScore = function () {
+    var total = 0;
+    var i;
+
+    if (!this.playerMenus) {
+        return 0;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        if (this.playerMenus[i] && this.playerMenus[i].minigame && this.playerMenus[i].minigame.isFinalCharge === true) {
+            total += this.getFinalChargeMenuPowerScore(this.playerMenus[i]);
+        }
+    }
+
+    return total;
+};
+
+GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
+    var total = this.getFinalChargePartyPowerScore();
+    var timerRatio = this.finalChargeDurationMs > 0 ? this.finalChargeTimerMs / this.finalChargeDurationMs : 0;
+    var elapsedRatio = 1 - Math.max(0, Math.min(1, timerRatio));
+    var percent = Math.floor(elapsedRatio * 100);
+    var text;
+    var group = this.finalChargeUi;
+
+    this.finalChargePartyPower = total;
+
+    if (!group) {
+        return;
+    }
+
+    if (group.finalChargeBarFill) {
+        group.finalChargeBarFill.scaleX = Math.max(0, Math.min(1, elapsedRatio));
+    }
+
+    if (group.finalChargePowerText) {
+        text = "PARTY POWER SCORE " + percent + "%  +" + total;
+        group.finalChargePowerText.text = text;
+        group.finalChargePowerText.x = Math.round((this.application.screen.width / 2) - ((text.length * 6) / 2));
+    }
+};
+
+GraveFallGame.scene.Game.prototype.clearFinalChargeUi = function () {
+    var i;
+    var menu;
+
+    if (this.finalChargeUi && this.finalChargeUi.parent) {
+        this.finalChargeUi.parent.removeChild(this.finalChargeUi, true);
+    }
+
+    this.finalChargeUi = null;
+
+    if (!this.playerMenus) {
+        return;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu || !menu.minigame || menu.minigame.isFinalCharge !== true) {
+            continue;
+        }
+
+        menu.finalChargePowerScore = this.getFinalChargeMenuPowerScore(menu);
+        this.clearButtonMashPromptIcons(menu);
+
+        if (menu.minigame.group && menu.minigame.group.parent) {
+            menu.minigame.group.parent.removeChild(menu.minigame.group, true);
+        }
+
+        menu.minigame = null;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.startFinalChargePhase = function () {
+    var i;
+    var menu;
+    var anyActive = false;
+
+    if (this.phase === GraveFallGame.scene.Game.PHASE_FINAL_CHARGE || this.phase === GraveFallGame.scene.Game.PHASE_FINAL_STRIKE) {
+        return;
+    }
+
+    if (typeof this.hideAllCharacterMenuTooltips === "function") {
+        this.hideAllCharacterMenuTooltips();
+    }
+
+    this.phase = GraveFallGame.scene.Game.PHASE_FINAL_CHARGE;
+    this.finalChargeCompleted = false;
+    this.finalChargeTimerMs = this.getFinalChargeDurationMs ? this.getFinalChargeDurationMs() : 9000;
+    this.finalChargeDurationMs = this.finalChargeTimerMs;
+    this.finalChargePartyPower = 0;
+    this.minigameTimer = this.finalChargeTimerMs;
+    this.minigameDurationMs = this.finalChargeDurationMs;
+
+    if (this.turnTimerText) {
+        this.turnTimerText.visible = false;
+        this.turnTimerText.alpha = 0;
+    }
+
+    this.clearProjectiles();
+    this.clearArenaItem();
+    this.setBattleArenaVisible(false);
+    this.setEnemyHealthBarVisible(false);
+    this.updateEnemyDamageState();
+
+    if (this.enemySprite) {
+        this.enemySprite.visible = true;
+        this.enemySprite.alpha = 1;
+    }
+
+    this.preparePlayerMenusForFinalCharge();
+    this.finalChargeUi = this.createFinalChargeBanner();
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (menu && menu.healthCurrent > 0) {
+            this.setupFinalChargeMinigame(menu);
+            anyActive = true;
+        }
+    }
+
+    this.updateFinalChargeBanner();
+    this.playSfx(GraveFallGame.SOUNDS.PHASE_START, 0.72);
+
+    if (anyActive !== true) {
+        this.finishFinalChargePhase();
+    }
+};
+
+GraveFallGame.scene.Game.prototype.updateFinalChargePhase = function (step) {
+    var i;
+    var menu;
+
+    this.finalChargeTimerMs -= step;
+
+    if (this.finalChargeTimerMs < 0) {
+        this.finalChargeTimerMs = 0;
+    }
+
+    this.minigameTimer = this.finalChargeTimerMs;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (menu && menu.healthCurrent > 0 && menu.minigame && menu.minigame.isFinalCharge === true) {
+            this.updateButtonMashMinigame(menu);
+            this.updateFinalChargeMinigameHud(menu);
+        }
+    }
+
+    this.updateFinalChargeBanner();
+
+    if (this.finalChargeTimerMs <= 0) {
+        this.finishFinalChargePhase();
+    }
+};
+
+GraveFallGame.scene.Game.prototype.finishFinalChargePhase = function () {
+    var totalPower = this.getFinalChargePartyPowerScore();
+
+    this.finalChargePartyPower = totalPower;
+    this.playSfx(GraveFallGame.SOUNDS.PHASE_END, 0.62);
+
+    if (totalPower > 0) {
+        this.addScorePopup(totalPower * 10, "FINAL POWER");
+    }
+
+    this.clearFinalChargeUi();
+    this.startFinalStrikeSequence();
+};
+
+GraveFallGame.scene.Game.prototype.getFinalStrikeRepetitionCount = function (partySize) {
+    if (partySize <= 1) {
+        return 5;
+    }
+
+    if (partySize === 2) {
+        return 4;
+    }
+
+    if (partySize === 3) {
+        return 3;
+    }
+
+    return 2;
+};
+
+GraveFallGame.scene.Game.prototype.buildFinalStrikeQueue = function () {
+    var living = [];
+    var queue = [];
+    var i;
+    var round;
+    var repeats;
+
+    if (!this.playerMenus) {
+        return queue;
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        if (this.playerMenus[i] && this.playerMenus[i].healthCurrent > 0) {
+            living.push(this.playerMenus[i]);
+        }
+    }
+
+    repeats = this.getFinalStrikeRepetitionCount(living.length);
+
+    for (round = 0; round < repeats; round++) {
+        for (i = 0; i < living.length; i++) {
+            queue.push(living[i]);
+        }
+    }
+
+    return queue;
+};
+
+GraveFallGame.scene.Game.prototype.getFinalStrikeDamageForPlayer = function (playerMenu) {
+    var queueCount = this.finalStrikeQueue && this.finalStrikeQueue.length > 0 ? this.finalStrikeQueue.length : 1;
+    var base = (playerMenu && playerMenu.attackDamage ? playerMenu.attackDamage : 5) + (playerMenu && playerMenu.permanentAttackBonus ? playerMenu.permanentAttackBonus : 0);
+    var partyPower = Math.max(0, this.finalChargePartyPower || 0);
+    var bonus = Math.floor(partyPower / Math.max(1, queueCount));
+
+    return Math.max(1, Math.floor(base + bonus));
+};
+
+GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
+    this.phase = GraveFallGame.scene.Game.PHASE_FINAL_STRIKE;
+    this.finalStrikeQueue = this.buildFinalStrikeQueue();
+    this.finalStrikeIndex = 0;
+    this.finalStrikeTimerMs = 0;
+    this.finalStrikeCurrentMenu = null;
+    this.preparePlayerMenusForFinalCharge();
+    this.setEnemyHealthBarVisible(false);
+
+    if (this.finalChargeUi) {
+        this.finalChargeUi.visible = false;
+    }
+
+    if (this.enemySprite) {
+        this.enemySprite.visible = true;
+        this.enemySprite.alpha = 1;
+    }
+
+    if (this.finalStrikeQueue.length <= 0) {
+        this.finalChargeCompleted = true;
+        this.startEnemyDefeatedSequence();
+        return;
+    }
+
+    this.beginFinalStrikeStep();
+};
+
+GraveFallGame.scene.Game.prototype.beginFinalStrikeStep = function () {
+    var menu;
+    var damage;
+
+    if (!this.finalStrikeQueue || this.finalStrikeIndex >= this.finalStrikeQueue.length) {
+        this.finishFinalStrikeSequence();
+        return;
+    }
+
+    menu = this.finalStrikeQueue[this.finalStrikeIndex];
+
+    if (!menu || menu.healthCurrent <= 0) {
+        this.finalStrikeIndex++;
+        this.beginFinalStrikeStep();
+        return;
+    }
+
+    this.finalStrikeCurrentMenu = menu;
+    this.finalStrikeTimerMs = this.finalStrikeStepDurationMs || 520;
+    menu.standActionState = "itemAttack";
+    this.updatePlayerDamageState(menu, this.areAllPlayersDown());
+    this.startPlayerActionPreviewShake(menu, 0);
+
+    damage = this.getFinalStrikeDamageForPlayer(menu);
+    this.createEnemyDamagePopup(damage, menu.theme.accent);
+    this.setEnemyPreviewFlash(280);
+    this.startEnemyDamagePreviewShake(280, 10, 6);
+    this.shakeCamera(180, 6, 4, true);
+    this.playActionPreviewSfx(menu, 0, true);
+};
+
+GraveFallGame.scene.Game.prototype.updateFinalStrikePhase = function (step) {
+    if (!this.finalStrikeQueue || this.finalStrikeQueue.length <= 0) {
+        this.finishFinalStrikeSequence();
+        return;
+    }
+
+    this.finalStrikeTimerMs -= step;
+
+    if (this.finalStrikeTimerMs > 0) {
+        return;
+    }
+
+    if (this.finalStrikeCurrentMenu) {
+        this.restorePlayerActionPreviewShake(this.finalStrikeCurrentMenu);
+        this.finalStrikeCurrentMenu.standActionState = null;
+        this.updatePlayerDamageState(this.finalStrikeCurrentMenu, this.areAllPlayersDown());
+    }
+
+    this.finalStrikeIndex++;
+
+    if (this.finalStrikeIndex >= this.finalStrikeQueue.length) {
+        this.finishFinalStrikeSequence();
+        return;
+    }
+
+    this.beginFinalStrikeStep();
+};
+
+GraveFallGame.scene.Game.prototype.clearFinalStrikeState = function () {
+    var i;
+
+    if (this.playerMenus) {
+        for (i = 0; i < this.playerMenus.length; i++) {
+            if (this.playerMenus[i]) {
+                this.restorePlayerActionPreviewShake(this.playerMenus[i]);
+                this.playerMenus[i].standActionState = null;
+            }
+        }
+    }
+
+    this.finalStrikeQueue = [];
+    this.finalStrikeIndex = 0;
+    this.finalStrikeTimerMs = 0;
+    this.finalStrikeCurrentMenu = null;
+};
+
+GraveFallGame.scene.Game.prototype.finishFinalStrikeSequence = function () {
+    this.clearFinalStrikeState();
+    this.finalChargeCompleted = true;
+    this.setEnemyHealthBarVisible(false);
+    this.startEnemyDefeatedSequence();
+};
+
 GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
     var i;
     var directionIcon;

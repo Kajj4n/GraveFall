@@ -699,6 +699,13 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     this.enemyHealthMax = enemyConfig.hpMax;
     this.enemyHealthCurrent = this.enemyHealthMax;
     this.enemyDefeatedSoundPlayed = false;
+    this.finalChargeCompleted = false;
+    if (typeof this.clearFinalChargeUi === "function") {
+        this.clearFinalChargeUi();
+    }
+    if (typeof this.clearFinalStrikeState === "function") {
+        this.clearFinalStrikeState();
+    }
 
     if (enemyConfig && enemyConfig.isBoss === true && typeof this.prepareBossEncounterMusic === "function") {
         this.prepareBossEncounterMusic();
@@ -890,6 +897,17 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
     this.commandMenuResetDone = true;
 };
 
+GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
+    var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+
+    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && this.finalChargeCompleted !== true) {
+        this.startFinalChargePhase();
+        return;
+    }
+
+    this.startEnemyDefeatedSequence();
+};
+
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     var i;
     var defeatedEnemyConfig;
@@ -947,6 +965,11 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     this.setPlayerTransitionVisibility(true, false);
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(1);
+
+    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && this.finalChargeCompleted === true && typeof this.setEnemyHealthBarVisible === "function") {
+        this.setEnemyHealthBarVisible(false);
+    }
+
     this.applyPassageCameraTransition(0);
 };
 
@@ -1290,7 +1313,7 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     }
 
     if (this.enemyHealthCurrent <= 0) {
-        this.startEnemyDefeatedSequence();
+        this.startEnemyDefeatResolution();
         return;
     }
 
