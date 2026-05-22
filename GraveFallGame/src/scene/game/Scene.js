@@ -11,6 +11,18 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.outsideUiSkin = this.runPalette.outside;
 
     this.encounterIndex = 0;
+
+    this.currentEncounterDifficultyMode = null;
+    this.nextEncounterDifficultyMode = null;
+    this.encounterDifficultyModeActive = null;
+    this.randomEventActive = false;
+    this.randomEventCurrent = null;
+    this.randomEventCurrentStage = null;
+    this.randomEventResolving = false;
+    this.randomEventResolutionTimerMs = 0;
+    this.randomEventStatusEffects = [];
+    this.randomEventLastFloor = 0;
+    this.randomEventNextFloor = Math.floor(this.randomRange ? this.randomRange(2, 5) : (2 + Math.floor(Math.random() * 3)));
     this.lastNormalEnemyType = null;
     this.lastBossEnemyType = null;
     this.currentEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
@@ -32,18 +44,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.actionPreviewStepStarted = false;
     this.actionPreviewStepDurationMs = 850;
     this.commandActionsResolved = false;
-    this.finalChargeCompleted = false;
-    this.finalChargeUi = null;
-    this.finalChargeTimerMs = 0;
-    this.finalChargeDurationMs = 0;
-    this.finalChargePartyPower = 0;
-    this.finalStrikeQueue = [];
-    this.finalStrikeIndex = 0;
-    this.finalStrikeTimerMs = 0;
-    this.finalStrikeCurrentMenu = null;
-    this.finalStrikeStepDurationMs = 520;
-    this.finalChargeIntroDelayMs = 1200;
-    this.finalChargeIntroTimerMs = 0;
     this.enemyPreviewFlashTimerMs = 0;
     this.enemyPreviewFlashDurationMs = 0;
     this.enemyPreviewShakeTimerMs = 0;
@@ -250,12 +250,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.clearProjectiles();
     this.clearArenaItem();
     this.clearBuffVisualEffects();
-    if (typeof this.clearFinalChargeUi === "function") {
-        this.clearFinalChargeUi();
-    }
-    if (typeof this.clearFinalStrikeState === "function") {
-        this.clearFinalStrikeState();
-    }
     this.setBattleArenaVisible(false);
     this.turnTimerText.visible = false;
     this.turnTimerText.alpha = 0;
@@ -517,7 +511,7 @@ GraveFallGame.scene.Game.prototype.startActionPreviewPhase = function () {
     }
 
     if (this.enemyHealthCurrent <= 0) {
-        this.startEnemyDefeatResolution();
+        this.startEnemyDefeatedSequence();
         return;
     }
 
@@ -595,7 +589,7 @@ GraveFallGame.scene.Game.prototype.finishActionPreviewPhase = function () {
     this.clearActionPreviewState();
 
     if (this.enemyHealthCurrent <= 0) {
-        this.startEnemyDefeatResolution();
+        this.startEnemyDefeatedSequence();
         return;
     }
 
@@ -674,13 +668,11 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
         return;
     }
 
-    if (this.phase === GraveFallGame.scene.Game.PHASE_FINAL_CHARGE) {
-        this.updateFinalChargePhase(step);
-        return;
-    }
 
-    if (this.phase === GraveFallGame.scene.Game.PHASE_FINAL_STRIKE) {
-        this.updateFinalStrikePhase(step);
+    if (this.phase === GraveFallGame.scene.Game.PHASE_RANDOM_EVENT) {
+        if (typeof this.updateRandomEventPhase === "function") {
+            this.updateRandomEventPhase(step);
+        }
         return;
     }
 
@@ -943,12 +935,6 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.clearProjectiles();
     this.clearArenaItem();
     this.clearBuffVisualEffects();
-    if (typeof this.clearFinalChargeUi === "function") {
-        this.clearFinalChargeUi();
-    }
-    if (typeof this.clearFinalStrikeState === "function") {
-        this.clearFinalStrikeState();
-    }
 
     if (this.playerMenus) {
         for (i = 0; i < this.playerMenus.length; i++) {
@@ -985,16 +971,6 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyDefeatedHealRatio = null;
     this.bossDefeatedHealRatio = null;
     this.defendHealRatio = null;
-    this.finalChargeCompleted = null;
-    this.finalChargeUi = null;
-    this.finalChargeTimerMs = null;
-    this.finalChargeDurationMs = null;
-    this.finalChargePartyPower = null;
-    this.finalStrikeQueue = null;
-    this.finalStrikeIndex = null;
-    this.finalStrikeTimerMs = null;
-    this.finalStrikeCurrentMenu = null;
-    this.finalStrikeStepDurationMs = null;
     this.firstActionPhasePromptShown = null;
     this.actionPhaseStartDelayFrames = null;
     this.actionPromptTimerFrames = null;

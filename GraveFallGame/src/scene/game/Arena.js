@@ -699,13 +699,6 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     this.enemyHealthMax = enemyConfig.hpMax;
     this.enemyHealthCurrent = this.enemyHealthMax;
     this.enemyDefeatedSoundPlayed = false;
-    this.finalChargeCompleted = false;
-    if (typeof this.clearFinalChargeUi === "function") {
-        this.clearFinalChargeUi();
-    }
-    if (typeof this.clearFinalStrikeState === "function") {
-        this.clearFinalStrikeState();
-    }
 
     if (enemyConfig && enemyConfig.isBoss === true && typeof this.prepareBossEncounterMusic === "function") {
         this.prepareBossEncounterMusic();
@@ -856,6 +849,12 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
         this.setPassageBackground("Background_Test", this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, false);
     }
 
+    if (this.shouldTriggerRandomEvent && this.shouldTriggerRandomEvent()) {
+        this.passageTransitionEncounterLoaded = false;
+        this.startRandomEventPhase();
+        return;
+    }
+
     if (this.passageTransitionIsIntro === true) {
         this.passageTransitionIsIntro = false;
         this.loadEnemyEncounter(this.currentEnemyType, true);
@@ -898,17 +897,6 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
     this.setPlayerTransitionAlpha(1, 1);
     this.setPlayerActionMenusVisible(true);
     this.commandMenuResetDone = true;
-};
-
-GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
-    var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
-
-    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && this.finalChargeCompleted !== true) {
-        this.startFinalChargePhase();
-        return;
-    }
-
-    this.startEnemyDefeatedSequence();
 };
 
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
@@ -968,11 +956,6 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     this.setPlayerTransitionVisibility(true, false);
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(1);
-
-    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && this.finalChargeCompleted === true && typeof this.setEnemyHealthBarVisible === "function") {
-        this.setEnemyHealthBarVisible(false);
-    }
-
     this.applyPassageCameraTransition(0);
 };
 
@@ -1036,9 +1019,7 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
             enemyType: this.currentEnemyType,
             lastStompIndex: -1,
             lastRoarIndex: -1,
-            warningShakePlayed: false,
-            sfxPrimed: false,
-            uiFadeStartMs: null
+            warningShakePlayed: false
         };
         this.bossEntranceComplete = false;
     }
@@ -1048,12 +1029,6 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
     if (localMs < 0) {
         this.setEnemyUiAlpha(0);
         return false;
-    }
-
-    if (state.sfxPrimed !== true) {
-        state.sfxPrimed = true;
-        this.playSfx(GraveFallGame.SOUNDS.BOSS_STOMP, 0, 0, false);
-        this.playSfx(GraveFallGame.SOUNDS.BOSS_ROAR, 0, 0, false);
     }
 
     if (localMs >= warningStartMs && state.warningShakePlayed !== true) {
@@ -1079,7 +1054,7 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
                 stomps[state.lastStompIndex].shakeY,
                 true
             );
-            this.playSfx(GraveFallGame.SOUNDS.BOSS_STOMP, stomps[state.lastStompIndex].volume, 0, false);
+            this.playSfx(GraveFallGame.SOUNDS.BOSS_STOMP, stomps[state.lastStompIndex].volume, 0, true);
         }
     } else if (localMs >= warningStartMs) {
         alpha = 0.08;
@@ -1091,7 +1066,7 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
         if (localMs >= roars[i].time && state.lastRoarIndex < i) {
             state.lastRoarIndex = i;
             this.shakeCamera(roars[i].duration, roars[i].shakeX, roars[i].shakeY, true);
-            this.playSfx(GraveFallGame.SOUNDS.BOSS_ROAR, roars[i].volume, 0, false);
+            this.playSfx(GraveFallGame.SOUNDS.BOSS_ROAR, roars[i].volume, 0, i === 0);
         }
     }
 
@@ -1156,8 +1131,6 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     var walkStartMs;
     var blackStartMs;
     var bossEntranceComplete;
-    var bossUiFadeElapsed;
-    var bossUiFadeDuration;
 
     this.enemyDefeatedTimerMs -= step;
     this.passageTransitionTimerMs += step;
@@ -1225,47 +1198,24 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
         if (this.isBossEntranceRequiredForCurrentEncounter()) {
             bossEntranceComplete = this.updateBossEntranceDuringTransition(elapsedMs, enemyFadeStartMs);
 
-            if (bossEntranceComplete === true) {
-                if (this.bossEntranceState && typeof this.bossEntranceState.uiFadeStartMs !== "number") {
-                    this.bossEntranceState.uiFadeStartMs = elapsedMs;
-                }
-
-                bossUiFadeElapsed = this.bossEntranceState && typeof this.bossEntranceState.uiFadeStartMs === "number"
-                    ? elapsedMs - this.bossEntranceState.uiFadeStartMs
-                    : 0;
-                bossUiFadeDuration = Math.max(1, actionsFadeEndMs - actionsFadeStartMs);
-
-                if (bossUiFadeElapsed < bossUiFadeDuration) {
-                    actionsAlpha = this.easePassageTransition(bossUiFadeElapsed / bossUiFadeDuration);
-                    playerAlpha = actionsAlpha;
-                    this.setPlayerTransitionVisibility(true, true);
-                    this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
-                    this.turnTimerText.visible = true;
-                    this.turnTimerText.alpha = actionsAlpha;
-                    this.turnTimerText.text = this.getTurnTimerLabel();
-                } else {
-                    actionsAlpha = 1;
-                    this.setEnemyUiAlpha(1);
-                    this.setPlayerTransitionVisibility(true, true);
-                    this.setPlayerTransitionAlpha(1, 1);
-                    this.setPlayerActionMenusVisible(true);
-                    this.turnTimerText.visible = true;
-                    this.turnTimerText.alpha = 1;
-                    this.turnTimerText.text = this.getTurnTimerLabel();
-
-                    if (this.passageTransitionActionsShown !== true) {
-                        this.passageTransitionActionsShown = true;
-                        this.finishEnemyDefeatedTransitionToCommand();
-                    }
-                }
+            if (elapsedMs < playerFadeStartMs) {
+                playerAlpha = 0;
+            } else if (elapsedMs < playerFadeEndMs) {
+                playerAlpha = this.easePassageTransition((elapsedMs - playerFadeStartMs) / Math.max(1, playerFadeEndMs - playerFadeStartMs));
             } else {
-                this.setPlayerTransitionVisibility(false, false);
-                this.setPlayerTransitionAlpha(0, 0);
-                this.turnTimerText.visible = false;
-                this.turnTimerText.alpha = 0;
+                playerAlpha = 1;
             }
 
-            return;
+            this.setPlayerTransitionVisibility(playerAlpha > 0, false);
+            this.setPlayerTransitionAlpha(playerAlpha, 0);
+            this.turnTimerText.visible = false;
+            this.turnTimerText.alpha = 0;
+
+            if (bossEntranceComplete === true && this.passageTransitionActionsShown !== true) {
+                this.passageTransitionActionsShown = true;
+                this.finishEnemyDefeatedTransitionToCommand();
+                return;
+            }
         } else {
             if (elapsedMs < enemyFadeStartMs) {
                 enemyAlpha = 0;
@@ -1349,7 +1299,7 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     }
 
     if (this.enemyHealthCurrent <= 0) {
-        this.startEnemyDefeatResolution();
+        this.startEnemyDefeatedSequence();
         return;
     }
 
@@ -1865,6 +1815,768 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
 
 // Game over stats and leaderboard transition
 //------------------------------------------------------------------------------
+
+
+GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
+    var screenWidth;
+    var x;
+    var y;
+
+    screenWidth = this.application && this.application.screen ? this.application.screen.width : 1280;
+
+    if (typeof this.enemyPreviewBaseX === "number" && typeof this.enemyPreviewBaseY === "number") {
+        return {
+            x: Math.round(this.enemyPreviewBaseX),
+            y: Math.round(this.enemyPreviewBaseY)
+        };
+    }
+
+    if (this.enemySprite && typeof this.enemySprite.x === "number" && typeof this.enemySprite.y === "number") {
+        return {
+            x: Math.round(this.enemySprite.x),
+            y: Math.round(this.enemySprite.y)
+        };
+    }
+
+    scale = typeof scale === "number" && isFinite(scale) && scale > 0 ? scale : 2.8;
+    x = Math.round(screenWidth - (((100 * scale)) / 1.28));
+    y = 180;
+
+    return {
+        x: x,
+        y: y
+    };
+};
+
+GraveFallGame.scene.Game.prototype.getRandomEventDefinitions = function () {
+    return [
+        {
+            id: "crackedFloor",
+            title: "CRACKED FLOOR",
+            desc: "THREE CRACKS BLOCK THE PATH. CHOOSE CAREFULLY.",
+            visualResource: "StompWave_Attack_T",
+            visualScale: 2.7,
+            subtitle: "THE GROUND LOOKS UNSTABLE",
+            choices: [
+                { id: "left", label: "LEFT CRACK", description: "STEP ON THE LEFT CRACK" },
+                { id: "middle", label: "MIDDLE CRACK", description: "STEP ON THE MIDDLE CRACK" },
+                { id: "right", label: "RIGHT CRACK", description: "STEP ON THE RIGHT CRACK" }
+            ]
+        },
+        {
+            id: "venomousSnake",
+            title: "VENOMOUS SNAKE",
+            desc: "A SNAKE GUARDS TREASURE. STEAL AN ITEM OR BACK OFF.",
+            visualResource: "HyDragon_Idle_T",
+            visualScale: 2.8,
+            subtitle: "A SNAKE BLOCKS THE PATH",
+            choices: [
+                { id: "steal", label: "STEAL", description: "RISK A BITE FOR A REWARD" },
+                { id: "ignore", label: "IGNORE", description: "LEAVE THE SNAKE ALONE" }
+            ]
+        },
+        {
+            id: "rollingBoulder",
+            title: "ROLLING BOULDER",
+            desc: "A MASSIVE BOULDER ROLLS TOWARDS THE PARTY.",
+            visualResource: "Goblin_Idle_T",
+            visualScale: 2.8,
+            subtitle: "DESTROY IT OR DODGE IT",
+            choices: [
+                { id: "destroy", label: "DESTROY", description: "TRY TO SMASH THE BOULDER" },
+                { id: "dodge", label: "DODGE", description: "MOVE ASIDE AND LET IT PASS" }
+            ]
+        },
+        {
+            id: "riddlerPuzzle",
+            title: "RIDDLER PUZZLE",
+            desc: "ANSWER THE RIDDLE TO CLAIM A BLESSING.",
+            visualResource: "Wizard_Idle_Stance",
+            visualScale: 2.9,
+            subtitle: "ONLY ONE ANSWER IS CORRECT",
+            correctChoiceIndex: 1,
+            choices: [
+                { id: "sun", label: "SUN", description: "A BRIGHT GUESS" },
+                { id: "moon", label: "MOON", description: "THE SILENT ANSWER" },
+                { id: "door", label: "DOOR", description: "A LOCKED THOUGHT" }
+            ]
+        },
+        {
+            id: "darkBargain",
+            title: "DARK BARGAIN",
+            desc: "VOTE FOR AN EASIER OR HARDER NEXT BATTLE.",
+            visualResource: "Defend_Icon_T",
+            visualScale: 2.8,
+            subtitle: "THE NEXT FIGHT WILL SHIFT IN POWER",
+            choices: [
+                { id: "hard", label: "HARDER", description: "STRONGER ENEMY, BETTER REWARDS" },
+                { id: "easy", label: "EASIER", description: "WEAKER ENEMY, FEWER REWARDS" }
+            ]
+        },
+        {
+            id: "trollUnderBridge",
+            title: "TROLL UNDER BRIDGE",
+            desc: "A TROLL BLOCKS THE WAY AND DEMANDS A SILLY TAX.",
+            visualResource: "Ghoul_Idle_T",
+            visualScale: 2.8,
+            subtitle: "HE IS ALL BLUFF",
+            choices: [
+                { id: "donate", label: "DONATE", description: "GIVE UP SOMETHING SHINY" },
+                { id: "ignore", label: "IGNORE", description: "PUSH PAST THE TROLL" }
+            ]
+        }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getRandomEventDefinitionIds = function () {
+    var definitions = this.getRandomEventDefinitions();
+    var ids = [];
+    var i;
+
+    for (i = 0; i < definitions.length; i++) {
+        ids.push(definitions[i].id);
+    }
+
+    return ids;
+};
+
+GraveFallGame.scene.Game.prototype.getRandomEventDefinitionById = function (eventId) {
+    var definitions = this.getRandomEventDefinitions();
+    var search = String(eventId || "").toLowerCase();
+    var i;
+    var definition;
+    var title;
+
+    if (!search || search === "random") {
+        return null;
+    }
+
+    for (i = 0; i < definitions.length; i++) {
+        definition = definitions[i];
+        title = String(definition.title || "").toLowerCase();
+
+        if (String(definition.id || "").toLowerCase() === search || title === search) {
+            return definition;
+        }
+    }
+
+    return null;
+};
+
+GraveFallGame.scene.Game.prototype.getRandomEventChoices = function (eventData) {
+    if (eventData && eventData.choices && eventData.choices.length > 0) {
+        return eventData.choices.slice(0, 4);
+    }
+
+    return [
+        { id: "choiceA", label: "OPTION A", description: "DEFAULT EVENT OPTION" },
+        { id: "choiceB", label: "OPTION B", description: "DEFAULT EVENT OPTION" }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getRandomEventVisualConfig = function (eventData) {
+    var id = String(eventData && eventData.id ? eventData.id : "").toLowerCase();
+
+    if (id === "crackedfloor") {
+        return {
+            accent: "#A47B53",
+            accentDark: "#4A3320",
+            accentLight: "#E6C49D",
+            encounterResource: "StompWave_Attack_T",
+            encounterScale: 2.7,
+            subtitle: "THE GROUND LOOKS UNSTABLE"
+        };
+    }
+
+    if (id === "venomoussnake") {
+        return {
+            accent: "#6F9A4B",
+            accentDark: "#20330F",
+            accentLight: "#C9F1A5",
+            encounterResource: "HyDragon_Idle_T",
+            encounterScale: 2.8,
+            subtitle: "A SNAKE BLOCKS THE PATH"
+        };
+    }
+
+    if (id === "rollingboulder") {
+        return {
+            accent: "#8D8A7F",
+            accentDark: "#2C2A24",
+            accentLight: "#E3DDD0",
+            encounterResource: "Goblin_Idle_T",
+            encounterScale: 2.8,
+            subtitle: "DESTROY IT OR DODGE IT"
+        };
+    }
+
+    if (id === "riddlerpuzzle") {
+        return {
+            accent: "#8E75B8",
+            accentDark: "#261D34",
+            accentLight: "#E2D2FF",
+            encounterResource: "Wizard_Idle_Stance",
+            encounterScale: 2.9,
+            subtitle: "ONLY ONE ANSWER IS CORRECT"
+        };
+    }
+
+    if (id === "darkbargain") {
+        return {
+            accent: "#E05C31",
+            accentDark: "#3A1710",
+            accentLight: "#FFC2A6",
+            encounterResource: "Defend_Icon_T",
+            encounterScale: 2.8,
+            subtitle: "THE NEXT FIGHT WILL SHIFT IN POWER"
+        };
+    }
+
+    if (id === "trollunderbridge") {
+        return {
+            accent: "#70B76E",
+            accentDark: "#153415",
+            accentLight: "#C6F7C5",
+            encounterResource: "Ghoul_Idle_T",
+            encounterScale: 2.8,
+            subtitle: "HE IS ALL BLUFF"
+        };
+    }
+
+    return {
+        accent: "#D2C7B5",
+        accentDark: "#26211A",
+        accentLight: "#F2E9DA",
+        encounterResource: "Goblin_Idle_T",
+        encounterScale: 2.8,
+        subtitle: String(eventData && eventData.subtitle ? eventData.subtitle : "A STRANGE ENCOUNTER")
+    };
+};
+
+GraveFallGame.scene.Game.prototype.clearRandomEventOverlay = function () {
+    if (this.randomEventContainer && this.randomEventContainer.parent) {
+        this.randomEventContainer.parent.removeChild(this.randomEventContainer, true);
+    }
+
+    if (this.randomEventResultText && this.randomEventResultText.parent) {
+        this.randomEventResultText.parent.removeChild(this.randomEventResultText, true);
+    }
+
+    this.randomEventContainer = null;
+    this.randomEventTitleText = null;
+    this.randomEventDescText = null;
+    this.randomEventSprite = null;
+    this.randomEventResultText = null;
+};
+
+GraveFallGame.scene.Game.prototype.getLivingRandomEventMenus = function () {
+    var living = [];
+    var i;
+    var menu;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+        if (menu && menu.healthCurrent > 0) {
+            living.push(menu);
+        }
+    }
+
+    return living;
+};
+
+GraveFallGame.scene.Game.prototype.shouldTriggerRandomEvent = function () {
+    if (this.floorNumber <= 1) {
+        return false;
+    }
+
+    if (this.randomEventLastFloor === this.floorNumber) {
+        return false;
+    }
+
+    return true;
+};
+
+GraveFallGame.scene.Game.prototype.getRandomEventMenuActionPositions = function (playerMenu) {
+    var positions = [];
+    var count = Math.max(1, Math.min(4, playerMenu && playerMenu.randomEventChoiceCount ? playerMenu.randomEventChoiceCount : 0));
+    var leftPadding = 18;
+    var rightPadding = 18;
+    var usableWidth = 320 - leftPadding - rightPadding;
+    var step = count > 1 ? (usableWidth / (count - 1)) : 0;
+    var i;
+
+    for (i = 0; i < count; i++) {
+        positions.push(Math.round(leftPadding + (step * i)));
+    }
+
+    while (positions.length < 4) {
+        positions.push(positions.length > 0 ? positions[positions.length - 1] : leftPadding);
+    }
+
+    return positions;
+};
+
+GraveFallGame.scene.Game.prototype.configureRandomEventMenus = function (eventData) {
+    var choices = this.getRandomEventChoices(eventData);
+    var i;
+    var menu;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu) {
+            continue;
+        }
+
+        menu.menuState = "randomEvent";
+        menu.randomEventChoiceCount = choices.length;
+        menu.randomEventChoices = choices;
+        menu.selectedEventChoice = null;
+
+        if (menu.healthCurrent <= 0) {
+            menu.confirmed = true;
+            menu.selectedAction = null;
+            continue;
+        }
+
+        menu.selectedIndex = 0;
+        menu.selectedAction = null;
+        menu.waitingForItemExitButtonRelease = false;
+        menu.waitingForDefendExitButtonRelease = false;
+        menu.confirmed = false;
+        menu.container.y = menu.baseY;
+        this.updateCharacterMenuVisuals(menu);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.configureRandomEventRewardMenus = function () {
+    var choices = [
+        { id: "hp", label: "HP", description: "GAIN A PERMANENT HP BOOST" },
+        { id: "damage", label: "DMG", description: "GAIN A PERMANENT DAMAGE BOOST" }
+    ];
+    var i;
+    var menu;
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (!menu) {
+            continue;
+        }
+
+        menu.menuState = "randomEvent";
+        menu.randomEventChoiceCount = choices.length;
+        menu.randomEventChoices = choices;
+        menu.selectedEventChoice = null;
+
+        if (menu.healthCurrent <= 0) {
+            menu.confirmed = true;
+            menu.selectedAction = null;
+            continue;
+        }
+
+        menu.selectedIndex = 0;
+        menu.selectedAction = null;
+        menu.waitingForItemExitButtonRelease = false;
+        menu.waitingForDefendExitButtonRelease = false;
+        menu.confirmed = false;
+        menu.container.y = menu.baseY;
+        this.updateCharacterMenuVisuals(menu);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.applyRandomEventStartOfTurnEffects = function () {
+    var i;
+    var effect;
+
+    if (!this.randomEventStatusEffects || this.randomEventStatusEffects.length <= 0) {
+        return;
+    }
+
+    for (i = this.randomEventStatusEffects.length - 1; i >= 0; i--) {
+        effect = this.randomEventStatusEffects[i];
+
+        if (!effect || !effect.playerMenu || effect.playerMenu.healthCurrent <= 0) {
+            this.randomEventStatusEffects.splice(i, 1);
+            continue;
+        }
+
+        if (effect.turnsRemaining > 0) {
+            this.applyDamageToPlayer(effect.playerMenu, effect.damage || 10);
+            effect.turnsRemaining--;
+        }
+
+        if (effect.turnsRemaining <= 0) {
+            this.randomEventStatusEffects.splice(i, 1);
+        }
+    }
+};
+
+GraveFallGame.scene.Game.prototype.buildRandomEventOverlay = function (eventData) {
+    var screenWidth = this.application.screen.width;
+    var visual = this.getRandomEventVisualConfig(eventData);
+    var enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+    var enemyDamageStates = this.getEnemyDamageStates ? this.getEnemyDamageStates(enemyConfig) : null;
+    var titleText;
+    var descText;
+    var encounterSprite;
+    var encounterPosition;
+    var encounterScale;
+
+    this.clearRandomEventOverlay();
+
+    this.randomEventContainer = new rune.display.DisplayObjectContainer(0, 0, screenWidth, this.application.screen.height);
+    this.randomEventContainer.alpha = 0;
+    this.stage.addChild(this.randomEventContainer);
+
+    titleText = new rune.text.BitmapField(String(eventData.title || "RANDOM EVENT").toUpperCase());
+    titleText.width = screenWidth - 80;
+    titleText.height = 48;
+    titleText.scaleX = 3;
+    titleText.scaleY = 3;
+    titleText.x = Math.round((screenWidth / 2) - ((titleText.text.length * 6 * 3) / 2));
+    titleText.y = 18;
+    titleText.alpha = 0;
+    this.randomEventContainer.addChild(titleText);
+    this.randomEventTitleText = titleText;
+
+    descText = new rune.text.BitmapField(String(eventData.desc || visual.subtitle || ""));
+    descText.width = screenWidth - 120;
+    descText.height = 36;
+    descText.scaleX = 1.6;
+    descText.scaleY = 1.6;
+    descText.x = Math.round((screenWidth / 2) - ((descText.text.length * 6 * 1.6) / 2));
+    descText.y = 76;
+    this.randomEventContainer.addChild(descText);
+    this.randomEventDescText = descText;
+
+    encounterScale = typeof this.enemyEntranceBaseScaleX === "number" && this.enemyEntranceBaseScaleX > 0
+        ? this.enemyEntranceBaseScaleX
+        : 3.2;
+    encounterPosition = this.getEnemySpritePosition(encounterScale);
+
+    if (enemyDamageStates) {
+        encounterSprite = this.createDamageStateGroup(0, 0, 100, 100, enemyDamageStates);
+        encounterSprite.scaleX = encounterScale;
+        encounterSprite.scaleY = typeof this.enemyEntranceBaseScaleY === "number" && this.enemyEntranceBaseScaleY > 0
+            ? this.enemyEntranceBaseScaleY
+            : encounterScale;
+        this.setDamageStateGroupState(encounterSprite, "hp100");
+    } else {
+        encounterSprite = new rune.display.Sprite(encounterPosition.x, encounterPosition.y, 100, 100, visual.encounterResource || "Goblin_Idle_T");
+        encounterSprite.scaleX = encounterScale;
+        encounterSprite.scaleY = typeof this.enemyEntranceBaseScaleY === "number" && this.enemyEntranceBaseScaleY > 0
+            ? this.enemyEntranceBaseScaleY
+            : encounterScale;
+    }
+
+    encounterSprite.x = encounterPosition.x;
+    encounterSprite.y = encounterPosition.y;
+    encounterSprite.alpha = 0;
+    this.randomEventContainer.addChild(encounterSprite);
+    this.randomEventSprite = encounterSprite;
+
+    if (!this.randomEventResultText) {
+        this.randomEventResultText = new rune.text.BitmapField("");
+        this.randomEventResultText.width = screenWidth;
+        this.randomEventResultText.height = 48;
+        this.randomEventResultText.scaleX = 1.6;
+        this.randomEventResultText.scaleY = 1.6;
+        this.randomEventResultText.y = Math.round((this.application.screen.height * 0.76));
+        this.stage.addChild(this.randomEventResultText);
+    }
+
+    this.randomEventResultText.visible = false;
+    this.randomEventResultText.alpha = 0;
+    this.randomEventResultText.y = Math.round((this.application.screen.height * 0.82));
+};
+
+GraveFallGame.scene.Game.prototype.startRandomEventPhase = function () {
+    var definitions = this.getRandomEventDefinitions();
+    var choiceIndex = Math.floor(Math.random() * definitions.length);
+    var eventData = definitions[choiceIndex];
+    var i;
+
+    this.randomEventLastFloor = this.floorNumber;
+    this.randomEventNextFloor = this.floorNumber + Math.max(2, Math.floor((this.randomRange ? this.randomRange(2, 5) : (2 + Math.random() * 3))));
+    this.randomEventCurrent = eventData;
+    this.randomEventCurrentStage = eventData && eventData.id === "riddlerPuzzle" ? "puzzle" : "event";
+    this.randomEventResolving = false;
+    this.randomEventResolutionTimerMs = 0;
+    this.randomEventFadeTimerMs = 0;
+    this.randomEventStatusEffects = [];
+    this.randomEventActive = true;
+    this.phase = GraveFallGame.scene.Game.PHASE_RANDOM_EVENT;
+
+    this.clearProjectiles();
+    this.clearArenaItem();
+    if (typeof this.resetPassageCameraTransition === "function") {
+        this.resetPassageCameraTransition();
+    }
+    this.setBattleArenaVisible(false);
+    this.setEnemyUiAlpha(0);
+    this.setPlayerTransitionVisibility(true, true);
+    this.setPlayerTransitionAlpha(1, 1);
+    this.setPlayerActionMenusVisible(true);
+
+    if (eventData && eventData.id === "riddlerPuzzle") {
+        this.configureRandomEventMenus(eventData);
+    } else {
+        this.configureRandomEventMenus(eventData);
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        this.updateCharacterMenuVisuals(this.playerMenus[i]);
+    }
+
+    this.buildRandomEventOverlay(eventData);
+    this.resetCommandTurnTimer(false, 0);
+};
+
+GraveFallGame.scene.Game.prototype.finishRandomEventPhase = function () {
+    this.randomEventActive = false;
+    this.randomEventResolving = false;
+    this.randomEventResolutionTimerMs = 0;
+    this.randomEventCurrentStage = null;
+    this.clearRandomEventOverlay();
+
+    if (this.passageTransitionIsIntro === true) {
+        this.passageTransitionIsIntro = false;
+    }
+
+    this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
+    this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
+    this.passageTransitionTimerMs = 0;
+    this.passageTransitionEncounterLoaded = false;
+    this.passageTransitionCorpseHidden = true;
+    this.passageTransitionStepsPlayed = false;
+    this.passageTransitionPartyRevealed = false;
+    this.passageTransitionActionsShown = false;
+    this.enemyFadeTimerMs = this.enemyFadeDurationMs;
+    this.setBattleArenaVisible(false);
+    this.setEnemyUiAlpha(0);
+    this.setPlayerTransitionVisibility(true, false);
+    this.setPlayerTransitionAlpha(1, 0);
+    if (typeof this.setPlayerActionMenusVisible === "function") {
+        this.setPlayerActionMenusVisible(true);
+    }
+};
+
+GraveFallGame.scene.Game.prototype.updateRandomEventPhase = function (step) {
+    var i;
+    var menu;
+    var allConfirmed = true;
+    var livingCount = 0;
+
+    if (!this.randomEventActive) {
+        return;
+    }
+
+    if (!this.randomEventResolving) {
+        var fadeDuration = Math.max(450, this.enemyFadeDurationMs || 450);
+        var fadeAlpha = 1;
+
+        if (typeof this.setPlayerTransitionVisibility === "function") {
+            this.setPlayerTransitionVisibility(true, true);
+        }
+
+        if (typeof this.setPlayerTransitionAlpha === "function") {
+            this.setPlayerTransitionAlpha(1, 1);
+        }
+
+        if (typeof this.setPlayerActionMenusVisible === "function") {
+            this.setPlayerActionMenusVisible(true);
+        }
+
+        this.randomEventFadeTimerMs = (this.randomEventFadeTimerMs || 0) + step;
+        fadeAlpha = Math.min(1, this.randomEventFadeTimerMs / fadeDuration);
+
+        if (this.randomEventContainer) {
+            this.randomEventContainer.alpha = 1;
+        }
+
+        if (this.randomEventTitleText) {
+            this.randomEventTitleText.alpha = fadeAlpha;
+        }
+
+        if (this.randomEventDescText) {
+            this.randomEventDescText.alpha = fadeAlpha;
+        }
+
+        if (this.randomEventSprite) {
+            this.randomEventSprite.alpha = fadeAlpha;
+        }
+
+        for (i = 0; i < this.playerMenus.length; i++) {
+            menu = this.playerMenus[i];
+            if (!menu || menu.healthCurrent <= 0) {
+                continue;
+            }
+
+            livingCount++;
+
+            if (menu.confirmed !== true) {
+                allConfirmed = false;
+                this.updateCharacterMenuInput(menu);
+            }
+        }
+
+        if (livingCount <= 0) {
+            this.showGameOverAndReturnToMenu();
+            return;
+        }
+
+        if (allConfirmed) {
+            if (this.resolveRandomEvent() !== false) {
+                this.randomEventResolving = true;
+                this.randomEventResolutionTimerMs = 1500;
+            }
+        }
+
+        return;
+    }
+
+    this.randomEventResolutionTimerMs -= step;
+    if (this.randomEventResolutionTimerMs <= 0) {
+        this.finishRandomEventPhase();
+    }
+};
+
+GraveFallGame.scene.Game.prototype.resolveRandomEvent = function () {
+    var eventData = this.randomEventCurrent || {};
+    var eventId = String(eventData.id || "").toLowerCase();
+    var choice;
+    var i;
+    var livingPlayers;
+    var pick;
+    var outcomeText = "";
+    var randomIndex;
+    var successCount = 0;
+    var correctChoiceIndex = typeof eventData.correctChoiceIndex === "number" ? eventData.correctChoiceIndex : 1;
+
+    if (!this.randomEventResultText) {
+        this.randomEventResultText = new rune.text.BitmapField("");
+        this.randomEventResultText.width = this.application.screen.width;
+        this.randomEventResultText.height = 48;
+        this.randomEventResultText.scaleX = 1.6;
+        this.randomEventResultText.scaleY = 1.6;
+        this.randomEventResultText.y = Math.round((this.application.screen.height * 0.76));
+        this.stage.addChild(this.randomEventResultText);
+    }
+
+    livingPlayers = this.getLivingRandomEventMenus ? this.getLivingRandomEventMenus() : [];
+
+    if (eventId === "crackedfloor") {
+        randomIndex = Math.floor(Math.random() * 3);
+        for (i = 0; i < livingPlayers.length; i++) {
+            pick = livingPlayers[i].selectedAction;
+            if (pick === randomIndex) {
+                this.applyDamageToPlayer(livingPlayers[i], Math.max(999, livingPlayers[i].healthCurrent + 999));
+            } else {
+                successCount++;
+            }
+        }
+        outcomeText = randomIndex === 0 ? "THE LEFT CRACK COLLAPSED!" : (randomIndex === 1 ? "THE MIDDLE CRACK COLLAPSED!" : "THE RIGHT CRACK COLLAPSED!");
+    } else if (eventId === "venomoussnake") {
+        for (i = 0; i < livingPlayers.length; i++) {
+            choice = livingPlayers[i].selectedAction;
+            if (choice === 0) {
+                if (Math.random() < 0.5) {
+                    this.applyDamageToPlayer(livingPlayers[i], 10);
+                    if (!this.randomEventStatusEffects) {
+                        this.randomEventStatusEffects = [];
+                    }
+                    this.randomEventStatusEffects.push({
+                        type: "venom",
+                        playerMenu: livingPlayers[i],
+                        damage: 10,
+                        turnsRemaining: 3
+                    });
+                    outcomeText = "THE SNAKE BIT BACK!";
+                } else {
+                    this.givePlayerItem(livingPlayers[i], "maxHp");
+                    outcomeText = "A TREASURE WAS STOLEN!";
+                }
+            }
+        }
+    } else if (eventId === "rollingboulder") {
+        for (i = 0; i < livingPlayers.length; i++) {
+            if (livingPlayers[i].selectedAction === 0) {
+                this.givePlayerItem(livingPlayers[i], "attack");
+                successCount++;
+            }
+        }
+        outcomeText = successCount > 0 ? "THE BOULDER WAS SMASHED!" : "THE PARTY DODGED THE BOULDER!";
+    } else if (eventId === "riddlerpuzzle") {
+        if (this.randomEventCurrentStage !== "reward") {
+            for (i = 0; i < livingPlayers.length; i++) {
+                if (livingPlayers[i].selectedAction === correctChoiceIndex) {
+                    successCount++;
+                }
+            }
+
+            if (successCount >= Math.ceil(livingPlayers.length / 2)) {
+                this.randomEventCurrentStage = "reward";
+                this.configureRandomEventRewardMenus(eventData);
+                if (this.randomEventResultText) {
+                    this.randomEventResultText.text = "RIDDLE SOLVED! CHOOSE A BLESSING";
+                    this.randomEventResultText.x = Math.round((this.application.screen.width / 2) - ((this.randomEventResultText.text.length * 6 * 1.6) / 2));
+                    this.randomEventResultText.visible = true;
+                    this.randomEventResultText.alpha = 1;
+                }
+                this.randomEventResolving = false;
+                this.randomEventResolutionTimerMs = 0;
+                return false;
+            }
+
+            outcomeText = "THE RIDDLE REMAINS UNBROKEN.";
+        } else {
+            for (i = 0; i < livingPlayers.length; i++) {
+                choice = livingPlayers[i].selectedEventChoice ? String(livingPlayers[i].selectedEventChoice.id || "").toLowerCase() : "";
+                if (choice === "hp") {
+                    livingPlayers[i].healthMax += 20;
+                    this.applyHealthGainToPlayer(livingPlayers[i], 20, livingPlayers[i]);
+                } else {
+                    livingPlayers[i].permanentAttackBonus = (livingPlayers[i].permanentAttackBonus || 0) + 1;
+                }
+            }
+            outcomeText = "THE KEEPER GRANTS A BLESSING!";
+        }
+    } else if (eventId === "darkbargain") {
+        for (i = 0; i < livingPlayers.length; i++) {
+            if (livingPlayers[i].selectedAction === 0) {
+                successCount++;
+            }
+        }
+
+        this.nextEncounterDifficultyMode = successCount >= Math.ceil(livingPlayers.length / 2) ? "hard" : "easy";
+        outcomeText = this.nextEncounterDifficultyMode === "hard" ? "THE NEXT FIGHT WILL BE HARDER!" : "THE NEXT FIGHT WILL BE EASIER!";
+    } else if (eventId === "trollunderbridge") {
+        for (i = 0; i < livingPlayers.length; i++) {
+            if (livingPlayers[i].selectedAction === 0) {
+                if (this.getPlayerTotalItemCount(livingPlayers[i]) > 0) {
+                    this.consumePlayerItem(livingPlayers[i], this.getPlayerItemCount(livingPlayers[i], "maxHp") > 0 ? "maxHp" : (this.getPlayerItemCount(livingPlayers[i], "attack") > 0 ? "attack" : (this.getPlayerItemCount(livingPlayers[i], "defense") > 0 ? "defense" : "speed")));
+                }
+            }
+        }
+        outcomeText = "THE TROLL GRUMBLES AND LETS YOU PASS.";
+    }
+
+    if (this.randomEventResultText) {
+        this.randomEventResultText.text = outcomeText || "THE PARTY MOVES ON.";
+        this.randomEventResultText.x = Math.round((this.application.screen.width / 2) - ((this.randomEventResultText.text.length * 6 * 1.6) / 2));
+        this.randomEventResultText.visible = true;
+        this.randomEventResultText.alpha = 1;
+    }
+
+    if (this.areAllPlayersDown && this.areAllPlayersDown()) {
+        this.clearRandomEventOverlay();
+        this.randomEventActive = false;
+        this.showGameOverAndReturnToMenu();
+    }
+};
+
+
 
 (function () {
     var originalSaveCurrentRunToLeaderboard = GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard;
