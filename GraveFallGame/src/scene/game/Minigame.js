@@ -385,11 +385,12 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, a
     var minigame = menu.minigame;
     var group;
     var directions = ["up", "left", "right", "down"];
+    var yOffset = minigame.promptMatrixYOffset || 0;
     var centers = {
-        up: { x: 128, y: 54 },
-        left: { x: 109, y: 70 },
-        right: { x: 147, y: 70 },
-        down: { x: 128, y: 86 }
+        up: { x: 128, y: 54 + yOffset },
+        left: { x: 109, y: 70 + yOffset },
+        right: { x: 147, y: 70 + yOffset },
+        down: { x: 128, y: 86 + yOffset }
     };
     var i;
     var direction;
@@ -540,6 +541,22 @@ GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (men
     return this.getPressedMinigameDirection(menu);
 };
 
+GraveFallGame.scene.Game.prototype.updateButtonMashPromptText = function (menu, direction) {
+    var minigame;
+    var label;
+    var text;
+
+    if (!menu || !menu.minigame || !menu.minigame.promptText) {
+        return;
+    }
+
+    minigame = menu.minigame;
+    label = this.getButtonLabelForDirection(direction || minigame.currentMashDirection);
+    text = label ? ("MASH " + label) : "MASH BUTTON";
+    minigame.promptText.text = text;
+    this.centerMinigameText(minigame.promptText, minigame.group.width, minigame.promptText.y);
+};
+
 GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
     var minigame = menu.minigame;
     var previous;
@@ -558,6 +575,7 @@ GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
 
     minigame.currentMashDirection = direction;
     this.setButtonMashPromptMatrix(menu, direction);
+    this.updateButtonMashPromptText(menu, direction);
     this.setMinigameFeedback(menu, "");
 };
 
@@ -618,6 +636,7 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
         mashFill: barFill,
         buttonIcon: null,
         buttonIcons: [],
+        promptText: prompt,
         feedbackText: feedback
     };
 
@@ -694,24 +713,24 @@ GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
     var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
     var width = 840;
-    var height = 126;
+    var height = 122;
     var x = Math.round((screenW / 2) - (width / 2));
-    var y = 118;
-    var group = new rune.display.DisplayObjectContainer(0, 0, screenW, 260);
-    var title = new rune.text.BitmapField("MASH TO CHARGE ATTACK");
+    var y = 126;
+    var group = new rune.display.DisplayObjectContainer(0, 0, screenW, 270);
+    var title = new rune.text.BitmapField("CHARGE UP YOUR FINAL STRIKE");
     var bg = new rune.display.Graphic(x, y, width, height);
     var innerBg = new rune.display.Graphic(x + 4, y + 4, width - 8, height - 8);
-    var subtitle = new rune.text.BitmapField("MASH EVERY PROMPT TO BUILD THE FINAL HIT!");
-    var barBack = new rune.display.Graphic(x + 36, y + 96, width - 72, 8);
-    var barFill = new rune.display.Graphic(x + 36, y + 96, width - 72, 8);
-    var powerText = new rune.text.BitmapField("PARTY POWER SCORE 0%  +0");
+    var timerBack = new rune.display.Graphic(x + 36, y + 78, width - 72, 10);
+    var timerFill = new rune.display.Graphic(x + 36, y + 78, width - 72, 10);
+    var powerText = new rune.text.BitmapField("PARTY POWER: 0");
+    var timerText = new rune.text.BitmapField("TIME LEFT");
     var frame = this.createBoxFrame(x, y, width, height, framePaletteSwaps);
 
     bg.backgroundColor = uiSkin.panelBottom || "#151515";
     innerBg.backgroundColor = uiSkin.panelTop || "#202020";
-    barBack.backgroundColor = "#171717";
-    barFill.backgroundColor = this.getPlayerTheme(0).accent;
-    barFill.scaleX = 0;
+    timerBack.backgroundColor = "#171717";
+    timerFill.backgroundColor = this.getPlayerTheme(0).accent;
+    timerFill.scaleX = 1;
 
     title.autoSize = true;
     title.scaleX = 2.4;
@@ -719,30 +738,31 @@ GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
     title.x = Math.round((screenW / 2) - ((title.text.length * 6 * title.scaleX) / 2));
     title.y = 56;
 
-    subtitle.autoSize = true;
-    subtitle.scaleX = 1.2;
-    subtitle.scaleY = 1.2;
-    subtitle.x = x + Math.round((width / 2) - ((subtitle.text.length * 6 * subtitle.scaleX) / 2));
-    subtitle.y = y + 42;
-
     powerText.autoSize = true;
-    powerText.scaleX = 1;
-    powerText.scaleY = 1;
-    powerText.x = x + Math.round((width / 2) - ((powerText.text.length * 6) / 2));
-    powerText.y = y + 108;
+    powerText.scaleX = 2;
+    powerText.scaleY = 2;
+    powerText.x = Math.round((screenW / 2) - ((powerText.text.length * 6 * powerText.scaleX) / 2));
+    powerText.y = y + 32;
+
+    timerText.autoSize = true;
+    timerText.scaleX = 1;
+    timerText.scaleY = 1;
+    timerText.x = Math.round((screenW / 2) - ((timerText.text.length * 6 * timerText.scaleX) / 2));
+    timerText.y = y + 66;
 
     group.addChild(title);
     group.addChild(bg);
     group.addChild(innerBg);
-    group.addChild(subtitle);
-    group.addChild(barBack);
-    group.addChild(barFill);
+    group.addChild(timerBack);
+    group.addChild(timerFill);
     group.addChild(frame);
     group.addChild(powerText);
+    group.addChild(timerText);
 
     group.finalChargeTitle = title;
-    group.finalChargeBarFill = barFill;
+    group.finalChargeTimerFill = timerFill;
     group.finalChargePowerText = powerText;
+    group.finalChargeTimerText = timerText;
     group.finalChargePanelWidth = width;
     this.stage.addChild(group);
 
@@ -808,12 +828,12 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
         damagePerCycle: 18,
         maxUsefulPresses: 10
     };
-    var group = this.createMinigamePanel(menu, "FINAL STRIKE CHARGE", 256, 154);
+    var group = this.createMinigamePanel(menu, "FINAL STRIKE CHARGE", 256, 170);
     var title = new rune.text.BitmapField("FINAL STRIKE CHARGE");
-    var prompt = new rune.text.BitmapField("MASH PROMPT");
-    var barBack = new rune.display.Graphic(36, 98, 184, 8);
-    var barFill = new rune.display.Graphic(36, 98, 184, 8);
-    var powerText = new rune.text.BitmapField("POWER SCORE 0%  +0");
+    var prompt = new rune.text.BitmapField("MASH BUTTON");
+    var barBack = new rune.display.Graphic(36, 116, 184, 8);
+    var barFill = new rune.display.Graphic(36, 116, 184, 8);
+    var powerText = new rune.text.BitmapField("POWER SCORE +0");
 
     if (group.minigameScoreText) {
         group.minigameScoreText.visible = false;
@@ -826,17 +846,17 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
     title.autoSize = true;
     title.scaleX = 1;
     title.scaleY = 1;
-    this.centerMinigameText(title, group.width, 22);
+    this.centerMinigameText(title, group.width, 6);
 
     prompt.autoSize = true;
     prompt.scaleX = 1;
     prompt.scaleY = 1;
-    this.centerMinigameText(prompt, group.width, 38);
+    this.centerMinigameText(prompt, group.width, 34);
 
     powerText.autoSize = true;
     powerText.scaleX = 1;
     powerText.scaleY = 1;
-    this.centerMinigameText(powerText, group.width, 112);
+    this.centerMinigameText(powerText, group.width, 132);
 
     group.addChild(title);
     group.addChild(prompt);
@@ -858,6 +878,7 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
         mashFill: barFill,
         buttonIcon: null,
         buttonIcons: [],
+        promptMatrixYOffset: 12,
         powerText: powerText,
         promptText: prompt,
         feedbackText: null
@@ -870,27 +891,16 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
 };
 
 GraveFallGame.scene.Game.prototype.getFinalChargeMenuPowerScore = function (menu) {
-    var minigame;
-    var partial;
-
     if (!menu || !menu.minigame) {
         return 0;
     }
 
-    minigame = menu.minigame;
-    partial = 0;
-
-    if (minigame.maxUsefulPresses > 0) {
-        partial = Math.floor((minigame.pressCount / minigame.maxUsefulPresses) * (minigame.damagePerCycle || 0));
-    }
-
-    return Math.max(0, Math.floor((minigame.storedDamage || 0) + partial));
+    return Math.max(0, Math.floor(menu.minigame.storedDamage || 0));
 };
 
 GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu) {
     var minigame;
     var score;
-    var percent;
     var text;
     var timerScale;
 
@@ -900,8 +910,7 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu
 
     minigame = menu.minigame;
     score = this.getFinalChargeMenuPowerScore(menu);
-    percent = minigame.maxUsefulPresses > 0 ? Math.floor(Math.min(1, minigame.pressCount / minigame.maxUsefulPresses) * 100) : 0;
-    text = "POWER SCORE " + percent + "%  +" + score;
+    text = "POWER SCORE +" + score;
 
     if (minigame.powerText) {
         minigame.powerText.text = text;
@@ -931,11 +940,32 @@ GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerScore = function () {
     return total;
 };
 
+GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerGoal = function () {
+    var activePlayers = 0;
+    var scorePerSet = 18;
+    var i;
+    var menu;
+
+    if (this.playerMenus) {
+        for (i = 0; i < this.playerMenus.length; i++) {
+            menu = this.playerMenus[i];
+
+            if (menu && menu.healthCurrent > 0) {
+                activePlayers++;
+
+                if (menu.minigame && menu.minigame.isFinalCharge === true && menu.minigame.damagePerCycle) {
+                    scorePerSet = menu.minigame.damagePerCycle;
+                }
+            }
+        }
+    }
+
+    return Math.max(scorePerSet, activePlayers * scorePerSet * 4);
+};
+
 GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
     var total = this.getFinalChargePartyPowerScore();
     var timerRatio = this.finalChargeDurationMs > 0 ? this.finalChargeTimerMs / this.finalChargeDurationMs : 0;
-    var elapsedRatio = 1 - Math.max(0, Math.min(1, timerRatio));
-    var percent = Math.floor(elapsedRatio * 100);
     var text;
     var group = this.finalChargeUi;
 
@@ -945,14 +975,14 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
         return;
     }
 
-    if (group.finalChargeBarFill) {
-        group.finalChargeBarFill.scaleX = Math.max(0, Math.min(1, elapsedRatio));
+    if (group.finalChargeTimerFill) {
+        group.finalChargeTimerFill.scaleX = Math.max(0, Math.min(1, timerRatio));
     }
 
     if (group.finalChargePowerText) {
-        text = "PARTY POWER SCORE " + percent + "%  +" + total;
+        text = "PARTY POWER: " + total;
         group.finalChargePowerText.text = text;
-        group.finalChargePowerText.x = Math.round((this.application.screen.width / 2) - ((text.length * 6) / 2));
+        group.finalChargePowerText.x = Math.round((this.application.screen.width / 2) - ((text.length * 6 * group.finalChargePowerText.scaleX) / 2));
     }
 };
 
@@ -1006,6 +1036,7 @@ GraveFallGame.scene.Game.prototype.startFinalChargePhase = function () {
     this.finalChargeTimerMs = this.getFinalChargeDurationMs ? this.getFinalChargeDurationMs() : 9000;
     this.finalChargeDurationMs = this.finalChargeTimerMs;
     this.finalChargePartyPower = 0;
+    this.finalChargeIntroTimerMs = this.finalChargeIntroDelayMs || 1200;
     this.minigameTimer = this.finalChargeTimerMs;
     this.minigameDurationMs = this.finalChargeDurationMs;
 
@@ -1048,6 +1079,27 @@ GraveFallGame.scene.Game.prototype.startFinalChargePhase = function () {
 GraveFallGame.scene.Game.prototype.updateFinalChargePhase = function (step) {
     var i;
     var menu;
+
+    if (this.finalChargeIntroTimerMs > 0) {
+        this.finalChargeIntroTimerMs -= step;
+
+        if (this.finalChargeIntroTimerMs < 0) {
+            this.finalChargeIntroTimerMs = 0;
+        }
+
+        this.minigameTimer = this.finalChargeTimerMs;
+
+        for (i = 0; i < this.playerMenus.length; i++) {
+            menu = this.playerMenus[i];
+
+            if (menu && menu.healthCurrent > 0 && menu.minigame && menu.minigame.isFinalCharge === true) {
+                this.updateFinalChargeMinigameHud(menu);
+            }
+        }
+
+        this.updateFinalChargeBanner();
+        return;
+    }
 
     this.finalChargeTimerMs -= step;
 
@@ -1132,12 +1184,21 @@ GraveFallGame.scene.Game.prototype.buildFinalStrikeQueue = function () {
 };
 
 GraveFallGame.scene.Game.prototype.getFinalStrikeDamageForPlayer = function (playerMenu) {
-    var queueCount = this.finalStrikeQueue && this.finalStrikeQueue.length > 0 ? this.finalStrikeQueue.length : 1;
-    var base = (playerMenu && playerMenu.attackDamage ? playerMenu.attackDamage : 5) + (playerMenu && playerMenu.permanentAttackBonus ? playerMenu.permanentAttackBonus : 0);
-    var partyPower = Math.max(0, this.finalChargePartyPower || 0);
-    var bonus = Math.floor(partyPower / Math.max(1, queueCount));
+    var i;
+    var playerStrikeCount = 0;
+    var playerPower = Math.max(0, playerMenu && playerMenu.finalChargePowerScore ? playerMenu.finalChargePowerScore : 0);
 
-    return Math.max(1, Math.floor(base + bonus));
+    if (this.finalStrikeQueue) {
+        for (i = 0; i < this.finalStrikeQueue.length; i++) {
+            if (this.finalStrikeQueue[i] === playerMenu) {
+                playerStrikeCount++;
+            }
+        }
+    }
+
+    playerStrikeCount = Math.max(1, playerStrikeCount);
+
+    return Math.max(1, Math.floor(playerPower / playerStrikeCount));
 };
 
 GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
@@ -1156,6 +1217,7 @@ GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
     if (this.enemySprite) {
         this.enemySprite.visible = true;
         this.enemySprite.alpha = 1;
+        this.setDamageStateGroupState(this.enemySprite, "killed");
     }
 
     if (this.finalStrikeQueue.length <= 0) {
@@ -1191,7 +1253,9 @@ GraveFallGame.scene.Game.prototype.beginFinalStrikeStep = function () {
     this.startPlayerActionPreviewShake(menu, 0);
 
     damage = this.getFinalStrikeDamageForPlayer(menu);
+    this.setDamageStateGroupState(this.enemySprite, "killed");
     this.createEnemyDamagePopup(damage, menu.theme.accent);
+    this.spawnEnemyDamageParticles(damage);
     this.setEnemyPreviewFlash(280);
     this.startEnemyDamagePreviewShake(280, 10, 6);
     this.shakeCamera(180, 6, 4, true);

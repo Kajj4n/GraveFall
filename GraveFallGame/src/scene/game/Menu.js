@@ -506,10 +506,14 @@ GraveFallGame.scene.Game.prototype.updateAllPlayerDamageStates = function () {
 };
 
 GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
-    this.setDamageStateGroupState(
-        this.enemySprite,
-        this.getHealthDamageState(this.enemyHealthCurrent, this.enemyHealthMax, false, false)
-    );
+    var enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+    var state = this.getHealthDamageState(this.enemyHealthCurrent, this.enemyHealthMax, false, false);
+
+    if (enemyConfig && enemyConfig.isBoss === true && this.enemyHealthCurrent <= 0 && this.finalChargeCompleted !== true) {
+        state = "hp25";
+    }
+
+    this.setDamageStateGroupState(this.enemySprite, state);
 };
 
 GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor, skipDefaultSfx) {
