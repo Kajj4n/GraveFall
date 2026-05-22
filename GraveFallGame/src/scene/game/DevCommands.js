@@ -90,7 +90,11 @@ GraveFallGame.scene.Game.DEV_COMMAND_NAMES = [
     "gf.start.p1",
     "gf.start.list",
     "gf.score.add",
-    "gf.score.set"
+    "gf.score.set",
+    "gf.event.list",
+    "gf.event.test",
+    "gf.event.resume",
+    "gf.event.skip"
 ];
 
 GraveFallGame.scene.Game.prototype.getDevConsoleManager = function () {
@@ -187,6 +191,10 @@ GraveFallGame.scene.Game.prototype.registerDevConsoleCommands = function () {
     this.registerDevConsoleCommand(commands, "gf.ui.reset", this.devCommandUiReset);
     this.registerDevConsoleCommand(commands, "gf.score.add", this.devCommandScoreAdd);
     this.registerDevConsoleCommand(commands, "gf.score.set", this.devCommandScoreSet);
+    this.registerDevConsoleCommand(commands, "gf.event.list", this.devCommandEventList);
+    this.registerDevConsoleCommand(commands, "gf.event.test", this.devCommandEventTest);
+    this.registerDevConsoleCommand(commands, "gf.event.resume", this.devCommandEventResume);
+    this.registerDevConsoleCommand(commands, "gf.event.skip", this.devCommandEventSkip);
 
     if (typeof consoleManager.log === "function") {
         consoleManager.log("[GraveFall dev] Commands ready. Type gf.help");
@@ -276,6 +284,16 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
         ].join("\n");
     }
 
+    if (section === "event" || section === "events" || section === "random") {
+        return [
+            "Random event commands:",
+            "gf.event.list",
+            "gf.event.test random OR gf.event.test eventId",
+            "gf.event.resume",
+            "gf.event.skip"
+        ].join("\n");
+    }
+
     return [
         "GraveFall dev commands:",
         "gf.help enemy player item pattern timer ui",
@@ -287,7 +305,8 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
         "gf.phase.command OR gf.phase.action",
         "gf.timer.status OR gf.timer.turn seconds",
         "gf.ui.clean OR gf.ui.reset",
-        "gf.score.add amount OR gf.score.set amount"
+        "gf.score.add amount OR gf.score.set amount",
+        "gf.event.list OR gf.event.test random"
     ].join("\n");
 };
 
@@ -1049,6 +1068,48 @@ GraveFallGame.scene.Game.prototype.devCommandScoreSet = function (amount) {
     this.score = Math.max(0, scoreAmount);
     this.updateScoreUi();
     return "Score: " + this.score;
+};
+
+GraveFallGame.scene.Game.prototype.devCommandEventList = function () {
+    var ids = this.getRandomEventDefinitionIds();
+    return [
+        "Random events:",
+        ids.join(", "),
+        "Use: gf.event.test random OR gf.event.test eventId"
+    ].join("\n");
+};
+
+GraveFallGame.scene.Game.prototype.devCommandEventTest = function (eventId) {
+    var targetId = String(eventId || "random").trim();
+
+    if (targetId.length === 0) {
+        targetId = "random";
+    }
+
+    if (targetId.toLowerCase() !== "random" && !this.getRandomEventDefinitionById(targetId)) {
+        return "Unknown event. Use gf.event.list";
+    }
+
+    this.startRandomEventPhase(targetId);
+    return "Started random event: " + targetId;
+};
+
+GraveFallGame.scene.Game.prototype.devCommandEventResume = function () {
+    if (this.phase !== GraveFallGame.scene.Game.PHASE_RANDOM_EVENT) {
+        return "No random event is active.";
+    }
+
+    this.finishRandomEventPhase();
+    return "Random event resumed.";
+};
+
+GraveFallGame.scene.Game.prototype.devCommandEventSkip = function () {
+    if (this.phase !== GraveFallGame.scene.Game.PHASE_RANDOM_EVENT) {
+        return "No random event is active.";
+    }
+
+    this.finishRandomEventPhase();
+    return "Random event skipped.";
 };
 
 //------------------------------------------------------------------------------

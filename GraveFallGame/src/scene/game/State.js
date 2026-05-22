@@ -54,11 +54,10 @@ GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 
 GraveFallGame.scene.Game.PHASE_COMMAND = "command";
 GraveFallGame.scene.Game.PHASE_MINIGAME = "minigame";
-GraveFallGame.scene.Game.PHASE_FINAL_CHARGE = "finalCharge";
-GraveFallGame.scene.Game.PHASE_FINAL_STRIKE = "finalStrike";
 GraveFallGame.scene.Game.PHASE_ACTION = "action";
 GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW = "actionPreview";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
+GraveFallGame.scene.Game.PHASE_RANDOM_EVENT = "random_event";
 GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED = "enemyDefeated";
 
 GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MIN = 1;
@@ -261,7 +260,6 @@ GraveFallGame.scene.Game.prototype.isDevConsoleInputActive = function () {
 
 GraveFallGame.scene.Game.DEFAULT_TURN_TIMER_MS = 25000;
 GraveFallGame.scene.Game.DEFAULT_MINIGAME_TIMER_MS = 10000;
-GraveFallGame.scene.Game.DEFAULT_FINAL_CHARGE_TIMER_MS = 9000;
 GraveFallGame.scene.Game.DEV_TURN_TIMER_MS = null;
 GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS = null;
 GraveFallGame.scene.Game.DEV_ACTION_PHASE_FRAMES = null;
@@ -290,6 +288,10 @@ GraveFallGame.scene.Game.prototype.resetCommandTurnTimer = function (visible, al
         this.turnTimerText.alpha = typeof alpha === "number" ? alpha : (visible === false ? 0 : 1);
         this.turnTimerText.text = this.getTurnTimerLabel(this.turnTimerMs);
     }
+
+    if (typeof this.applyRandomEventStartOfTurnEffects === "function") {
+        this.applyRandomEventStartOfTurnEffects();
+    }
 };
 
 GraveFallGame.scene.Game.prototype.getMinigameDurationMs = function () {
@@ -300,10 +302,6 @@ GraveFallGame.scene.Game.prototype.getMinigameDurationMs = function () {
     }
 
     return GraveFallGame.scene.Game.DEFAULT_MINIGAME_TIMER_MS;
-};
-
-GraveFallGame.scene.Game.prototype.getFinalChargeDurationMs = function () {
-    return GraveFallGame.scene.Game.DEFAULT_FINAL_CHARGE_TIMER_MS || this.getMinigameDurationMs();
 };
 
 GraveFallGame.scene.Game.prototype.getActionPhaseDurationFrames = function (enemyConfig) {
@@ -900,12 +898,30 @@ GraveFallGame.scene.Game.prototype.registerEnemyEncounter = function (enemyType)
 
 GraveFallGame.scene.Game.prototype.getDifficultyMultiplier = function () {
     var profile = this.getEnemyDifficultyProfile(this.currentEnemyType);
-    return profile.damageMultiplier;
+    var mode = this.encounterDifficultyModeActive || this.currentEncounterDifficultyMode || null;
+    var bonus = 1;
+
+    if (mode === "hard") {
+        bonus = 1.15;
+    } else if (mode === "easy") {
+        bonus = 0.85;
+    }
+
+    return profile.damageMultiplier * bonus;
 };
 
 GraveFallGame.scene.Game.prototype.getDifficultySpeedMultiplier = function () {
     var profile = this.getEnemyDifficultyProfile(this.currentEnemyType);
-    return profile.speedMultiplier;
+    var mode = this.encounterDifficultyModeActive || this.currentEncounterDifficultyMode || null;
+    var bonus = 1;
+
+    if (mode === "hard") {
+        bonus = 1.08;
+    } else if (mode === "easy") {
+        bonus = 0.92;
+    }
+
+    return profile.speedMultiplier * bonus;
 };
 
 GraveFallGame.scene.Game.ENEMIES = {
