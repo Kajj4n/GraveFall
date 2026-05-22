@@ -1507,7 +1507,7 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
 
 GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
-    var prompt = new rune.text.BitmapField("HIT THE TARGET");
+    var prompt = new rune.text.BitmapField("MOVE AIM + SHOOT");
     var target = new rune.display.Graphic(72, 46, 112, 40);
     var bullseye = this.createThemedMinigameSprite(["MG_Ranger_Bullseye_T", "MG_Ranger_Bullseye"], 120, 58, 16, 16, menu.theme.accentDark, menu.theme.accentDark);
     var centerDot = new rune.display.Graphic(126, 64, 4, 4);
@@ -1549,14 +1549,18 @@ GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, 
         centerX: 128,
         centerY: 66,
         time: Math.random() * 1000,
+        aimOffsetX: 0,
+        aimOffsetY: 0,
+        aimVelocityX: 0,
+        aimVelocityY: 0,
         jitterX: 0,
         jitterY: 0,
         jitterTimer: 0,
         hitCooldown: 0,
         resetForce: 1,
         resetAngle: Math.random() * Math.PI * 2,
-        settleDurationMs: definition.settleDurationMs || 850,
-        resetDistance: definition.resetDistance || 62,
+        settleDurationMs: definition.settleDurationMs || 700,
+        resetDistance: definition.resetDistance || 28,
         reticle: reticle,
         feedbackText: feedback
     };
@@ -1573,14 +1577,61 @@ GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
 
     minigame.resetForce = 1;
     minigame.resetAngle = Math.random() * Math.PI * 2;
-    minigame.jitterTimer = 220 + Math.random() * 180;
-    minigame.jitterX = -18 + Math.random() * 36;
-    minigame.jitterY = -10 + Math.random() * 20;
+    minigame.jitterTimer = 80 + Math.random() * 120;
+    minigame.jitterX = -3 + Math.random() * 6;
+    minigame.jitterY = -2 + Math.random() * 4;
 };
 
-// --- UPDATED TO USE UNIVERSAL INPUT HELPERS ---
+GraveFallGame.scene.Game.prototype.getTargetReticleAimInput = function (menu) {
+    var input = { x: 0, y: 0 };
+    var gp;
+    var length;
+
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
+        return input;
+    }
+
+    if (this.isHoldingLeft(menu)) {
+        input.x -= 1;
+    }
+
+    if (this.isHoldingRight(menu)) {
+        input.x += 1;
+    }
+
+    if (this.isHoldingUp(menu)) {
+        input.y -= 1;
+    }
+
+    if (this.isHoldingDown(menu)) {
+        input.y += 1;
+    }
+
+    gp = this.getGamepadForInput(menu);
+
+    if (gp && gp.stickLeft) {
+        if (Math.abs(gp.stickLeft.x) > 0.25) {
+            input.x = gp.stickLeft.x;
+        }
+
+        if (Math.abs(gp.stickLeft.y) > 0.25) {
+            input.y = gp.stickLeft.y;
+        }
+    }
+
+    length = Math.sqrt((input.x * input.x) + (input.y * input.y));
+
+    if (length > 1) {
+        input.x /= length;
+        input.y /= length;
+    }
+
+    return input;
+};
+
 GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu, step) {
     var minigame;
+    var input;
     var t;
     var radius;
     var rx;
@@ -1592,27 +1643,67 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     var confirmPressed;
     var resetOffsetX;
     var resetOffsetY;
+    var reticleHalf;
+    var baseX;
+    var baseY;
+    var aimSpeed;
+    var aimFriction;
+    var aimMaxX;
+    var aimMaxY;
 
     minigame = menu.minigame;
     minigame.time += step;
     minigame.jitterTimer -= step;
     minigame.hitCooldown -= step;
-    minigame.resetForce = Math.max(0, minigame.resetForce - (step / (minigame.settleDurationMs || 850)));
-    
+    minigame.resetForce = Math.max(0, minigame.resetForce - (step / (minigame.settleDurationMs || 700)));
+
     confirmPressed = this.justPressedConfirm(menu);
+    input = this.getTargetReticleAimInput(menu);
+
+    aimSpeed = minigame.definition.aimSpeed || 0.0011;
+    aimFriction = Math.pow(minigame.definition.aimFriction || 0.78, step / 16.6667);
+    aimMaxX = minigame.definition.aimMaxX || 42;
+    aimMaxY = minigame.definition.aimMaxY || 14;
+
+    minigame.aimVelocityX = (minigame.aimVelocityX + (input.x * aimSpeed * step)) * aimFriction;
+    minigame.aimVelocityY = (minigame.aimVelocityY + (input.y * aimSpeed * step)) * aimFriction;
+    minigame.aimOffsetX += minigame.aimVelocityX * step;
+    minigame.aimOffsetY += minigame.aimVelocityY * step;
+
+    if (input.x === 0) {
+        minigame.aimOffsetX *= Math.pow(0.992, step / 16.6667);
+    }
+
+    if (input.y === 0) {
+        minigame.aimOffsetY *= Math.pow(0.992, step / 16.6667);
+    }
+
+    minigame.aimOffsetX = Math.max(-aimMaxX, Math.min(aimMaxX, minigame.aimOffsetX));
+    minigame.aimOffsetY = Math.max(-aimMaxY, Math.min(aimMaxY, minigame.aimOffsetY));
+
+    if (Math.abs(minigame.aimOffsetX) >= aimMaxX) {
+        minigame.aimVelocityX *= 0.25;
+    }
+
+    if (Math.abs(minigame.aimOffsetY) >= aimMaxY) {
+        minigame.aimVelocityY *= 0.25;
+    }
 
     if (minigame.jitterTimer <= 0) {
-        minigame.jitterTimer = 160 + Math.random() * 260;
-        minigame.jitterX = -12 + Math.random() * 24;
-        minigame.jitterY = -6 + Math.random() * 12;
+        minigame.jitterTimer = 90 + Math.random() * 150;
+        minigame.jitterX = -2 + Math.random() * 4;
+        minigame.jitterY = -1.25 + Math.random() * 2.5;
     }
 
     t = minigame.time / 1000;
-    radius = 26 * (0.35 + (minigame.resetForce * 0.65));
-    resetOffsetX = Math.cos(minigame.resetAngle) * (minigame.resetDistance || 62) * minigame.resetForce;
-    resetOffsetY = Math.sin(minigame.resetAngle) * (minigame.resetDistance || 62) * 0.55 * minigame.resetForce;
-    rx = minigame.centerX + Math.sin(t * 5.2) * radius + Math.sin(t * 13.1) * 10 + minigame.jitterX + resetOffsetX;
-    ry = minigame.centerY + Math.cos(t * 4.1) * 8 + Math.sin(t * 9.7) * 5 + minigame.jitterY + resetOffsetY;
+    reticleHalf = 8;
+    baseX = minigame.centerX - reticleHalf;
+    baseY = minigame.centerY - reticleHalf;
+    radius = (minigame.definition.driftRadius || 3.5) + (minigame.resetForce * (minigame.definition.resetDriftRadius || 4));
+    resetOffsetX = Math.cos(minigame.resetAngle) * (minigame.resetDistance || 28) * minigame.resetForce;
+    resetOffsetY = Math.sin(minigame.resetAngle) * (minigame.resetDistance || 28) * 0.5 * minigame.resetForce;
+    rx = baseX + minigame.aimOffsetX + Math.sin(t * 4.6) * radius + Math.sin(t * 10.4) * 1.6 + minigame.jitterX + resetOffsetX;
+    ry = baseY + minigame.aimOffsetY + Math.cos(t * 3.8) * (radius * 0.42) + Math.sin(t * 8.3) * 1.2 + minigame.jitterY + resetOffsetY;
 
     rx = Math.max(minigame.targetX + 4, Math.min(minigame.targetX + minigame.targetWidth - 20, rx));
     ry = Math.max(minigame.targetY + 4, Math.min(minigame.targetY + minigame.targetHeight - 20, ry));
@@ -1621,8 +1712,8 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     minigame.reticle.y = ry;
 
     if (confirmPressed && minigame.hitCooldown <= 0) {
-        dx = (rx + 8) - minigame.centerX;
-        dy = (ry + 8) - minigame.centerY;
+        dx = (rx + reticleHalf) - minigame.centerX;
+        dy = (ry + reticleHalf) - minigame.centerY;
         distance = Math.sqrt((dx * dx) + (dy * dy));
         bonus = 0;
 
@@ -1642,9 +1733,6 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
         minigame.storedDamage += bonus;
         minigame.hitCooldown = minigame.definition.shotCooldownMs || 280;
         this.playSfx(bonus > 0 ? GraveFallGame.SOUNDS.UI_CONFIRM : GraveFallGame.SOUNDS.UI_BACK, 0.38);
-    }
-
-    if (confirmPressed) {
         this.resetTargetReticleAim(menu);
     }
 };

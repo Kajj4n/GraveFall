@@ -661,7 +661,7 @@ GraveFallGame.scene.Rule.prototype.createMinigamePreviewCard = function (parent,
 
     if (type === "buttonMash") instructionText = "PRESS SHOWN BUTTON REPEATEDLY.";
     if (type === "sequence") instructionText = "INPUT THE SEQUENCE LEFT TO RIGHT.";
-    if (type === "aim") instructionText = "CONFIRM WHEN RETICLE IS CENTERED.";
+    if (type === "aim") instructionText = "MOVE/STICK STEERS; CONFIRM SHOOTS.";
     if (type === "timing") instructionText = "CONFIRM AS RETICLE CROSSES CENTER.";
 
     this.addCardLine(card, instructionText, 12, 188, 1.05, this.menuSkin.frame.light);
@@ -777,7 +777,7 @@ GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent,
     }
 
     if (type === "aim") {
-        prompt = this.createText("HIT THE TARGET", 0, 26, 2, width);
+        prompt = this.createText("MOVE AIM + SHOOT", 0, 26, 2, width);
         this.centerText(prompt, Math.round(width / 2), 2);
         group.addChild(prompt);
 

@@ -686,8 +686,14 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         goodDamage: 3,
         okDamage: 1,
         shotCooldownMs: 280,
-        settleDurationMs: 850,
-        resetDistance: 62
+        settleDurationMs: 700,
+        resetDistance: 28,
+        aimSpeed: 0.0011,
+        aimFriction: 0.78,
+        aimMaxX: 42,
+        aimMaxY: 14,
+        driftRadius: 3.5,
+        resetDriftRadius: 4
     },
     timingBar: {
         id: "timingBar",
@@ -704,7 +710,7 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
 
 GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
     { name: "MG_Ranger_Bullseye", size: "16x16", purpose: "Center scoring mark / bullseye for the ranger target" },
-    { name: "MG_Ranger_Reticle", size: "16x16", purpose: "Moving ranger reticle / crosshair" },
+    { name: "MG_Ranger_Reticle", size: "16x16", purpose: "Player-steered ranger reticle / crosshair" },
     { name: "MG_Rogue_Bar_Back", size: "196x20", purpose: "Rogue horizontal timing bar background" },
     { name: "MG_Rogue_HitZone", size: "20x28", purpose: "Rogue center hit-zone marker" },
     { name: "MG_Rogue_Timing_Block", size: "14x24", purpose: "Rogue moving timing rectangle" },
