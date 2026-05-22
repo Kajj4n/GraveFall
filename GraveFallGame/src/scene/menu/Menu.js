@@ -149,7 +149,7 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     footer.addChild(this.createSeparator(0, 0, screen.width, framePaletteSwaps));
     this.stage.addChild(footer);
 
-    footerText = this.createText("CONTROLLER PREFERRED GAME METHOD    PLAYTEST, STILL WIP", 0, 24, 1.2, 1200);
+    footerText = this.createText("CONTROLLER PREFERRED GAME METHOD    BETA BUILD", 0, 24, 1.2, 1200);
     this.centerText(footerText, screen.centerX, 1.2);
     footer.addChild(footerText);
     this.tintBitmapFieldText(footerText, this.menuSkin.frame.light, true);

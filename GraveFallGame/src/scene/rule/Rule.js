@@ -808,10 +808,10 @@ GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent,
         this.centerText(prompt, Math.round(width / 2), 2);
         group.addChild(prompt);
 
-        bar = this.createOptionalSprite(30, 58, 196, 20, "MG_Rogue_Bar_Back", "#191919");
+        bar = this.createOptionalSprite(30, 58, 196, 20, "MG_Assassin_Bar_Back", "#191919");
         group.addChild(bar);
 
-        hitZone = this.createOptionalSprite(118, 54, 20, 28, "MG_Rogue_HitZone_T", color);
+        hitZone = this.createOptionalSprite(118, 54, 20, 28, "MG_Assassin_HitZone_T", color);
         if (hitZone instanceof rune.display.Sprite) {
             this.applyMonochromeIconColor(hitZone, color);
         }
@@ -821,7 +821,7 @@ GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent,
         centerLine.backgroundColor = color;
         group.addChild(centerLine);
 
-        block = this.createOptionalSprite(92, 56, 14, 24, "MG_Rogue_Timing_Block_T", color);
+        block = this.createOptionalSprite(92, 56, 14, 24, "MG_Assassin_Timing_Block_T", color);
         if (block instanceof rune.display.Sprite) {
             this.applyMonochromeIconColor(block, color);
         }

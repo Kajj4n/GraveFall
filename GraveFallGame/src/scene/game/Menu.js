@@ -436,9 +436,9 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
             defense: 0,
             speed: 0
         },
-        temporaryDefenseBuff: false,
-        temporarySpeedBuff: false,
-        temporaryAttackBuff: false,
+        activeDefenseBuff: false,
+        activeSpeedBuff: false,
+        activeAttackBuff: false,
         hitCooldown: 0,
         isDefending: false,
         isBuffed: false,
@@ -734,9 +734,9 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
             menu.actionPreviewResolved = true;
             menu.isDefending = false;
             menu.isBuffed = false;
-            menu.temporaryDefenseBuff = false;
-            menu.temporarySpeedBuff = false;
-            menu.temporaryAttackBuff = false;
+            menu.activeDefenseBuff = false;
+            menu.activeSpeedBuff = false;
+            menu.activeAttackBuff = false;
             menu.moveSpeed = this.calculateEffectiveMoveSpeed(menu);
             menu.hitCooldown = 0;
             menu.standActionState = null;
@@ -793,7 +793,7 @@ GraveFallGame.scene.Game.prototype.getClassBuffType = function (playerMenu) {
         return "defense";
     }
 
-    if (id === "assassin" || id.indexOf("assassin_") === 0 || id === "rogue" || id.indexOf("rogue_") === 0 || minigame === "timingBar") {
+    if (id === "assassin" || id.indexOf("assassin_") === 0 || minigame === "timingBar") {
         return "speed";
     }
 
@@ -962,10 +962,10 @@ GraveFallGame.scene.Game.prototype.calculatePlayerAttackDamage = function (playe
     var bonusDmg = (playerMenu.attackDamageBonus || 0) * 1;
     var totalDmg = baseDmg + bonusDmg;
 
-    if (playerMenu.isBuffed || playerMenu.temporaryAttackBuff) {
+    if (playerMenu.isBuffed || playerMenu.activeAttackBuff) {
         totalDmg = Math.ceil(totalDmg * 1.5);
         playerMenu.isBuffed = false;
-        playerMenu.temporaryAttackBuff = false;
+        playerMenu.activeAttackBuff = false;
     }
 
     playerMenu.attackDamageBonus = 0;
@@ -989,7 +989,7 @@ GraveFallGame.scene.Game.prototype.applyDefendActionForPlayer = function (player
     }
 
     target.isDefending = true;
-    target.temporaryDefenseBuff = true;
+    target.activeDefenseBuff = true;
 
     healAmount = Math.max(1, Math.floor(target.healthMax * (this.defendHealRatio || 0.15)));
     this.applyHealthGainToPlayer(target, healAmount);
@@ -1105,7 +1105,7 @@ GraveFallGame.scene.Game.prototype.getClassBuffTooltipLines = function (playerMe
         return ["BUFF: PARTY DEFENCE x50%", "NEXT DODGE PHASE"];
     }
 
-    if (id === "assassin" || id.indexOf("assassin_") === 0 || id === "rogue" || id.indexOf("rogue_") === 0 || minigame === "timingBar") {
+    if (id === "assassin" || id.indexOf("assassin_") === 0 || minigame === "timingBar") {
         return ["BUFF: PARTY SPEED +1.6", "NEXT DODGE PHASE"];
     }
 
@@ -1852,7 +1852,7 @@ GraveFallGame.scene.Game.prototype.calculateEffectiveMoveSpeed = function (playe
 
     speed += playerMenu.permanentSpeedBonus || 0;
 
-    if (playerMenu.temporarySpeedBuff === true) {
+    if (playerMenu.activeSpeedBuff === true) {
         speed += 1.6;
     }
 
@@ -1872,16 +1872,16 @@ GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMen
 
     if (id === "fighter" || id.indexOf("fighter_") === 0 || playerMenu.attackMinigame === "buttonMash") {
         for (i = 0; i < targets.length; i++) {
-            targets[i].temporaryDefenseBuff = true;
+            targets[i].activeDefenseBuff = true;
             targets[i].isDefending = true;
         }
         this.spawnPartyBuffEffect("defense", targets, 1050);
         return;
     }
 
-    if (id === "assassin" || id.indexOf("assassin_") === 0 || id.indexOf("rogue_") === 0 || playerMenu.attackMinigame === "timingBar") {
+    if (id === "assassin" || id.indexOf("assassin_") === 0 || playerMenu.attackMinigame === "timingBar") {
         for (i = 0; i < targets.length; i++) {
-            targets[i].temporarySpeedBuff = true;
+            targets[i].activeSpeedBuff = true;
             targets[i].moveSpeed = this.calculateEffectiveMoveSpeed(targets[i]);
         }
         this.spawnPartyBuffEffect("speed", targets, 1050);
@@ -1903,14 +1903,14 @@ GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMen
 
     if (id === "ranger" || id.indexOf("ranger_") === 0 || playerMenu.attackMinigame === "targetReticle") {
         for (i = 0; i < targets.length; i++) {
-            targets[i].temporaryAttackBuff = true;
+            targets[i].activeAttackBuff = true;
             targets[i].isBuffed = true;
         }
         this.spawnPartyBuffEffect("attack", targets, 1050);
         return;
     }
 
-    playerMenu.temporaryAttackBuff = true;
+    playerMenu.activeAttackBuff = true;
     playerMenu.isBuffed = true;
     this.spawnPartyBuffEffect("attack", [playerMenu], 1050);
 };

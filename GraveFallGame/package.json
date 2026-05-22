@@ -1,7 +1,7 @@
 {
   "name": "GraveFallGame",
-  "version": "0.0.5",
-  "description": "An awesome Rune-based application.",
+  "version": "0.1.0",
+  "description": "A Rune-based action stratedgy roguelite game.",
   "main": "bin/bootstrap.js",
   "scripts": {
     "test": "electron ./bin-debug/bootstrap.js",
@@ -10,7 +10,7 @@
     "dist": "npm run build && electron-builder --win portable",
     "dist:dir": "npm run build && electron-builder --win dir"
   },
-  "author": "Uncredited Rune developer",
+  "author": "GraveFall team",
   "license": "MIT",
   "devDependencies": {
     "google-closure-compiler": "*",

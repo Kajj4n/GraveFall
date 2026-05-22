@@ -376,8 +376,8 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyList = function () {
 };
 
 GraveFallGame.scene.Game.prototype.devPrepareImmediateBattle = function () {
-    if (this.backgroundBackdropResource !== "Background_Test") {
-        this.setPassageBackground("Background_Test", this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, false);
+    if (this.backgroundBackdropResource !== "Dungeon_Background") {
+        this.setPassageBackground("Dungeon_Background", this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, false);
     }
 
     this.passageTransitionIsIntro = false;

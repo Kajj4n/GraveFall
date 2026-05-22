@@ -31,17 +31,17 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "ghoul_impaled_sword_drop": this.spawnGhoulImpaledSwordDrop(); break;
         case "ghoul_bone_shard_spread": this.spawnGhoulBoneShardSpread(); break;
         case "ghoul_skull_drift": this.spawnGhoulSkullDrift(); break;
-        case "placeholder_spear_corridor": this.spawnPlaceholderSpearCorridor(); break;
-        case "placeholder_arrow_crossfire": this.spawnPlaceholderArrowCrossfire(); break;
-        case "placeholder_bone_shard_arc": this.spawnPlaceholderBoneShardArc(); break;
-        case "placeholder_skull_ring": this.spawnPlaceholderSkullRing(); break;
-        case "placeholder_crystal_rain": this.spawnPlaceholderCrystalRain(); break;
-        case "placeholder_crystal_wall": this.spawnPlaceholderCrystalWall(); break;
-        case "placeholder_orb_split": this.spawnPlaceholderOrbSplit(); break;
-        case "experimental_animated_walkers": this.spawnExperimentalAnimatedWalkers(); break;
-        case "experimental_orb_split_chain": this.spawnExperimentalOrbSplitChain(); break;
-        case "experimental_bouncing_skulls": this.spawnExperimentalBouncingSkulls(); break;
-        case "experimental_bomb_cluster": this.spawnExperimentalBombCluster(); break;
+        case "crypt_spear_corridor": this.spawnCryptSpearCorridor(); break;
+        case "crypt_arrow_crossfire": this.spawnCryptArrowCrossfire(); break;
+        case "bonecaller_shard_arc": this.spawnBoneCallerShardArc(); break;
+        case "bonecaller_skull_ring": this.spawnBoneCallerSkullRing(); break;
+        case "crystal_rain": this.spawnCrystalRain(); break;
+        case "crystal_wall": this.spawnCrystalWall(); break;
+        case "crystal_orb_split": this.spawnCrystalOrbSplit(); break;
+        case "goblin_animated_walkers": this.spawnGoblinAnimatedWalkers(); break;
+        case "orb_split_chain": this.spawnOrbSplitChain(); break;
+        case "bouncing_skulls": this.spawnBouncingSkulls(); break;
+        case "bomb_cluster": this.spawnBombCluster(); break;
         case "attack_lab_fire_spray": this.spawnAttackLabFireSpray(); break;
         case "attack_lab_homing_wisps": this.spawnAttackLabHomingWisps(); break;
         case "attack_lab_pulse_orbs": this.spawnAttackLabPulseOrbs(); break;
@@ -891,10 +891,6 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireWave = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnHyDragonOrbBreath = function () {
-    this.spawnHyDragonSwordHunt();
-};
-
 GraveFallGame.scene.Game.prototype.spawnHyDragonSwordHunt = function () {
     var inner = this.getArenaInnerBounds();
     var count = 8;
@@ -1128,7 +1124,7 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonRoarQuake = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnPlaceholderSpearCorridor = function () {
+GraveFallGame.scene.Game.prototype.spawnCryptSpearCorridor = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.18, 0.34, 0.50, 0.66, 0.82];
     var i;
@@ -1161,7 +1157,7 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderSpearCorridor = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnPlaceholderArrowCrossfire = function () {
+GraveFallGame.scene.Game.prototype.spawnCryptArrowCrossfire = function () {
     var inner = this.getArenaInnerBounds();
     var rows = 5;
     var i;
@@ -1205,7 +1201,7 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderArrowCrossfire = function () 
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnPlaceholderBoneShardArc = function () {
+GraveFallGame.scene.Game.prototype.spawnBoneCallerShardArc = function () {
     var inner = this.getArenaInnerBounds();
     var originX = inner.x + (inner.width / 2);
     var originY = inner.y - 12;
@@ -1239,7 +1235,7 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderBoneShardArc = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnPlaceholderSkullRing = function () {
+GraveFallGame.scene.Game.prototype.spawnBoneCallerSkullRing = function () {
     var inner = this.getArenaInnerBounds();
     var positions = [
         { x: inner.x - 54, y: inner.y + 30, vx: 3.9, vy: 5.3 },
@@ -1284,7 +1280,7 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderSkullRing = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnPlaceholderCrystalRain = function () {
+GraveFallGame.scene.Game.prototype.spawnCrystalRain = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.12, 0.27, 0.42, 0.58, 0.73, 0.88];
     var fromTop = Math.random() > 0.5;
@@ -1328,7 +1324,7 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderCrystalRain = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnPlaceholderCrystalWall = function () {
+GraveFallGame.scene.Game.prototype.spawnCrystalWall = function () {
     var inner = this.getArenaInnerBounds();
     var fromLeft = Math.random() > 0.5;
     var count = 6;
@@ -1372,7 +1368,7 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderCrystalWall = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnPlaceholderOrbSplit = function () {
+GraveFallGame.scene.Game.prototype.spawnCrystalOrbSplit = function () {
     var inner = this.getArenaInnerBounds();
     var origins = [
         { x: inner.x + (inner.width * 0.26), y: inner.y - 24 },
@@ -1411,14 +1407,14 @@ GraveFallGame.scene.Game.prototype.spawnPlaceholderOrbSplit = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnExperimentalAnimatedWalkers = function () {
+GraveFallGame.scene.Game.prototype.spawnGoblinAnimatedWalkers = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.16, 0.34, 0.52, 0.70, 0.88];
     var i;
     var speed;
     var x;
 
-    // The placeholder goblin walk frames face downward, so these test walkers
+    // Goblin walk frames face downward, so these animated walkers
     // enter from above and walk down through the arena instead of sliding sideways.
     for (i = 0; i < lanes.length; i++) {
         speed = this.randomRange(2.2, 3.1);
@@ -1440,14 +1436,14 @@ GraveFallGame.scene.Game.prototype.spawnExperimentalAnimatedWalkers = function (
             vy: speed,
             damage: 8,
             life: 330,
-            type: "experimental_animated_walker",
+            type: "goblin_animated_walker",
             hitboxInsetX: 2,
             hitboxInsetY: 2
         });
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnExperimentalOrbSplitChain = function () {
+GraveFallGame.scene.Game.prototype.spawnOrbSplitChain = function () {
     var inner = this.getArenaInnerBounds();
     var count = 3;
     var i;
@@ -1475,13 +1471,13 @@ GraveFallGame.scene.Game.prototype.spawnExperimentalOrbSplitChain = function () 
             splitWidth: 16,
             splitHeight: 16,
             splitRemoveParent: true,
-            type: "experimental_orb_split_parent",
+            type: "orb_split_parent",
             spin: i % 2 === 0 ? 3 : -3
         });
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnExperimentalBouncingSkulls = function () {
+GraveFallGame.scene.Game.prototype.spawnBouncingSkulls = function () {
     var inner = this.getArenaInnerBounds();
     var count = 4;
     var i;
@@ -1530,7 +1526,7 @@ GraveFallGame.scene.Game.prototype.spawnExperimentalBouncingSkulls = function ()
             life: 390,
             bounce: true,
             bouncesRemaining: 14,
-            type: "experimental_bouncing_skull",
+            type: "bouncing_skull",
             hitboxInsetX: 2,
             hitboxInsetY: 2,
             spin: this.randomRange(-5, 5)
@@ -1538,7 +1534,7 @@ GraveFallGame.scene.Game.prototype.spawnExperimentalBouncingSkulls = function ()
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnExperimentalBombCluster = function () {
+GraveFallGame.scene.Game.prototype.spawnBombCluster = function () {
     var inner = this.getArenaInnerBounds();
     var count = 3;
     var i;
@@ -1585,7 +1581,7 @@ GraveFallGame.scene.Game.prototype.spawnExperimentalBombCluster = function () {
             shrapnelLife: 220,
             shrapnelResource: "Bone_Shard_Attack_T",
             explodeOnHit: true,
-            type: "experimental_bomb",
+            type: "fuse_bomb",
             hitboxInsetX: 4,
             hitboxInsetY: 4,
             spin: 5
@@ -1741,65 +1737,6 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabPulseOrbs = function () {
             spin: slowFirst ? 5 : -5
         });
     }
-};
-
-GraveFallGame.scene.Game.prototype.spawnAttackLabRicochetFunnel = function () {
-    var inner = this.getArenaInnerBounds();
-    var i;
-    var y;
-    var speed;
-    var centerX = inner.x + (inner.width / 2);
-    var centerY = inner.y + (inner.height / 2);
-
-    for (i = 0; i < 4; i++) {
-        y = inner.y + 36 + (i * ((inner.height - 72) / 3));
-        speed = this.randomRange(2.6, 3.4);
-
-        this.spawnProjectile({
-            x: i % 2 === 0 ? inner.x - 52 - (i * 8) : inner.x + inner.width + 20 + (i * 8),
-            y: y,
-            width: 32,
-            height: 32,
-            resource: "Skull_Attack_T",
-            vx: i % 2 === 0 ? speed : -speed,
-            vy: i < 2 ? this.randomRange(0.45, 1.15) : this.randomRange(-1.15, -0.45),
-            damage: 8,
-            life: 430,
-            startDelay: i * 10,
-            bounce: true,
-            bouncesRemaining: 18,
-            speedMultiplier: 1.001,
-            maxSpeed: 4.6,
-            type: "attack_lab_ricochet_skull",
-            hitboxInsetX: 2,
-            hitboxInsetY: 2,
-            spin: i % 2 === 0 ? 4 : -4
-        });
-    }
-
-    this.spawnProjectile({
-        x: centerX - 12,
-        y: centerY - 12,
-        width: 24,
-        height: 24,
-        resource: "Orb_Attack_T",
-        vx: this.randomRange(-0.4, 0.4),
-        vy: this.randomRange(-0.4, 0.4),
-        damage: 6,
-        life: 280,
-        startDelay: 38,
-        splitAt: 210,
-        splitCount: 10,
-        splitSpeed: 2.9,
-        splitLife: 190,
-        splitDamage: 4,
-        splitResource: "Bone_Shard_Attack_T",
-        splitWidth: 16,
-        splitHeight: 8,
-        splitRemoveParent: true,
-        type: "attack_lab_funnel_split_core",
-        spin: 4
-    });
 };
 
 GraveFallGame.scene.Game.prototype.spawnAttackLabHunterPack = function () {
@@ -2039,7 +1976,7 @@ GraveFallGame.scene.Game.prototype.splitProjectile = function (projectile) {
         resource: projectile.splitResource,
         damage: projectile.splitDamage,
         life: projectile.splitLife,
-        type: "experimental_split_child",
+        type: "orb_split_child",
         spin: projectile.spin ? projectile.spin * -1 : 0
     });
 };
@@ -2073,7 +2010,7 @@ GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
         damage: projectile.explosionDamage || 12,
         life: projectile.explosionLife || 34,
         pierce: true,
-        type: "experimental_bomb_explosion",
+        type: "bomb_explosion",
         hitboxInsetX: 2,
         hitboxInsetY: 2,
         fadeOutFrames: projectile.explosionFadeOutFrames || 10,
@@ -2095,7 +2032,7 @@ GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
             bouncesRemaining: typeof projectile.shrapnelBouncesRemaining === "number" ? projectile.shrapnelBouncesRemaining : 999,
             maxSpeed: typeof projectile.shrapnelMaxSpeed === "number" ? projectile.shrapnelMaxSpeed : null,
             fadeOutFrames: projectile.shrapnelFadeOutFrames || 0,
-            type: "experimental_bomb_shrapnel",
+            type: "bomb_shrapnel",
             hitboxInsetX: projectile.shrapnelResource === "Goblin_Head_Attack_T" ? 3 : 2,
             hitboxInsetY: projectile.shrapnelResource === "Goblin_Head_Attack_T" ? 3 : 1,
             spin: projectile.shrapnelResource === "Goblin_Head_Attack_T" ? 7 : 8
@@ -2517,64 +2454,6 @@ GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu
     playerMenu.classIcon.alpha = flashAlpha;
 };
 
-GraveFallGame.scene.Game.prototype.playPlaceholderHitSound = function () {
-    this.playSfx(GraveFallGame.SOUNDS.PLAYER_HIT, 0.55);
-};
-
-GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
-    var wasAlive = playerMenu.healthCurrent > 0;
-    var finalDamage = amount;
-    var damageReduction = 0;
-
-    if (playerMenu.isDefending || playerMenu.temporaryDefenseBuff === true) {
-        damageReduction += 0.5;
-    }
-
-    if (playerMenu.permanentDefenseBonus > 0) {
-        damageReduction += this.getPermanentDefenseDamageReduction(playerMenu);
-    }
-
-    if (damageReduction > 0) {
-        finalDamage = Math.ceil(finalDamage * Math.max(0.02, 1 - Math.min(0.98, damageReduction)));
-    }
-
-    // --- SCORE TRIGGER: TOOK DAMAGE ---
-    if (finalDamage > 0) {
-        this.addScorePopup(-(finalDamage * 10), "TOOK DAMAGE");
-    }
-    // ----------------------------------
-
-    playerMenu.healthCurrent = Math.max(0, playerMenu.healthCurrent - finalDamage);
-    this.updatePlayerHealthUi(playerMenu);
-    playerMenu.hitCooldown = 12;
-
-    if (finalDamage > 0) {
-        this.spawnPlayerDamageParticles(playerMenu, finalDamage);
-    }
-
-    this.shakeOnPlayerDamage(finalDamage);
-
-    if (this.phase !== GraveFallGame.scene.Game.PHASE_ACTION) {
-        this.updateAllPlayerDamageStates();
-    }
-
-    if (playerMenu.healthCurrent <= 0) {
-        if (wasAlive) {
-            this.playSfx(GraveFallGame.SOUNDS.PLAYER_DOWNED, 0.8);
-            
-            // --- SCORE TRACKER: ALLY DOWNED ---
-            this.encounterAllyDowned = true;
-            // ----------------------------------
-        }
-
-        playerMenu.battleAvatar.visible = false;
-        playerMenu.battleAvatar.alpha = 1;
-        playerMenu.confirmed = true;
-    } else if (wasAlive) {
-        this.playSfx(GraveFallGame.SOUNDS.PLAYER_HIT, 0.6);
-    }
-};
-
 GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
     var i;
     var j;
@@ -2781,316 +2660,4 @@ GraveFallGame.scene.Game.prototype.clampObjectHitboxToBounds = function (object,
         x: clampedX,
         y: clampedY
     };
-};
-
-GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (playerMenu) {
-    var speed = playerMenu.moveSpeed || 3;
-    var avatar = playerMenu.battleAvatar;
-    var inner = this.getArenaInnerBounds();
-    var oldX = avatar.x;
-    var oldY = avatar.y;
-    var nextX = avatar.x;
-    var nextY = avatar.y;
-    var clamped;
-
-    if (playerMenu.healthCurrent <= 0) {
-        return;
-    }
-
-    if (this.isHoldingLeft(playerMenu)) {
-        nextX -= speed;
-    }
-
-    if (this.isHoldingRight(playerMenu)) {
-        nextX += speed;
-    }
-
-    if (this.isHoldingUp(playerMenu)) {
-        nextY -= speed;
-    }
-
-    if (this.isHoldingDown(playerMenu)) {
-        nextY += speed;
-    }
-
-    clamped = this.clampObjectHitboxToBounds(avatar, nextX, nextY, inner);
-    nextX = clamped.x;
-    nextY = clamped.y;
-
-    if (this.isBattleAvatarColliding(playerMenu, nextX, nextY)) {
-        avatar.x = oldX;
-        avatar.y = oldY;
-        return;
-    }
-
-    avatar.x = nextX;
-    avatar.y = nextY;
-};
-
-GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
-    if (this.arenaItem && this.arenaItem.parent) {
-        this.arenaItem.parent.removeChild(this.arenaItem, true);
-    }
-
-    this.arenaItem = null;
-};
-
-GraveFallGame.scene.Game.prototype.getArenaItemPickupColors = function () {
-    return ["#1E88E5", "#FDD835", "#E53935", "#43A047"];
-};
-
-GraveFallGame.scene.Game.prototype.hexPair = function (value) {
-    var out = Math.max(0, Math.min(255, Math.round(value))).toString(16).toUpperCase();
-    return out.length < 2 ? "0" + out : out;
-};
-
-GraveFallGame.scene.Game.prototype.lerpHexColor = function (fromColor, toColor, ratio) {
-    var fromHex = (fromColor || "#FFFFFF").replace("#", "");
-    var toHex = (toColor || "#FFFFFF").replace("#", "");
-    var t = Math.max(0, Math.min(1, typeof ratio === "number" ? ratio : 0));
-    var r1;
-    var g1;
-    var b1;
-    var r2;
-    var g2;
-    var b2;
-
-    if (fromHex.length !== 6 || toHex.length !== 6) {
-        return toColor || "#FFFFFF";
-    }
-
-    r1 = parseInt(fromHex.substring(0, 2), 16);
-    g1 = parseInt(fromHex.substring(2, 4), 16);
-    b1 = parseInt(fromHex.substring(4, 6), 16);
-    r2 = parseInt(toHex.substring(0, 2), 16);
-    g2 = parseInt(toHex.substring(2, 4), 16);
-    b2 = parseInt(toHex.substring(4, 6), 16);
-
-    return "#" + this.hexPair(r1 + ((r2 - r1) * t)) + this.hexPair(g1 + ((g2 - g1) * t)) + this.hexPair(b1 + ((b2 - b1) * t));
-};
-
-GraveFallGame.scene.Game.prototype.applyArenaItemPickupColor = function (item, targetColor) {
-    var swaps;
-    var sourceColors;
-    var i;
-
-    if (!item || !targetColor || !item.texture || typeof item.texture.replaceColor !== "function") {
-        return;
-    }
-
-    if (item.pickupTintColor === targetColor) {
-        return;
-    }
-
-    sourceColors = [
-        item.pickupTintColor,
-        GraveFallGame.scene.Game.MONO_ICON_SOURCE,
-        GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid,
-        "#FFFFFF",
-        "#E53935",
-        "#1E88E5",
-        "#FDD835",
-        "#43A047"
-    ];
-
-    swaps = [];
-
-    for (i = 0; i < sourceColors.length; i++) {
-        if (sourceColors[i]) {
-            swaps.push({ from: sourceColors[i], to: targetColor });
-        }
-    }
-
-    this.applyPaletteSwaps(item, swaps);
-    item.pickupTintColor = targetColor;
-};
-
-GraveFallGame.scene.Game.prototype.spawnArenaItemAmbientSparkles = function (item) {
-    var anchor;
-    var colors;
-
-    if (!item || !this.stage || typeof this.spawnParticleBurstAt !== "function") {
-        return;
-    }
-
-    anchor = this.getStageAnchorForNode(item, 0.5, 0.5);
-    colors = item.pickupColors || this.getArenaItemPickupColors();
-
-    this.spawnParticleBurstAt(anchor.x, anchor.y, {
-        effectType: "arenaItemSparkle",
-        colors: colors,
-        count: 2,
-        durationMs: 520,
-        minDistance: 4,
-        maxDistance: 18,
-        minSpeed: 0.002,
-        maxSpeed: 0.011,
-        minScale: 0.12,
-        maxScale: 0.26,
-        directional: false,
-        baseVy: -0.009,
-        primaryResource: "Sparkle_Particle_T",
-        secondaryResource: "Sparkle_Particle_T"
-    });
-};
-
-GraveFallGame.scene.Game.prototype.updateArenaItemPickupVisuals = function (item, step) {
-    var colors;
-    var elapsed;
-    var cycleMs;
-    var phase;
-    var index;
-    var nextIndex;
-    var ratio;
-    var eased;
-    var color;
-    var pulse;
-
-    if (!item) {
-        return;
-    }
-
-    step = typeof step === "number" && isFinite(step) && step > 0 ? step : 16.6667;
-    colors = item.pickupColors || this.getArenaItemPickupColors();
-
-    if (!colors || colors.length <= 0) {
-        return;
-    }
-
-    item.pickupPulseTimeMs = (item.pickupPulseTimeMs || 0) + step;
-    elapsed = item.pickupPulseTimeMs;
-    cycleMs = 900;
-    phase = (elapsed % (cycleMs * colors.length)) / cycleMs;
-    index = Math.floor(phase) % colors.length;
-    nextIndex = (index + 1) % colors.length;
-    ratio = phase - Math.floor(phase);
-    eased = 0.5 - (Math.cos(ratio * Math.PI) * 0.5);
-    color = this.lerpHexColor(colors[index], colors[nextIndex], eased);
-
-    this.applyArenaItemPickupColor(item, color);
-
-    pulse = 0.5 + (Math.sin(elapsed / 170) * 0.5);
-    item.scaleX = (item.baseScale || 0.45) * (1 + (pulse * 0.08));
-    item.scaleY = item.scaleX;
-
-    item.pickupSparkleTimerMs = (item.pickupSparkleTimerMs || 0) - step;
-
-    if (item.pickupSparkleTimerMs <= 0) {
-        this.spawnArenaItemAmbientSparkles(item);
-        item.pickupSparkleTimerMs = this.randomRange ? this.randomRange(170, 310) : (170 + Math.random() * 140);
-    }
-};
-
-GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
-    var inner = this.getArenaInnerBounds();
-    var itemScale = 0.45;
-    var itemTypes = ["maxHp", "attack", "defense", "speed"];
-    var itemType = itemTypes[Math.floor(Math.random() * itemTypes.length)];
-    var item = new rune.display.Sprite(0, 0, 100, 100, this.getItemIconResource(itemType));
-    var maxX;
-    var maxY;
-
-    item.baseScale = itemScale;
-    item.scaleX = itemScale;
-    item.scaleY = itemScale;
-    item.buffType = itemType;
-    item.pickupColors = this.getArenaItemPickupColors();
-    item.pickupPulseTimeMs = Math.random() * 900;
-    item.pickupSparkleTimerMs = 80;
-    item.pickupTintColor = null;
-    this.applyArenaItemPickupColor(item, item.pickupColors[0]);
-
-    maxX = inner.x + inner.width - (item.width * item.scaleX);
-    maxY = inner.y + inner.height - (item.height * item.scaleY);
-
-    item.x = this.randomRange(inner.x, maxX);
-    item.y = this.randomRange(inner.y, maxY);
-
-    this.arenaAvatarLayer.addChild(item);
-    this.arenaItem = item;
-    this.playSfx(GraveFallGame.SOUNDS.ITEM_SPAWN, 0.45);
-};
-
-GraveFallGame.scene.Game.prototype.updateArenaItem = function (step) {
-    if (this.arenaItem) {
-        this.updateArenaItemPickupVisuals(this.arenaItem, step);
-        return;
-    }
-
-    if (this.itemSpawnTimer > 0) {
-        this.itemSpawnTimer--;
-        return;
-    }
-
-    this.spawnArenaItem();
-};
-
-GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
-    var i;
-    var playerMenu;
-
-    if (!this.arenaItem) return;
-
-    for (i = 0; i < this.playerMenus.length; i++) {
-        playerMenu = this.playerMenus[i];
-
-        if (playerMenu.healthCurrent <= 0) {
-            continue;
-        }
-
-        if (this.rectsOverlap(playerMenu.battleAvatar, this.arenaItem)) {
-            this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.65);
-            this.givePlayerItem(playerMenu, this.arenaItem.buffType || "attack");
-            this.spawnItemPickupEffect(playerMenu, this.arenaItem.buffType || "attack", 650);
-            this.clearArenaItem();
-            this.itemSpawnTimer = Math.floor(this.randomRange(90, 240));
-            break;
-        }
-    }
-};
-
-GraveFallGame.scene.Game.prototype.updateActionPhase = function (step) {
-    var enemy = this.getCurrentEnemyConfig();
-    var i;
-
-    this.updateActionPromptTimer();
-
-    if (this.actionPhaseStartDelayFrames > 0) {
-        this.actionPhaseStartDelayFrames--;
-
-        for (i = 0; i < this.playerMenus.length; i++) {
-            this.updateBattleAvatarMovement(this.playerMenus[i]);
-            this.updatePlayerHitFlicker(this.playerMenus[i]);
-        }
-
-        return;
-    }
-
-    this.actionPhaseTimer--;
-    this.nextPatternIn--;
-
-    this.updateArenaItem(step);
-    this.checkItemCollisions();
-
-    if (this.nextPatternIn <= 0) {
-        this.spawnEnemyPattern();
-        this.nextPatternIn = enemy.patternInterval;
-    }
-
-    for (i = 0; i < this.playerMenus.length; i++) {
-        this.updateBattleAvatarMovement(this.playerMenus[i]);
-        this.updatePlayerHitFlicker(this.playerMenus[i]);
-    }
-
-    this.updateProjectiles();
-    this.checkProjectileCollisions();
-
-    if (this.areAllPlayersDown()) {
-        this.endActionPhase();
-        return;
-    }
-
-    if (this.actionPhaseTimer <= 0) {
-        this.endActionPhase();
-    }
 };

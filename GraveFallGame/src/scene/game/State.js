@@ -699,7 +699,7 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
     },
     timingBar: {
         id: "timingBar",
-        title: "ROGUE: BACKSTAB",
+        title: "ASSASSIN: BACKSTAB",
         setup: "setupTimingBarMinigame",
         update: "updateTimingBarMinigame",
         perfectDamage: 5,
@@ -710,12 +710,12 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
     }
 };
 
-GraveFallGame.scene.Game.MINIGAME_SPRITE_TODO = [
+GraveFallGame.scene.Game.MINIGAME_SPRITE_ASSET_REQUIREMENTS = [
     { name: "MG_Ranger_Bullseye", size: "16x16", purpose: "Center scoring mark / bullseye for the ranger target" },
     { name: "MG_Ranger_Reticle", size: "16x16", purpose: "Player-steered ranger reticle / crosshair" },
-    { name: "MG_Rogue_Bar_Back", size: "196x20", purpose: "Rogue horizontal timing bar background" },
-    { name: "MG_Rogue_HitZone", size: "20x28", purpose: "Rogue center hit-zone marker" },
-    { name: "MG_Rogue_Timing_Block", size: "14x24", purpose: "Rogue moving timing rectangle" },
+    { name: "MG_Assassin_Bar_Back", size: "196x20", purpose: "Assassin horizontal timing bar background" },
+    { name: "MG_Assassin_HitZone", size: "20x28", purpose: "Assassin center hit-zone marker" },
+    { name: "MG_Assassin_Timing_Block", size: "14x24", purpose: "Assassin moving timing rectangle" },
     { name: "MG_Sequence_Slot", size: "42x42", purpose: "Optional wizard sequence slot frame" }
 ];
 
@@ -733,7 +733,7 @@ GraveFallGame.scene.Game.CLASS_TEMPLATES = [
     },
     {
         id: "assassin",
-        name: "Rogue",
+        name: "Assassin",
         portrait: "Assassin_Portrait",
         classIcon: "Assassin_Icon_T",
         stand: "Assassin_Idle_Stance",
@@ -798,7 +798,7 @@ GraveFallGame.scene.Game.getPartyMenuX = function (renderIndex, partySize, menuW
     return Math.round(((screenWidth / partySize) * renderIndex) + ((screenWidth / partySize) / 2) - (menuWidth / 2));
 };
 
-GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
+GraveFallGame.scene.Game.GHOUL_DAMAGE_STATE_RESOURCES = {
     hp100: "Ghoul_Idle_T",
     hp75: "Ghoul_Bruised_T",
     hp50: "Ghoul_Hurt_T",
@@ -806,7 +806,7 @@ GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
     killed: "Ghoul_Killed_T"
 };
 
-GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES = {
+GraveFallGame.scene.Game.GOBLIN_DAMAGE_STATE_RESOURCES = {
     hp100: "Goblin_Idle_T",
     hp75: "Goblin_Bruised_T",
     hp50: "Goblin_Hurt_T",
@@ -939,7 +939,7 @@ GraveFallGame.scene.Game.ENEMIES = {
         name: "Ghoul",
         isBoss: false,
         resource: "Ghoul_Idle_T",
-        damageStateResources: GraveFallGame.scene.Game.GHOUL_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
+        damageStateResources: GraveFallGame.scene.Game.GHOUL_DAMAGE_STATE_RESOURCES,
         hpMax: 95,
         actionPhaseDuration: 260,
         patternInterval: 44,
@@ -960,9 +960,9 @@ GraveFallGame.scene.Game.ENEMIES = {
         actionPhaseDuration: 270,
         patternInterval: 42,
         patterns: [
-            "placeholder_spear_corridor",
+            "crypt_spear_corridor",
             "ghoul_impaled_sword_drop",
-            "placeholder_arrow_crossfire"
+            "crypt_arrow_crossfire"
         ]
     },
     boneCaller: {
@@ -974,9 +974,9 @@ GraveFallGame.scene.Game.ENEMIES = {
         actionPhaseDuration: 280,
         patternInterval: 38,
         patterns: [
-            "placeholder_skull_ring",
-            "placeholder_bone_shard_arc",
-            "placeholder_skull_ring",
+            "bonecaller_skull_ring",
+            "bonecaller_shard_arc",
+            "bonecaller_skull_ring",
             "ghoul_bone_shard_spread"
         ]
     },
@@ -989,18 +989,18 @@ GraveFallGame.scene.Game.ENEMIES = {
         actionPhaseDuration: 300,
         patternInterval: 36,
         patterns: [
-            "placeholder_crystal_wall",
-            "placeholder_crystal_rain",
-            "placeholder_crystal_wall",
-            "placeholder_orb_split",
-            "placeholder_crystal_wall"
+            "crystal_wall",
+            "crystal_rain",
+            "crystal_wall",
+            "crystal_orb_split",
+            "crystal_wall"
         ]
     },
     goblinHorde: {
         name: "Goblin Horde",
         isBoss: true,
         resource: "Goblin_Idle_T",
-        damageStateResources: GraveFallGame.scene.Game.GOBLIN_PLACEHOLDER_DAMAGE_STATE_RESOURCES,
+        damageStateResources: GraveFallGame.scene.Game.GOBLIN_DAMAGE_STATE_RESOURCES,
         hpMax: 225,
         actionPhaseDuration: 345,
         patternInterval: 44,
@@ -1166,42 +1166,6 @@ GraveFallGame.stopMusic = function (music) {
 
 GraveFallGame.scene.Game.prototype.playSfx = function (soundName, volume, pan, unique) {
     return GraveFallGame.playSound(this.application, soundName, volume, pan, unique);
-};
-
-GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, targetColor, recursive) {
-    var i;
-    var sourceColors;
-
-    if (!field || !targetColor) {
-        return;
-    }
-
-    sourceColors = [
-        "#ffffff",
-        "#fefefe",
-        "#f0f0f0",
-        "#d0d0d0",
-        "#c5c5c5",
-        "#000000"
-    ];
-
-    if (field.texture && typeof field.texture.replaceColor === "function") {
-        for (i = 0; i < sourceColors.length; i++) {
-            try {
-                field.texture.replaceColor(
-                    rune.color.Color24.fromHex(sourceColors[i]),
-                    rune.color.Color24.fromHex(targetColor)
-                );
-            } catch (e) {
-            }
-        }
-    }
-
-    if (recursive !== false && field.children && field.children.length > 0) {
-        for (i = 0; i < field.children.length; i++) {
-            this.tintBitmapFieldText(field.children[i], targetColor, true);
-        }
-    }
 };
 
 GraveFallGame.scene.Game.prototype.queueSfx = function (delayMs, soundName, volume, pan, unique) {
@@ -1442,20 +1406,20 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "boss_orb_burst":
         case "ghoul_orb_crawl":
         case "ghoul_skull_drift":
-        case "placeholder_skull_ring":
-        case "placeholder_orb_split":
-        case "experimental_orb_split_chain":
-        case "experimental_bouncing_skulls":
+        case "bonecaller_skull_ring":
+        case "crystal_orb_split":
+        case "orb_split_chain":
+        case "bouncing_skulls":
         case "attack_lab_homing_wisps":
         case "attack_lab_pulse_orbs":
         case "boss_diagonal_drop":
         case "ghoul_dart_ambush":
         case "ghoul_bone_shard_spread":
-        case "placeholder_spear_corridor":
-        case "placeholder_arrow_crossfire":
-        case "placeholder_bone_shard_arc":
-        case "placeholder_crystal_rain":
-        case "placeholder_crystal_wall":
+        case "crypt_spear_corridor":
+        case "crypt_arrow_crossfire":
+        case "bonecaller_shard_arc":
+        case "crystal_rain":
+        case "crystal_wall":
         case "hydragon_fang_fan":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_DAGGER, 0.65);
             break;
@@ -1464,7 +1428,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_PEBBLE, 0.55);
             break;
         case "goblin_dart_fan":
-        case "experimental_animated_walkers":
+        case "goblin_animated_walkers":
         case "attack_lab_hunter_pack":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_DART, 0.6);
             break;
@@ -1472,7 +1436,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "goblin_boss_mace_quake":
         case "hydragon_roar_quake":
         case "ghoul_stomp_pulse":
-        case "experimental_bomb_cluster":
+        case "bomb_cluster":
         case "goblin_boss_fuse_bombs":
         case "attack_lab_fuse_minefield":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
@@ -1617,8 +1581,6 @@ GraveFallGame.scene.Game.prototype.applyPaletteSwapsToDamageStateGroup = functio
 
 GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseResource) {
     var prefix = baseResource.replace("_Idle_Stance", "");
-    var downedPrefix = prefix === "Assassin" ? "Assasin" : prefix;
-
     return [
         { state: "hp100", resource: this.resolveExistingResource([prefix + "_Idle_Stance", baseResource], baseResource) },
         { state: "hp75", resource: this.resolveExistingResource([prefix + "_Bruised_Stance", prefix + "_Idle_Stance"], baseResource) },
@@ -1628,11 +1590,11 @@ GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseRe
         { state: "itemAttack", resource: this.resolveExistingResource([prefix + "_Item_Attack", prefix + "_Idle_Stance"], baseResource) },
         { state: "itemDefend", resource: this.resolveExistingResource([prefix + "_Item_Defend", prefix + "_Idle_Stance"], baseResource) },
         { state: "itemPotion", resource: this.resolveExistingResource([prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
-        { state: "itemSpeedPotion", resource: this.resolveExistingResource([prefix + "_Item_Speed_Potion", downedPrefix + "_Item_Speed_Potion", prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
+        { state: "itemSpeedPotion", resource: this.resolveExistingResource([prefix + "_Item_Speed_Potion", prefix + "_Item_Potion", prefix + "_Idle_Stance"], baseResource) },
         { state: "buff", resource: this.resolveExistingResource([prefix + "_Buff_Stance", prefix + "_Item_Defend", prefix + "_Idle_Stance"], baseResource) },
 
-        { state: "knockedOut", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) },
-        { state: "dead", resource: this.resolveExistingResource([prefix + "_Downed_Stance", downedPrefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) }
+        { state: "knockedOut", resource: this.resolveExistingResource([prefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) },
+        { state: "dead", resource: this.resolveExistingResource([prefix + "_Downed_Stance", prefix + "_Dying_Stance", prefix + "_Hurt_Stance", prefix + "_Idle_Stance"], baseResource) }
     ];
 };
 

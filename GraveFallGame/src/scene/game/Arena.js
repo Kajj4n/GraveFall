@@ -51,7 +51,7 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
 GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, uiSkin, keepTransform) {
     var oldBackground = this.backgroundBackdrop;
     var parent;
-    var insertIndex = 0;
+    var layerIndex = 0;
     var newBackground;
 
     if (!resource || this.backgroundBackdropResource === resource) {
@@ -61,7 +61,7 @@ GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, ui
     parent = oldBackground && oldBackground.parent ? oldBackground.parent : this.stage;
 
     if (oldBackground && oldBackground.parent && typeof oldBackground.parent.getChildIndex === "function") {
-        insertIndex = oldBackground.parent.getChildIndex(oldBackground);
+        layerIndex = oldBackground.parent.getChildIndex(oldBackground);
     }
 
     newBackground = new rune.display.Sprite(
@@ -88,7 +88,7 @@ GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, ui
     }
 
     if (typeof parent.addChildAt === "function") {
-        parent.addChildAt(newBackground, insertIndex);
+        parent.addChildAt(newBackground, layerIndex);
     } else {
         parent.addChild(newBackground);
     }
@@ -180,7 +180,7 @@ GraveFallGame.scene.Game.prototype.rebuildPlayerMenuFramesForSkin = function (pl
 };
 
 GraveFallGame.scene.Game.prototype.refreshPassageBackgroundPalette = function (keepTransform) {
-    var resource = this.backgroundBackdropResource || "Background_Test";
+    var resource = this.backgroundBackdropResource || "Dungeon_Background";
 
     this.backgroundBackdropResource = null;
     this.setPassageBackground(resource, this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, keepTransform === true);
@@ -402,46 +402,6 @@ GraveFallGame.scene.Game.prototype.getCurrentPartyName = function () {
 };
 
 // --- DYNAMIC LOCALSTORAGE SAVING DIRECTLY IN ARENA.JS ---
-GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function () {
-    var partyName;
-    var partySize;
-    var key;
-    var scores = [];
-
-    if (this.gameOverLeaderboardSaved === true) {
-        return;
-    }
-
-    this.gameOverLeaderboardSaved = true;
-
-    partyName = this.getCurrentPartyName();
-    partySize = (this.partyMembers && this.partyMembers.length) ||
-        (this.playerMenus && this.playerMenus.length) ||
-        1;
-
-    key = "gravefall_highscores_" + partySize;
-
-    try {
-        var data = window.localStorage.getItem(key);
-        if (data) {
-            scores = JSON.parse(data);
-        }
-    } catch (e) {
-        console.warn("Failed to load highscores", e);
-    }
-
-    scores.push({ name: partyName, score: this.score || 0 });
-    scores.sort(function (a, b) { return b.score - a.score; });
-    
-    scores = scores.slice(0, 10);
-
-    try {
-        window.localStorage.setItem(key, JSON.stringify(scores));
-    } catch (e) {
-        console.warn("Failed to save highscores", e);
-    }
-};
-
 GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
     var partyName;
     var finalScoreStr;
@@ -559,39 +519,6 @@ GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
 
     if (typeof this.renderGameOverStats === "function") {
         this.renderGameOverStats();
-    }
-};
-
-GraveFallGame.scene.Game.prototype.updateGameOver = function () {
-    this.gameOverTimer++;
-
-    if (typeof this.renderGameOverStats === "function" && !this.gameOverStatsPanel) {
-        this.renderGameOverStats();
-    }
-
-    if (this.gameOverInstruction) {
-        this.gameOverInstruction.alpha = (Math.floor(this.gameOverTimer / 30) % 2 === 0) ? 1 : 0;
-    }
-
-    var continuePressed = this.keyboard.justPressed("space");
-
-    if (!continuePressed) {
-        for (var i = 0; i < 4; i++) {
-            var gp = null;
-            try {
-                gp = this.gamepads.get(i);
-            } catch (e) {}
-            if (gp && gp.connected && gp.justPressed(0)) {
-                continuePressed = true;
-                break;
-            }
-        }
-    }
-
-    if (!(this.isDevConsoleInputActive && this.isDevConsoleInputActive()) && continuePressed) {
-        this.application.scenes.load([
-            new GraveFallGame.scene.Leaderboard(this.gameOverPartySize)
-        ]);
     }
 };
 
@@ -826,7 +753,7 @@ GraveFallGame.scene.Game.prototype.updateEnemyHealthBarUi = function () {
 
 GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     var enemyConfig = this.getCurrentEnemyConfig();
-    var insertIndex = 0;
+    var layerIndex = 0;
 
     if (this.enemySprite && this.enemySprite.parent) {
         this.enemySprite.parent.removeChild(this.enemySprite, true);
@@ -852,11 +779,11 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     this.enemySprite.visible = fadeIn !== true;
 
     if (this.backgroundBackdrop && this.backgroundBackdrop.parent === this.stage) {
-        insertIndex = this.stage.getChildIndex(this.backgroundBackdrop) + 1;
+        layerIndex = this.stage.getChildIndex(this.backgroundBackdrop) + 1;
     }
 
-    this.stage.addChildAt(this.enemySprite, insertIndex);
-    this.bossPlaceholder = this.enemySprite;
+    this.stage.addChildAt(this.enemySprite, layerIndex);
+    this.enemyDisplaySprite = this.enemySprite;
 };
 
 GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fadeIn) {
@@ -907,9 +834,9 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
         this.playerMenus[i].isDefending = false;
-        this.playerMenus[i].temporaryDefenseBuff = false;
-        this.playerMenus[i].temporarySpeedBuff = false;
-        this.playerMenus[i].temporaryAttackBuff = false;
+        this.playerMenus[i].activeDefenseBuff = false;
+        this.playerMenus[i].activeSpeedBuff = false;
+        this.playerMenus[i].activeAttackBuff = false;
         this.playerMenus[i].isBuffed = false;
         this.playerMenus[i].attackDamageBonus = 0;
         this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
@@ -1026,8 +953,8 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
 
     this.passageTransitionEncounterLoaded = true;
 
-    if (this.backgroundBackdropResource !== "Background_Test") {
-        this.setPassageBackground("Background_Test", this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, false);
+    if (this.backgroundBackdropResource !== "Dungeon_Background") {
+        this.setPassageBackground("Dungeon_Background", this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, false);
     }
 
     if (this.shouldTriggerRandomEvent && this.shouldTriggerRandomEvent()) {
@@ -1576,9 +1503,9 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
         this.playerMenus[i].container.y = this.playerMenus[i].baseY;
         this.playerMenus[i].hitCooldown = 0;
         this.playerMenus[i].isDefending = false;
-        this.playerMenus[i].temporaryDefenseBuff = false;
-        this.playerMenus[i].temporarySpeedBuff = false;
-        this.playerMenus[i].temporaryAttackBuff = false;
+        this.playerMenus[i].activeDefenseBuff = false;
+        this.playerMenus[i].activeSpeedBuff = false;
+        this.playerMenus[i].activeAttackBuff = false;
         this.playerMenus[i].isBuffed = false;
         this.playerMenus[i].attackDamageBonus = 0;
         this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
@@ -1847,7 +1774,7 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     var finalDamage = amount;
     var damageReduction = 0;
 
-    if (playerMenu.isDefending || playerMenu.temporaryDefenseBuff === true) {
+    if (playerMenu.isDefending || playerMenu.activeDefenseBuff === true) {
         damageReduction += 0.5;
     }
 
@@ -2488,26 +2415,6 @@ GraveFallGame.scene.Game.prototype.shouldTriggerRandomEvent = function () {
     return true;
 };
 
-GraveFallGame.scene.Game.prototype.getRandomEventMenuActionPositions = function (playerMenu) {
-    var positions = [];
-    var count = Math.max(1, Math.min(4, playerMenu && playerMenu.randomEventChoiceCount ? playerMenu.randomEventChoiceCount : 0));
-    var leftPadding = 18;
-    var rightPadding = 18;
-    var usableWidth = 320 - leftPadding - rightPadding;
-    var step = count > 1 ? (usableWidth / (count - 1)) : 0;
-    var i;
-
-    for (i = 0; i < count; i++) {
-        positions.push(Math.round(leftPadding + (step * i)));
-    }
-
-    while (positions.length < 4) {
-        positions.push(positions.length > 0 ? positions[positions.length - 1] : leftPadding);
-    }
-
-    return positions;
-};
-
 GraveFallGame.scene.Game.prototype.configureRandomEventMenus = function (eventData) {
     var choices = this.getRandomEventChoices(eventData);
     var i;
@@ -2971,11 +2878,6 @@ GraveFallGame.scene.Game.prototype.resolveRandomEvent = function () {
 
 
 (function () {
-    var originalSaveCurrentRunToLeaderboard = GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard;
-    var originalShowGameOverAndReturnToMenu = GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu;
-    var originalUpdateGameOver = GraveFallGame.scene.Game.prototype.updateGameOver;
-    var originalDispose = GraveFallGame.scene.Game.prototype.dispose;
-
     GraveFallGame.scene.Game.prototype.buildGameOverSummary = function () {
         var summary = {
             partyName: this.getCurrentPartyName ? this.getCurrentPartyName() : "THE FALLEN",
@@ -3443,33 +3345,6 @@ GraveFallGame.scene.Game.prototype.resolveRandomEvent = function () {
             this.application.scenes.load([
                 new GraveFallGame.scene.Leaderboard(this.gameOverPartySize)
             ]);
-        }
-    };
-
-    GraveFallGame.scene.Game.prototype.dispose = function () {
-        var i;
-
-        if (this.gameOverCards) {
-            for (i = 0; i < this.gameOverCards.length; i++) {
-                if (this.gameOverCards[i] && this.gameOverCards[i].parent) {
-                    this.gameOverCards[i].parent.removeChild(this.gameOverCards[i], true);
-                }
-            }
-        }
-
-        if (this.gameOverStatsPanel && this.gameOverStatsPanel.parent) {
-            this.gameOverStatsPanel.parent.removeChild(this.gameOverStatsPanel, true);
-        }
-
-        this.gameOverStatsPanel = null;
-        this.gameOverCards = null;
-        this.gameOverTitleText = null;
-        this.gameOverScoreText = null;
-        this.gameOverCountdownText = null;
-        this.gameOverInstruction = null;
-
-        if (typeof originalDispose === "function") {
-            originalDispose.call(this);
         }
     };
 })();

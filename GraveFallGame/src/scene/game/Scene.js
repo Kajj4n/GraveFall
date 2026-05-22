@@ -167,7 +167,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemySprite.y = 180;
     this.setDamageStateGroupState(this.enemySprite, "hp100");
     this.stage.addChild(this.enemySprite);
-    this.bossPlaceholder = this.enemySprite;
+    this.enemyDisplaySprite = this.enemySprite;
 
     var eBarWidth = 300;
     var eBarHeight = 32;
@@ -982,7 +982,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.runPaletteKey = null;
     this.uiSkin = null;
     this.outsideUiSkin = null;
-    this.bossPlaceholder = null;
+    this.enemyDisplaySprite = null;
     this.enemySprite = null;
     this.enemyHealthCurrent = null;
     this.enemyHealthMax = null;

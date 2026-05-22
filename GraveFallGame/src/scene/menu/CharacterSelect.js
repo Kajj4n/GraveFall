@@ -128,7 +128,7 @@ GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = func
     var moveControls = controller && controller.moveControls ? controller.moveControls : {};
 
     if (controller && controller.id === "P4") {
-        controls = { left: "v", right: "n", confirm: "b" };
+        controls = { left: "f", right: "h", confirm: "b" };
         moveControls = { left: "f", right: "h", up: "t", down: "g" };
     } else {
         controls = { left: controls.left, right: controls.right, confirm: controls.confirm };
@@ -556,22 +556,22 @@ GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription 
     var name = template && template.name ? String(template.name).toLowerCase() : "";
 
     if (id === "fighter" || name === "fighter" || name === "warrior") {
-        return "TEMP BUFF: DEFENCE x50%";
+        return "ACTIVE BUFF: DEFENCE x50%";
     }
 
-    if (id === "assassin" || id === "rogue" || name === "rogue" || name === "assassin") {
-        return "TEMP BUFF: SPEED +1.6";
+    if (id === "assassin" || name === "assassin") {
+        return "ACTIVE BUFF: SPEED +1.6";
     }
 
     if (id === "wizard" || name === "wizard") {
-        return "TEMP BUFF: HEAL 10% MAX HP";
+        return "ACTIVE BUFF: HEAL 10% MAX HP";
     }
 
     if (id === "ranger" || name === "ranger") {
-        return "TEMP BUFF: DAMAGE x1.5";
+        return "ACTIVE BUFF: DAMAGE x1.5";
     }
 
-    return "TEMP BUFF: DAMAGE x1.5";
+    return "ACTIVE BUFF: DAMAGE x1.5";
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height, index) {

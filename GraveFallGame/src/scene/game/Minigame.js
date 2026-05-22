@@ -1829,10 +1829,10 @@ GraveFallGame.scene.Game.prototype.resetTimingBlock = function (menu) {
 GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("TIME THE STRIKE");
-    var bar = this.createOptionalMinigameSprite("MG_Rogue_Bar_Back", 30, 58, 196, 20, "#191919");
-    var hitZone = this.createThemedMinigameSprite(["MG_Rogue_HitZone_T", "MG_Rogue_HitZone"], 118, 54, 20, 28, menu.theme.accentDark, menu.theme.accentDark);
+    var bar = this.createOptionalMinigameSprite("MG_Assassin_Bar_Back", 30, 58, 196, 20, "#191919");
+    var hitZone = this.createThemedMinigameSprite(["MG_Assassin_HitZone_T", "MG_Assassin_HitZone"], 118, 54, 20, 28, menu.theme.accentDark, menu.theme.accentDark);
     var centerLine = new rune.display.Graphic(127, 52, 2, 32);
-    var block = this.createThemedMinigameSprite(["MG_Rogue_Timing_Block_T", "MG_Rogue_Timing_Block"], 30, 56, 14, 24, menu.theme.accentLight, menu.theme.accentLight);
+    var block = this.createThemedMinigameSprite(["MG_Assassin_Timing_Block_T", "MG_Assassin_Timing_Block"], 30, 56, 14, 24, menu.theme.accentLight, menu.theme.accentLight);
     var feedback = this.createHiddenMinigameFeedbackText(102);
 
     centerLine.backgroundColor = menu.theme.accent;
