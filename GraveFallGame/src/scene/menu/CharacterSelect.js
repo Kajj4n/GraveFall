@@ -538,22 +538,22 @@ GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription 
     var name = template && template.name ? String(template.name).toLowerCase() : "";
 
     if (id === "fighter" || name === "fighter" || name === "warrior") {
-        return "BUFF: TEMP DEFENCE";
+        return "BUFF: DEFENCE x50%";
     }
 
     if (id === "assassin" || id === "rogue" || name === "rogue" || name === "assassin") {
-        return "BUFF: TEMP SPEED";
+        return "BUFF: SPEED +1.6";
     }
 
     if (id === "wizard" || name === "wizard") {
-        return "BUFF: HEALS [REVIVES IF DOWNED]";
+        return "BUFF: HEAL 5% MAX HP";
     }
 
     if (id === "ranger" || name === "ranger") {
-        return "BUFF: TEMP DAMAGE";
+        return "BUFF: DAMAGE x1.5";
     }
 
-    return "BUFF: TEMP DAMAGE";
+    return "BUFF: DAMAGE x1.5";
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height, index) {

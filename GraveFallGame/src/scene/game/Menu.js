@@ -686,7 +686,10 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     var healAmount;
     var wasDowned;
     var healedAny = false;
-    var ratio = typeof this.enemyDefeatedHealRatio === "number" ? this.enemyDefeatedHealRatio : 0.08;
+    var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+    var ratio = defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true
+        ? (typeof this.bossDefeatedHealRatio === "number" ? this.bossDefeatedHealRatio : 0.25)
+        : (typeof this.enemyDefeatedHealRatio === "number" ? this.enemyDefeatedHealRatio : 0.15);
 
     if (!this.playerMenus) {
         return;
@@ -963,7 +966,7 @@ GraveFallGame.scene.Game.prototype.applyDefendActionForPlayer = function (player
     target.isDefending = true;
     target.temporaryDefenseBuff = true;
 
-    healAmount = Math.max(1, Math.floor(target.healthMax * (this.defendHealRatio || 0.04)));
+    healAmount = Math.max(1, Math.floor(target.healthMax * (this.defendHealRatio || 0.15)));
     this.applyHealthGainToPlayer(target, healAmount);
     this.spawnBuffEffectForPlayer(target, "defense", 900);
 };
@@ -1002,7 +1005,7 @@ GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playe
             this.applyPermanentItemBuff("attack", playerMenu);
         }
     } else if (playerMenu.selectedAction === 12) {
-        if (this.consumePlayerItem(playerMenu, "defense")) {
+        if (this.canApplyPermanentItemBuff("defense") && this.consumePlayerItem(playerMenu, "defense")) {
             this.applyPermanentItemBuff("defense", playerMenu);
         }
     } else if (playerMenu.selectedAction === 13) {
@@ -1017,14 +1020,25 @@ GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playe
 
 GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
     var i;
+    var menu;
 
     if (this.enemyHealthCurrent <= 0) {
         return;
     }
 
     for (i = 0; i < this.playerMenus.length; i++) {
-        if (this.playerMenus[i] && this.playerMenus[i].healthCurrent > 0) {
-            this.applyCommandActionForPlayer(this.playerMenus[i]);
+        menu = this.playerMenus[i];
+
+        if (menu && menu.healthCurrent > 0 && menu.selectedAction !== 0) {
+            this.applyCommandActionForPlayer(menu);
+        }
+    }
+
+    for (i = 0; i < this.playerMenus.length; i++) {
+        menu = this.playerMenus[i];
+
+        if (menu && menu.healthCurrent > 0 && menu.selectedAction === 0) {
+            this.applyCommandActionForPlayer(menu);
         }
     }
 };
@@ -1063,22 +1077,22 @@ GraveFallGame.scene.Game.prototype.getClassBuffTooltipLines = function (playerMe
     var minigame = playerMenu && playerMenu.attackMinigame ? playerMenu.attackMinigame : "";
 
     if (id === "fighter" || id.indexOf("fighter_") === 0 || minigame === "buttonMash") {
-        return ["BUFF: TEMP DEFENCE", "FOR THE PARTY"];
+        return ["BUFF: PARTY DEFENCE x50%", "NEXT DODGE PHASE"];
     }
 
     if (id === "assassin" || id.indexOf("assassin_") === 0 || id === "rogue" || id.indexOf("rogue_") === 0 || minigame === "timingBar") {
-        return ["BUFF: TEMP SPEED", "FOR THE PARTY"];
+        return ["BUFF: PARTY SPEED +1.6", "NEXT DODGE PHASE"];
     }
 
     if (id === "wizard" || id.indexOf("wizard_") === 0 || minigame === "buttonSequence") {
-        return ["BUFF: HEALS THE PARTY", "[REVIVES IF DOWNED]"];
+        return ["BUFF: HEAL PARTY 10% MAX HP", "[REVIVES IF DOWNED]"];
     }
 
     if (id === "ranger" || id.indexOf("ranger_") === 0 || minigame === "targetReticle") {
-        return ["BUFF: TEMP DAMAGE", "FOR THE PARTY"];
+        return ["BUFF: PARTY DAMAGE x1.5", "NEXT ATTACK THIS TURN"];
     }
 
-    return ["BUFF: TEMP DAMAGE", "FOR THE PARTY"];
+    return ["BUFF: DAMAGE x1.5", "NEXT ATTACK THIS TURN"];
 };
 
 GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
@@ -1095,19 +1109,19 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
         }
 
         if (playerMenu.selectedIndex === 0) {
-            return ["HP ITEM: PERMANENTLY INCREASES HP", "FOR PARTY [REVIVES IF DOWNED]"];
+            return ["HP ITEM: +30 MAX HP PERMANENT", "FOR PARTY [REVIVES IF DOWNED]"];
         }
 
         if (playerMenu.selectedIndex === 1) {
-            return ["ATK ITEM: PERMANENTLY INCREASES ATK", "FOR THE WHOLE PARTY"];
+            return ["ATK ITEM: +1 DAMAGE PERMANENT", "FOR THE WHOLE PARTY"];
         }
 
         if (playerMenu.selectedIndex === 2) {
-            return ["DEF ITEM: PERMANENTLY INCREASES DEFENCE", "FOR THE WHOLE PARTY"];
+            return ["DEF ITEM: -8% DAMAGE [MAX 6]", "PERMANENT FOR PARTY"];
         }
 
         if (playerMenu.selectedIndex === 3) {
-            return ["SPD ITEM: PERMANENTLY INCREASES SPEED", "FOR THE WHOLE PARTY"];
+            return ["SPD ITEM: +0.4 SPEED PERMANENT", "FOR THE WHOLE PARTY"];
         }
 
         return null;
@@ -1122,10 +1136,10 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
         target = typeof targetPartyIndex === "number" ? this.getPlayerMenuByPartyIndex(targetPartyIndex) : null;
 
         if (target && target.characterName) {
-            return ["DEFEND " + String(target.characterName).toUpperCase(), "HEAL + DEF [REVIVES]"];
+            return ["DEFEND " + String(target.characterName).toUpperCase(), "HEAL 15% + DEF x50%"];
         }
 
-        return ["DEFEND: HEAL + DEF", "SELECTED PLAYER [REVIVES]"];
+        return ["DEFEND: HEAL 15% + DEF x50%", "SELECTED PLAYER"];
     }
 
     if (playerMenu.selectedIndex === 0) {
@@ -1133,7 +1147,7 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
     }
 
     if (playerMenu.selectedIndex === 1) {
-        return ["DEFEND: HEAL + DEF", "SELECTED PLAYER [REVIVES]"];
+        return ["DEFEND: HEAL 15% + DEF x50%", "SELECTED PLAYER"];
     }
 
     if (playerMenu.selectedIndex === 2) {
@@ -1141,7 +1155,7 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
     }
 
     if (playerMenu.selectedIndex === 3) {
-        return ["ITEM: PERMANENTLY INCREASES A STAT", "FOR THE WHOLE PARTY"];
+        return ["ITEM: PERMANENT STACKING STAT", "FOR THE WHOLE PARTY"];
     }
 
     return null;
@@ -1720,7 +1734,7 @@ GraveFallGame.scene.Game.prototype.isMenuIndexSelectable = function (playerMenu,
         }
 
         buffType = this.getItemBuffTypeForIndex(index);
-        return this.getPlayerItemCount(playerMenu, buffType) > 0;
+        return this.getPlayerItemCount(playerMenu, buffType) > 0 && this.canApplyPermanentItemBuff(buffType);
     }
 
     if (menuState === "defendTarget") {
@@ -1812,7 +1826,7 @@ GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMen
 
         for (i = 0; i < targets.length; i++) {
             target = targets[i];
-            healAmount = Math.max(1, Math.floor(target.healthMax * 0.05));
+            healAmount = Math.max(1, Math.floor(target.healthMax * 0.10));
             this.applyHealthGainToPlayer(target, healAmount);
         }
 
@@ -1834,8 +1848,40 @@ GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMen
     this.spawnPartyBuffEffect("attack", [playerMenu], 1050);
 };
 
+GraveFallGame.scene.Game.prototype.getPermanentDefenseStackCap = function () {
+    return 6;
+};
+
+GraveFallGame.scene.Game.prototype.getPermanentDefenseDamageReduction = function (playerMenu) {
+    var stacks = Math.min(this.getPermanentDefenseStackCap(), Math.max(0, playerMenu ? (playerMenu.permanentDefenseBonus || 0) : 0));
+    return stacks * 0.08;
+};
+
+GraveFallGame.scene.Game.prototype.canApplyPermanentItemBuff = function (buffType) {
+    var targets;
+    var i;
+
+    if (buffType !== "defense") {
+        return true;
+    }
+
+    targets = this.getAllPlayerMenus ? this.getAllPlayerMenus() : [];
+
+    if (targets.length <= 0) {
+        return false;
+    }
+
+    for (i = 0; i < targets.length; i++) {
+        if ((targets[i].permanentDefenseBonus || 0) < this.getPermanentDefenseStackCap()) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, sourceMenu) {
-    var targets = buffType === "maxHp" ? this.getAllPlayerMenus() : this.getLivingPlayerMenus();
+    var targets = this.getAllPlayerMenus();
     var i;
     var target;
     var amount;
@@ -1854,9 +1900,9 @@ GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, 
         } else if (buffType === "attack") {
             target.permanentAttackBonus = (target.permanentAttackBonus || 0) + 1;
         } else if (buffType === "defense") {
-            target.permanentDefenseBonus = Math.min(5, (target.permanentDefenseBonus || 0) + 1);
+            target.permanentDefenseBonus = Math.min(this.getPermanentDefenseStackCap(), (target.permanentDefenseBonus || 0) + 1);
         } else if (buffType === "speed") {
-            target.permanentSpeedBonus = Math.min(3, (target.permanentSpeedBonus || 0) + 0.4);
+            target.permanentSpeedBonus = (target.permanentSpeedBonus || 0) + 0.4;
             target.moveSpeed = this.calculateEffectiveMoveSpeed(target);
         }
     }
@@ -2644,7 +2690,8 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
         return consumed;
     };
 
-    GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, sourceMenu) {
+
+GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, sourceMenu) {
         var previousSource = this._activeHealingSourceMenu;
         this._activeHealingSourceMenu = sourceMenu || previousSource;
         try {

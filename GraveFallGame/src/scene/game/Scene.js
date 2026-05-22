@@ -52,8 +52,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyPreviewShakeAmountY = 0;
     this.enemyPreviewBaseX = null;
     this.enemyPreviewBaseY = null;
-    this.enemyDefeatedHealRatio = 0.08;
-    this.defendHealRatio = 0.04;
+    this.enemyDefeatedHealRatio = 0.15;
+    this.bossDefeatedHealRatio = 0.25;
+    this.defendHealRatio = 0.15;
     this.firstActionPhasePromptShown = false;
     this.actionPhaseStartDelayFrames = 0;
     this.actionPromptTimerFrames = 0;
@@ -487,7 +488,8 @@ GraveFallGame.scene.Game.prototype.clearActionPreviewState = function () {
 };
 
 GraveFallGame.scene.Game.prototype.buildActionPreviewQueue = function () {
-    var queue = [];
+    var nonAttackQueue = [];
+    var attackQueue = [];
     var i;
     var menu;
 
@@ -495,11 +497,15 @@ GraveFallGame.scene.Game.prototype.buildActionPreviewQueue = function () {
         menu = this.playerMenus[i];
 
         if (menu && menu.healthCurrent > 0 && menu.selectedAction !== null && typeof menu.selectedAction !== "undefined") {
-            queue.push(menu);
+            if (menu.selectedAction === 0) {
+                attackQueue.push(menu);
+            } else {
+                nonAttackQueue.push(menu);
+            }
         }
     }
 
-    return queue;
+    return nonAttackQueue.concat(attackQueue);
 };
 
 GraveFallGame.scene.Game.prototype.startActionPreviewPhase = function () {
@@ -977,6 +983,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.enemyPreviewBaseX = null;
     this.enemyPreviewBaseY = null;
     this.enemyDefeatedHealRatio = null;
+    this.bossDefeatedHealRatio = null;
     this.defendHealRatio = null;
     this.finalChargeCompleted = null;
     this.finalChargeUi = null;

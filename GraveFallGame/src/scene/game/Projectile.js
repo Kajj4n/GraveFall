@@ -2474,13 +2474,18 @@ GraveFallGame.scene.Game.prototype.playPlaceholderHitSound = function () {
 GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
     var wasAlive = playerMenu.healthCurrent > 0;
     var finalDamage = amount;
+    var damageReduction = 0;
 
     if (playerMenu.isDefending || playerMenu.temporaryDefenseBuff === true) {
-        finalDamage = Math.ceil(finalDamage * 0.5);
+        damageReduction += 0.5;
     }
 
     if (playerMenu.permanentDefenseBonus > 0) {
-        finalDamage = Math.ceil(finalDamage * Math.max(0.5, 1 - (playerMenu.permanentDefenseBonus * 0.08)));
+        damageReduction += this.getPermanentDefenseDamageReduction(playerMenu);
+    }
+
+    if (damageReduction > 0) {
+        finalDamage = Math.ceil(finalDamage * Math.max(0.02, 1 - Math.min(0.98, damageReduction)));
     }
 
     // --- SCORE TRIGGER: TOOK DAMAGE ---

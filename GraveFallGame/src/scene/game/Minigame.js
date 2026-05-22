@@ -158,6 +158,20 @@ GraveFallGame.scene.Game.prototype.positionMinigameScoreText = function (group) 
     scoreText.y = 6;
 };
 
+GraveFallGame.scene.Game.prototype.getMinigameAttackItemBonus = function (menu) {
+    return Math.max(0, Math.floor(menu ? (menu.permanentAttackBonus || 0) : 0));
+};
+
+GraveFallGame.scene.Game.prototype.applyAttackItemBonusToMinigameDamage = function (menu, baseBonus) {
+    var bonus = Math.max(0, Math.floor(baseBonus || 0));
+
+    if (bonus <= 0 || !menu || !menu.minigame || menu.minigame.isFinalCharge === true) {
+        return bonus;
+    }
+
+    return bonus + this.getMinigameAttackItemBonus(menu);
+};
+
 GraveFallGame.scene.Game.prototype.updateMinigameHud = function (menu) {
     var damage;
     var timerScale;
@@ -619,6 +633,7 @@ GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
     }
 
     bonus = minigame.damagePerCycle || 8;
+    bonus = this.applyAttackItemBonusToMinigameDamage(menu, bonus);
     minigame.storedDamage += bonus;
     minigame.pressCount = 0;
     minigame.mashFill.scaleX = 0;
@@ -1489,7 +1504,7 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
         this.playSfx(GraveFallGame.SOUNDS.UI_MOVE, 0.42);
 
         if (minigame.sequenceIndex >= minigame.sequence.length) {
-            minigame.storedDamage += minigame.definition.damagePerSequence || 3;
+            minigame.storedDamage += this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.damagePerSequence || 3);
             this.setMinigameFeedback(menu, "");
             this.rollButtonSequence(menu);
         } else {
@@ -1718,13 +1733,13 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
         bonus = 0;
 
         if (distance <= 6) {
-            bonus = minigame.definition.perfectDamage || 5;
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.perfectDamage || 5);
             this.setMinigameFeedback(menu, "PERFECT +" + bonus);
         } else if (distance <= 12) {
-            bonus = minigame.definition.goodDamage || 3;
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.goodDamage || 3);
             this.setMinigameFeedback(menu, "GOOD +" + bonus);
         } else if (distance <= 20) {
-            bonus = minigame.definition.okDamage || 1;
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.okDamage || 1);
             this.setMinigameFeedback(menu, "OK +" + bonus);
         } else {
             this.setMinigameFeedback(menu, "MISS");
@@ -1817,13 +1832,13 @@ GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, ste
         bonus = 0;
 
         if (distance <= 4) {
-            bonus = minigame.definition.perfectDamage || 5;
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.perfectDamage || 5);
             this.setMinigameFeedback(menu, "PERFECT +" + bonus);
         } else if (distance <= 12) {
-            bonus = minigame.definition.goodDamage || 3;
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.goodDamage || 3);
             this.setMinigameFeedback(menu, "GOOD +" + bonus);
         } else if (distance <= 24) {
-            bonus = minigame.definition.okDamage || 1;
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.okDamage || 1);
             this.setMinigameFeedback(menu, "OK +" + bonus);
         } else {
             this.setMinigameFeedback(menu, "MISS");

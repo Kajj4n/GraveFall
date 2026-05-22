@@ -735,6 +735,9 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
         this.playerMenus[i].isDefending = false;
         this.playerMenus[i].temporaryDefenseBuff = false;
         this.playerMenus[i].temporarySpeedBuff = false;
+        this.playerMenus[i].temporaryAttackBuff = false;
+        this.playerMenus[i].isBuffed = false;
+        this.playerMenus[i].attackDamageBonus = 0;
         this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
         this.playerMenus[i].menuState = "main";
         this.updateCharacterMenuVisuals(this.playerMenus[i]);
@@ -1398,6 +1401,9 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
         this.playerMenus[i].isDefending = false;
         this.playerMenus[i].temporaryDefenseBuff = false;
         this.playerMenus[i].temporarySpeedBuff = false;
+        this.playerMenus[i].temporaryAttackBuff = false;
+        this.playerMenus[i].isBuffed = false;
+        this.playerMenus[i].attackDamageBonus = 0;
         this.playerMenus[i].moveSpeed = this.calculateEffectiveMoveSpeed(this.playerMenus[i]);
         
         this.playerMenus[i].menuState = "main";
@@ -1653,13 +1659,18 @@ GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (opti
 GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
     var wasAlive = playerMenu.healthCurrent > 0;
     var finalDamage = amount;
+    var damageReduction = 0;
 
     if (playerMenu.isDefending || playerMenu.temporaryDefenseBuff === true) {
-        finalDamage = Math.ceil(finalDamage * 0.5);
+        damageReduction += 0.5;
     }
 
     if (playerMenu.permanentDefenseBonus > 0) {
-        finalDamage = Math.ceil(finalDamage * Math.max(0.5, 1 - (playerMenu.permanentDefenseBonus * 0.08)));
+        damageReduction += this.getPermanentDefenseDamageReduction(playerMenu);
+    }
+
+    if (damageReduction > 0) {
+        finalDamage = Math.ceil(finalDamage * Math.max(0.02, 1 - Math.min(0.98, damageReduction)));
     }
 
     if (finalDamage > 0) {
