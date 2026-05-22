@@ -59,8 +59,6 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     var panel;
     var title;
     var titleAccent;
-    var footer;
-    var footerText;
 
     rune.scene.Scene.prototype.init.call(this);
 
@@ -77,25 +75,25 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     this.stage.addChild(background);
     this.background = background;
 
-    panel = this.createMenuPanel(250, 70, 780, 500, this.menuSkin, framePaletteSwaps);
+    panel = this.createMenuPanel(264, 42, 752, 606, this.menuSkin, framePaletteSwaps);
     this.stage.addChild(panel);
     this.panel = panel;
 
-    title = this.createText("GRAVEFALL", 0, 114, 4.1, 540);
-    this.centerText(title, screen.centerX, 4.1);
+    title = this.createText("GRAVEFALL", 0, 84, 3.65, 540);
+    this.centerText(title, screen.centerX, 3.65);
     this.stage.addChild(title);
     this.title = title;
 
-    titleAccent = new rune.display.Graphic(430, 166, 420, 4);
+    titleAccent = new rune.display.Graphic(448, 136, 384, 4);
     titleAccent.backgroundColor = this.menuSkin.frame.mid;
     this.stage.addChild(titleAccent);
 
     this.optionCards = [];
     this.optionCards.push(this.createOptionCard({
         x: 378,
-        y: 200,
+        y: 168,
         width: 524,
-        height: 88,
+        height: 84,
         title: "START GAME",
         description: "BUILD A LOCAL 1-4 PLAYER PARTY",
         icon: "Start_Menu_Button_T",
@@ -108,9 +106,9 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     }));
     this.optionCards.push(this.createOptionCard({
         x: 378,
-        y: 306,
+        y: 272,
         width: 524,
-        height: 88,
+        height: 84,
         title: "HOW TO PLAY",
         description: "CONTROLS, RULES, MINIGAMES",
         icon: "Help_Menu_Button_T",
@@ -123,9 +121,9 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     }));
     this.optionCards.push(this.createOptionCard({
         x: 378,
-        y: 412,
+        y: 376,
         width: 524,
-        height: 88,
+        height: 84,
         title: "LEADERBOARDS",
         description: "VIEW TOP 10 PARTIES",
         icon: "Score_Menu_Button_T",
@@ -144,15 +142,7 @@ GraveFallGame.scene.Menu.prototype.init = function () {
 
     this.createQuickControls();
 
-    footer = new rune.display.DisplayObjectContainer(0, screen.height - 60, screen.width, 60);
-    footer.backgroundColor = this.menuSkin.panelBottom;
-    footer.addChild(this.createSeparator(0, 0, screen.width, framePaletteSwaps));
-    this.stage.addChild(footer);
-
-    footerText = this.createText("CONTROLLER PREFERRED GAME METHOD    BETA BUILD", 0, 24, 1.2, 1200);
-    this.centerText(footerText, screen.centerX, 1.2);
-    footer.addChild(footerText);
-    this.tintBitmapFieldText(footerText, this.menuSkin.frame.light, true);
+    this.createScreenFooter("CONTROLLER PREFERRED GAME METHOD    BETA BUILD", framePaletteSwaps);
 
     this.updateVisuals();
 };
@@ -279,6 +269,25 @@ GraveFallGame.scene.Menu.prototype.createMenuPanel = function (x, y, width, heig
     return panel;
 };
 
+GraveFallGame.scene.Menu.prototype.createScreenFooter = function (text, framePaletteSwaps) {
+    var screen = this.application.screen;
+    var footerHeight = 62;
+    var separatorWidth = 708;
+    var footer = new rune.display.DisplayObjectContainer(0, screen.height - footerHeight, screen.width, footerHeight);
+    var footerText;
+
+    footer.backgroundColor = this.menuSkin.panelBottom;
+    footer.addChild(this.createSeparator(Math.round(screen.centerX - (separatorWidth / 2)), 0, separatorWidth, framePaletteSwaps));
+    this.stage.addChild(footer);
+
+    footerText = this.createText(text, 0, 24, 1.2, 1200);
+    this.centerText(footerText, screen.centerX, 1.2);
+    footer.addChild(footerText);
+    this.tintBitmapFieldText(footerText, this.menuSkin.frame.light, true);
+
+    return footer;
+};
+
 GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
     var card = new rune.display.DisplayObjectContainer(options.x, options.y, options.width, options.height);
@@ -366,25 +375,25 @@ GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
     var heading;
     var keyboardText;
     var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
-    var x = 286;
-    var y = 586;
+    var x = 306;
+    var y = 504;
+    var width = 668;
+    var height = 108;
 
-    panel = new rune.display.DisplayObjectContainer(x, y, 708, 98);
+    panel = new rune.display.DisplayObjectContainer(x, y, width, height);
     panel.backgroundColor = this.menuSkin.panelBottom;
-    panel.addChild(this.createBoxFrame(0, 0, 708, 98, framePaletteSwaps));
+    panel.addChild(this.createBoxFrame(0, 0, width, height, framePaletteSwaps));
     this.stage.addChild(panel);
 
-    heading = this.createText("QUICK CONTROLS", 20, 14, 1.35, 220);
+    heading = this.createText("QUICK CONTROLS", 20, 13, 1.35, 220);
     panel.addChild(heading);
     this.tintBitmapFieldText(heading, this.menuSkin.frame.light, true);
 
-    this.createControlHint(panel, 20, 30, ["Gamepad_Button_Up_T", "Gamepad_Button_Down_T"], "MOVE", "W/S OR D-PAD", GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight);
-    this.createControlHint(panel, 246, 38, "A_Button_Icon_T", "SELECT", "ENTER/SPACE OR A", GraveFallGame.scene.Game.PLAYER_THEMES[3].accentLight);
-    this.createControlHint(panel, 476, 38, "Y_Button_Icon_T", "HELP", "H/R OR Y", GraveFallGame.scene.Game.PLAYER_THEMES[1].accentLight);
+    this.createControlHint(panel, 20, 34, ["Gamepad_Button_Up_T", "Gamepad_Button_Down_T"], "MOVE", "W/S OR D-PAD", GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight);
+    this.createControlHint(panel, 236, 42, "A_Button_Icon_T", "SELECT", "ENTER/SPACE OR A", GraveFallGame.scene.Game.PLAYER_THEMES[3].accentLight);
+    this.createControlHint(panel, 456, 42, "Y_Button_Icon_T", "HELP", "H/R OR Y", GraveFallGame.scene.Game.PLAYER_THEMES[1].accentLight);
 
-    keyboardText = this.createText("UP/DOWN CHANGES MENU SELECTIONS", 390, 16, 1.05, 300);
-    panel.addChild(keyboardText);
-    this.tintBitmapFieldText(keyboardText, this.menuSkin.frame.light, true);
+ 
 };
 
 GraveFallGame.scene.Menu.prototype.updateVisuals = function () {

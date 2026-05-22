@@ -663,7 +663,7 @@ GraveFallGame.scene.Game.DEFAULT_ATTACK_MINIGAME = "buttonSequence";
 GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
     buttonMash: {
         id: "buttonMash",
-        title: "WARRIOR: MASH",
+        title: "FIGHTER: MASH",
         setup: "setupButtonMashMinigame",
         update: "updateButtonMashMinigame",
         damagePerCycle: 8,
@@ -722,7 +722,7 @@ GraveFallGame.scene.Game.MINIGAME_SPRITE_ASSET_REQUIREMENTS = [
 GraveFallGame.scene.Game.CLASS_TEMPLATES = [
     {
         id: "fighter",
-        name: "Warrior",
+        name: "Fighter",
         portrait: "Fighter_Portrait",
         classIcon: "Fighter_Icon_T",
         stand: "Fighter_Idle_Stance",
@@ -1399,7 +1399,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "hydragon_fire_wave":
         case "goblin_boss_sword_pincer":
         case "goblin_boss_mob_charge":
-        case "attack_lab_fire_spray":
+        case "attack_fire_spray":
         case "hydragon_fireball_breath":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_SWEEP, 0.65);
             break;
@@ -1410,8 +1410,8 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "crystal_orb_split":
         case "orb_split_chain":
         case "bouncing_skulls":
-        case "attack_lab_homing_wisps":
-        case "attack_lab_pulse_orbs":
+        case "attack_homing_wisps":
+        case "attack_pulse_orbs":
         case "boss_diagonal_drop":
         case "ghoul_dart_ambush":
         case "ghoul_bone_shard_spread":
@@ -1429,7 +1429,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
             break;
         case "goblin_dart_fan":
         case "goblin_animated_walkers":
-        case "attack_lab_hunter_pack":
+        case "attack_hunter_pack":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_DART, 0.6);
             break;
         case "goblin_stomp_wave":
@@ -1438,7 +1438,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "ghoul_stomp_pulse":
         case "bomb_cluster":
         case "goblin_boss_fuse_bombs":
-        case "attack_lab_fuse_minefield":
+        case "attack_fuse_minefield":
             this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.75);
             break;
     }

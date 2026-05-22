@@ -44,7 +44,11 @@ GraveFallGame.scene.Leaderboard.prototype.applyMonochromeIconColor = GraveFallGa
 GraveFallGame.scene.Leaderboard.prototype.createBoxFrame = GraveFallGame.scene.Game.prototype.createBoxFrame;
 GraveFallGame.scene.Leaderboard.prototype.createSeparator = GraveFallGame.scene.Game.prototype.createSeparator;
 GraveFallGame.scene.Leaderboard.prototype.createFramePiece = GraveFallGame.scene.Game.prototype.createFramePiece;
-GraveFallGame.scene.Leaderboard.prototype.tintBitmapFieldText = GraveFallGame.scene.Game.prototype.tintBitmapFieldText;
+GraveFallGame.scene.Leaderboard.prototype.tintBitmapFieldText = function (field, targetColor, stripBackdrop) {
+    if (GraveFallGame.scene.Game.prototype.tintBitmapFieldText) {
+        return GraveFallGame.scene.Game.prototype.tintBitmapFieldText.call(this, field, targetColor, stripBackdrop);
+    }
+};
 GraveFallGame.scene.Leaderboard.prototype.isDevConsoleInputActive = GraveFallGame.scene.Game.prototype.isDevConsoleInputActive;
 
 //------------------------------------------------------------------------------
@@ -60,6 +64,28 @@ GraveFallGame.scene.Leaderboard.prototype.sanitizeBitmapText = function (text) {
     safeText = safeText.replace(/\s{2,}/g, " ").trim();
 
     return safeText;
+};
+
+GraveFallGame.scene.Leaderboard.prototype.createScreenFooter = function (text, framePaletteSwaps) {
+    var screen = this.application.screen;
+    var footerHeight = 62;
+    var separatorWidth = 708;
+    var footer = new rune.display.DisplayObjectContainer(0, screen.height - footerHeight, screen.width, footerHeight);
+    var footerText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText(text) : String(text || ""));
+
+    footer.backgroundColor = this.menuSkin.panelBottom;
+    footer.addChild(this.createSeparator(Math.round(screen.centerX - (separatorWidth / 2)), 0, separatorWidth, framePaletteSwaps));
+    this.stage.addChild(footer);
+
+    footerText.width = 1200;
+    footerText.scaleX = 1.2;
+    footerText.scaleY = 1.2;
+    footerText.x = Math.round(screen.centerX - ((footerText.text.length * 6 * 1.2) / 2));
+    footerText.y = 24;
+    footer.addChild(footerText);
+    this.tintBitmapFieldText(footerText, this.menuSkin.frame.light, true);
+
+    return footer;
 };
 
 GraveFallGame.scene.Leaderboard.prototype.init = function () {
@@ -100,18 +126,7 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
 
     this.createPageTabs();
 
-    var footer = new rune.display.DisplayObjectContainer(0, screen.height - 62, screen.width, 62);
-    footer.backgroundColor = this.menuSkin.panelBottom;
-    footer.addChild(this.createSeparator(0, 0, screen.width, framePaletteSwaps));
-    this.stage.addChild(footer);
-
-    var footerText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("LEFT/RIGHT OR D-PAD CHANGE TAB    B/BACKSPACE/ESC RETURN TO MENU") : "LEFT/RIGHT OR D-PAD CHANGE TAB    B/BACKSPACE/ESC RETURN TO MENU");
-    footerText.width = 1200;
-    footerText.scaleX = 1.2; footerText.scaleY = 1.2;
-    footerText.x = Math.round(screen.centerX - ((footerText.text.length * 6 * 1.2) / 2));
-    footerText.y = 24;
-    footer.addChild(footerText);
-    this.tintBitmapFieldText(footerText, this.menuSkin.frame.light, true);
+    this.createScreenFooter("LEFT/RIGHT OR D-PAD CHANGE TAB    B/BACKSPACE/ESC RETURN TO MENU", framePaletteSwaps);
 
     this.renderPage();
 };

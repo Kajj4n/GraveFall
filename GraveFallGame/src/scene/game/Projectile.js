@@ -42,11 +42,11 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "orb_split_chain": this.spawnOrbSplitChain(); break;
         case "bouncing_skulls": this.spawnBouncingSkulls(); break;
         case "bomb_cluster": this.spawnBombCluster(); break;
-        case "attack_lab_fire_spray": this.spawnAttackLabFireSpray(); break;
-        case "attack_lab_homing_wisps": this.spawnAttackLabHomingWisps(); break;
-        case "attack_lab_pulse_orbs": this.spawnAttackLabPulseOrbs(); break;
-        case "attack_lab_hunter_pack": this.spawnAttackLabHunterPack(); break;
-        case "attack_lab_fuse_minefield": this.spawnAttackLabFuseMinefield(); break;
+        case "attack_fire_spray": this.spawnAttackFireSpray(); break;
+        case "attack_homing_wisps": this.spawnAttackHomingWisps(); break;
+        case "attack_pulse_orbs": this.spawnAttackPulseOrbs(); break;
+        case "attack_hunter_pack": this.spawnAttackHunterPack(); break;
+        case "attack_fuse_minefield": this.spawnAttackFuseMinefield(); break;
         case "hydragon_fireball_breath": this.spawnHyDragonFireballBreath(); break;
         case "hydragon_fire_wave": this.spawnHyDragonFireWave(); break;
         case "hydragon_orb_breath": this.spawnHyDragonSwordHunt(); break;
@@ -814,7 +814,7 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireballBreath = function () {
     var angle;
     var speed;
 
-    // Real HyDragon breath now uses the successful lab flamethrower idea:
+    // Real HyDragon breath now uses the successful FireSpray pattern:
     // many small fireballs, delayed into a spray, with no oversized wave sprites.
     for (i = 0; i < count; i++) {
         sweep = ((i / (count - 1)) - 0.5) * 1.25 * sweepDirection;
@@ -1589,7 +1589,7 @@ GraveFallGame.scene.Game.prototype.spawnBombCluster = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnAttackLabFireSpray = function () {
+GraveFallGame.scene.Game.prototype.spawnAttackFireSpray = function () {
     var inner = this.getArenaInnerBounds();
     var fromLeft = Math.random() > 0.5;
     var originX = fromLeft ? inner.x - 38 : inner.x + inner.width + 14;
@@ -1625,7 +1625,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabFireSpray = function () {
             maxSpeed: 6.2,
             drag: 0.998,
             fadeOutFrames: 18,
-            type: "attack_lab_fire_spray",
+            type: "attack_fire_spray",
             hitboxInsetX: 3,
             hitboxInsetY: 3,
             spin: fromLeft ? 4 : -4
@@ -1634,7 +1634,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabFireSpray = function () {
 
 };
 
-GraveFallGame.scene.Game.prototype.spawnAttackLabHomingWisps = function () {
+GraveFallGame.scene.Game.prototype.spawnAttackHomingWisps = function () {
     var inner = this.getArenaInnerBounds();
     var count = 8;
     var centerX = inner.x + (inner.width / 2);
@@ -1690,7 +1690,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabHomingWisps = function () {
             pulseSpeedAmplitude: 0.45,
             pulseSpeedFrequency: 0.16,
             pulseSpeedPhase: i * 0.9,
-            type: "attack_lab_brief_homing_wisp",
+            type: "attack_brief_homing_wisp",
             hitboxInsetX: 2,
             hitboxInsetY: 2,
             spin: i % 2 === 0 ? 4 : -4
@@ -1698,7 +1698,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabHomingWisps = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnAttackLabPulseOrbs = function () {
+GraveFallGame.scene.Game.prototype.spawnAttackPulseOrbs = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.12, 0.28, 0.44, 0.60, 0.76, 0.90];
     var fromTop = Math.random() > 0.5;
@@ -1731,7 +1731,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabPulseOrbs = function () {
             swayPhase: i * 0.5,
             swayAxis: "x",
             fadeOutFrames: 14,
-            type: "attack_lab_pulse_crystal",
+            type: "attack_pulse_crystal",
             hitboxInsetX: 2,
             hitboxInsetY: 2,
             spin: slowFirst ? 5 : -5
@@ -1739,7 +1739,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabPulseOrbs = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnAttackLabHunterPack = function () {
+GraveFallGame.scene.Game.prototype.spawnAttackHunterPack = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.18, 0.36, 0.54, 0.72, 0.88];
     var i;
@@ -1775,7 +1775,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabHunterPack = function () {
             homingSpeed: 3.0,
             drag: 1.002,
             maxSpeed: 3.9,
-            type: "attack_lab_hunter_goblin",
+            type: "attack_hunter_goblin",
             hitboxInsetX: 2,
             hitboxInsetY: 2,
             faceVelocity: true,
@@ -1784,7 +1784,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabHunterPack = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnAttackLabFuseMinefield = function () {
+GraveFallGame.scene.Game.prototype.spawnAttackFuseMinefield = function () {
     var inner = this.getArenaInnerBounds();
     var count = 4;
     var i;
@@ -1840,7 +1840,7 @@ GraveFallGame.scene.Game.prototype.spawnAttackLabFuseMinefield = function () {
             shrapnelDamage: 5,
             shrapnelLife: 190,
             shrapnelResource: "Bone_Shard_Attack_T",
-            type: "attack_lab_fuse_minefield_bomb",
+            type: "attack_fuse_minefield_bomb",
             hitboxInsetX: 4,
             hitboxInsetY: 4,
             spin: i % 2 === 0 ? 3 : -3

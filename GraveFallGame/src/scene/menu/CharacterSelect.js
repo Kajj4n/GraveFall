@@ -555,7 +555,7 @@ GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription 
     var id = template && template.id ? String(template.id).toLowerCase() : "";
     var name = template && template.name ? String(template.name).toLowerCase() : "";
 
-    if (id === "fighter" || name === "fighter" || name === "warrior") {
+    if (id === "fighter" || name === "fighter") {
         return "ACTIVE BUFF: DEFENCE x50%";
     }
 

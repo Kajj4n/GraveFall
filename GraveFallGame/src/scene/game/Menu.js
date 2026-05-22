@@ -195,7 +195,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var speedItemIcon = new rune.display.Sprite(itemActionPositions[3], 10, 100, 100, "Speed_Up_Buff_Icon_T");
     var returnItemIcon = new rune.display.Sprite(itemActionPositions[4], 10, 100, 100, "Back_Arrow_Icon_T");
 
-    var defendActionSlots = [6, 70, 134, 198, 262];
+    var defendActionSlots = [0, 66, 132, 198, 260];
     var defendActionPositions = [];
     var defendTargetIconsArray = [];
     var defendTargetPartyIndexes = [];
@@ -231,13 +231,14 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         targetPosition = defendActionSlots[defendTargetIconsArray.length];
         targetIcon = this.createDamageStateGroup(
             targetPosition,
-            10,
+            0,
             80,
             80,
             this.getPortraitDamageStates(targetMember.portrait)
         );
-        targetIcon.scaleX = 0.82;
-        targetIcon.scaleY = 0.82;
+        targetIcon.menuScale = 0.8;
+        targetIcon.scaleX = targetIcon.menuScale;
+        targetIcon.scaleY = targetIcon.menuScale;
         targetIcon.visible = false;
         targetIcon.targetPartyIndex = targetPartyIndex;
         this.applyPaletteSwapsToDamageStateGroup(
@@ -253,8 +254,9 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
 
     defendActionPositions.push(defendActionSlots[defendActionSlots.length - 1]);
 
-    returnDefendIcon.scaleX = 0.52;
-    returnDefendIcon.scaleY = 0.52;
+    returnDefendIcon.menuScale = 0.58;
+    returnDefendIcon.scaleX = returnDefendIcon.menuScale;
+    returnDefendIcon.scaleY = returnDefendIcon.menuScale;
     returnDefendIcon.visible = false;
     this.applyMonochromeIconColor(returnDefendIcon, options.playerTheme.accentLight);
     characterMenuActions.addChild(returnDefendIcon);
@@ -1102,11 +1104,11 @@ GraveFallGame.scene.Game.prototype.getClassBuffTooltipLines = function (playerMe
     var minigame = playerMenu && playerMenu.attackMinigame ? playerMenu.attackMinigame : "";
 
     if (id === "fighter" || id.indexOf("fighter_") === 0 || minigame === "buttonMash") {
-        return ["BUFF: PARTY DEFENCE x50%", "NEXT DODGE PHASE"];
+        return ["BUFF: PARTY DEFENCE x50%", "NEXT ACTION PHASE"];
     }
 
     if (id === "assassin" || id.indexOf("assassin_") === 0 || minigame === "timingBar") {
-        return ["BUFF: PARTY SPEED +1.6", "NEXT DODGE PHASE"];
+        return ["BUFF: PARTY SPEED +1.6", "NEXT ACTION PHASE"];
     }
 
     if (id === "wizard" || id.indexOf("wizard_") === 0 || minigame === "buttonSequence") {
@@ -1315,7 +1317,8 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
     var isRandomEventMenu = playerMenu.menuState === "randomEvent";
     var activeIcons = isItemMenu ? playerMenu.itemIcons : (isDefendMenu ? playerMenu.defendTargetIcons : playerMenu.actions);
     var positions = isItemMenu ? playerMenu.itemActionPositions : (isDefendMenu ? playerMenu.defendActionPositions : playerMenu.actionPositions);
-    var iconScale = isItemMenu || isDefendMenu ? 0.52 : 0.6;
+    var iconScale = isItemMenu ? 0.52 : (isDefendMenu ? 0.8 : 0.6);
+    var currentIconScale;
     var downed = playerMenu.healthCurrent <= 0;
     var enabled;
     var buffType;
@@ -1351,8 +1354,9 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 
     for (i = 0; i < activeIcons.length; i++) {
         activeIcons[i].visible = isRandomEventMenu ? (i < Math.max(1, playerMenu.randomEventChoiceCount || 0)) : true;
-        activeIcons[i].scaleX = iconScale;
-        activeIcons[i].scaleY = iconScale;
+        currentIconScale = typeof activeIcons[i].menuScale === "number" ? activeIcons[i].menuScale : iconScale;
+        activeIcons[i].scaleX = currentIconScale;
+        activeIcons[i].scaleY = currentIconScale;
         enabled = !downed && this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, i);
 
         if (isItemMenu && i < GraveFallGame.scene.Game.ITEM_BUFF_TYPES.length) {
@@ -1372,7 +1376,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
     }
 
     if (typeof playerMenu.selectionBar.width === "number") {
-        playerMenu.selectionBar.width = isRandomEventMenu ? 60 : (isItemMenu || isDefendMenu ? 50 : 60);
+        playerMenu.selectionBar.width = isRandomEventMenu ? 60 : (isItemMenu ? 50 : 60);
     }
 
     if (positions && typeof positions[playerMenu.selectedIndex] === "number") {

@@ -41,7 +41,7 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     this.actionPromptText.scaleX = 5;
     this.actionPromptText.scaleY = 5;
     this.actionPromptText.x = Math.floor((screenWidth / 2) - ((this.actionPromptText.text.length * 6 * this.actionPromptText.scaleX) / 2));
-    this.actionPromptText.y = Math.max(24, arenaY - 70);
+    this.actionPromptText.y = Math.max(24, arenaY - 96);
     this.actionPromptText.visible = false;
     this.actionPromptText.alpha = 0;
     this.stage.addChild(this.actionPromptText);

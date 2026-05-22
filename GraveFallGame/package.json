@@ -1,7 +1,7 @@
 {
   "name": "GraveFallGame",
   "version": "0.1.0",
-  "description": "A Rune-based action stratedgy roguelite game.",
+  "description": "A Rune-based action strategy roguelite game.",
   "main": "bin/bootstrap.js",
   "scripts": {
     "test": "electron ./bin-debug/bootstrap.js",
