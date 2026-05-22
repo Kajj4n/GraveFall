@@ -1033,7 +1033,9 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
             enemyType: this.currentEnemyType,
             lastStompIndex: -1,
             lastRoarIndex: -1,
-            warningShakePlayed: false
+            warningShakePlayed: false,
+            sfxPrimed: false,
+            uiFadeStartMs: null
         };
         this.bossEntranceComplete = false;
     }
@@ -1043,6 +1045,12 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
     if (localMs < 0) {
         this.setEnemyUiAlpha(0);
         return false;
+    }
+
+    if (state.sfxPrimed !== true) {
+        state.sfxPrimed = true;
+        this.playSfx(GraveFallGame.SOUNDS.BOSS_STOMP, 0, 0, false);
+        this.playSfx(GraveFallGame.SOUNDS.BOSS_ROAR, 0, 0, false);
     }
 
     if (localMs >= warningStartMs && state.warningShakePlayed !== true) {
@@ -1068,7 +1076,7 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
                 stomps[state.lastStompIndex].shakeY,
                 true
             );
-            this.playSfx(GraveFallGame.SOUNDS.BOSS_STOMP, stomps[state.lastStompIndex].volume, 0, true);
+            this.playSfx(GraveFallGame.SOUNDS.BOSS_STOMP, stomps[state.lastStompIndex].volume, 0, false);
         }
     } else if (localMs >= warningStartMs) {
         alpha = 0.08;
@@ -1080,7 +1088,7 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
         if (localMs >= roars[i].time && state.lastRoarIndex < i) {
             state.lastRoarIndex = i;
             this.shakeCamera(roars[i].duration, roars[i].shakeX, roars[i].shakeY, true);
-            this.playSfx(GraveFallGame.SOUNDS.BOSS_ROAR, roars[i].volume, 0, i === 0);
+            this.playSfx(GraveFallGame.SOUNDS.BOSS_ROAR, roars[i].volume, 0, false);
         }
     }
 
@@ -1145,6 +1153,8 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     var walkStartMs;
     var blackStartMs;
     var bossEntranceComplete;
+    var bossUiFadeElapsed;
+    var bossUiFadeDuration;
 
     this.enemyDefeatedTimerMs -= step;
     this.passageTransitionTimerMs += step;
@@ -1212,24 +1222,47 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
         if (this.isBossEntranceRequiredForCurrentEncounter()) {
             bossEntranceComplete = this.updateBossEntranceDuringTransition(elapsedMs, enemyFadeStartMs);
 
-            if (elapsedMs < playerFadeStartMs) {
-                playerAlpha = 0;
-            } else if (elapsedMs < playerFadeEndMs) {
-                playerAlpha = this.easePassageTransition((elapsedMs - playerFadeStartMs) / Math.max(1, playerFadeEndMs - playerFadeStartMs));
+            if (bossEntranceComplete === true) {
+                if (this.bossEntranceState && typeof this.bossEntranceState.uiFadeStartMs !== "number") {
+                    this.bossEntranceState.uiFadeStartMs = elapsedMs;
+                }
+
+                bossUiFadeElapsed = this.bossEntranceState && typeof this.bossEntranceState.uiFadeStartMs === "number"
+                    ? elapsedMs - this.bossEntranceState.uiFadeStartMs
+                    : 0;
+                bossUiFadeDuration = Math.max(1, actionsFadeEndMs - actionsFadeStartMs);
+
+                if (bossUiFadeElapsed < bossUiFadeDuration) {
+                    actionsAlpha = this.easePassageTransition(bossUiFadeElapsed / bossUiFadeDuration);
+                    playerAlpha = actionsAlpha;
+                    this.setPlayerTransitionVisibility(true, true);
+                    this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
+                    this.turnTimerText.visible = true;
+                    this.turnTimerText.alpha = actionsAlpha;
+                    this.turnTimerText.text = this.getTurnTimerLabel();
+                } else {
+                    actionsAlpha = 1;
+                    this.setEnemyUiAlpha(1);
+                    this.setPlayerTransitionVisibility(true, true);
+                    this.setPlayerTransitionAlpha(1, 1);
+                    this.setPlayerActionMenusVisible(true);
+                    this.turnTimerText.visible = true;
+                    this.turnTimerText.alpha = 1;
+                    this.turnTimerText.text = this.getTurnTimerLabel();
+
+                    if (this.passageTransitionActionsShown !== true) {
+                        this.passageTransitionActionsShown = true;
+                        this.finishEnemyDefeatedTransitionToCommand();
+                    }
+                }
             } else {
-                playerAlpha = 1;
+                this.setPlayerTransitionVisibility(false, false);
+                this.setPlayerTransitionAlpha(0, 0);
+                this.turnTimerText.visible = false;
+                this.turnTimerText.alpha = 0;
             }
 
-            this.setPlayerTransitionVisibility(playerAlpha > 0, false);
-            this.setPlayerTransitionAlpha(playerAlpha, 0);
-            this.turnTimerText.visible = false;
-            this.turnTimerText.alpha = 0;
-
-            if (bossEntranceComplete === true && this.passageTransitionActionsShown !== true) {
-                this.passageTransitionActionsShown = true;
-                this.finishEnemyDefeatedTransitionToCommand();
-                return;
-            }
+            return;
         } else {
             if (elapsedMs < enemyFadeStartMs) {
                 enemyAlpha = 0;
