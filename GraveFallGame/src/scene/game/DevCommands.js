@@ -67,10 +67,13 @@ GraveFallGame.scene.Game.DEV_COMMAND_NAMES = [
     "gf.enemy.kill",
     "gf.enemy.damage",
     "gf.enemy.hp",
+    "gf.enemy.onehp",
+    "gf.enemy.1hp",
     "gf.pattern.list",
     "gf.pattern.spawn",
     "gf.player.heal",
     "gf.player.down",
+    "gf.player.kill",
     "gf.player.hp",
     "gf.item.all",
     "gf.item.give",
@@ -87,6 +90,7 @@ GraveFallGame.scene.Game.DEV_COMMAND_NAMES = [
     "gf.ui.reset",
     "gf.start.help",
     "gf.start.quick",
+    "gf.start.boss",
     "gf.start.p1",
     "gf.start.list",
     "gf.score.add",
@@ -171,10 +175,13 @@ GraveFallGame.scene.Game.prototype.registerDevConsoleCommands = function () {
     this.registerDevConsoleCommand(commands, "gf.enemy.kill", this.devCommandEnemyKill);
     this.registerDevConsoleCommand(commands, "gf.enemy.damage", this.devCommandEnemyDamage);
     this.registerDevConsoleCommand(commands, "gf.enemy.hp", this.devCommandEnemyHp);
+    this.registerDevConsoleCommand(commands, "gf.enemy.onehp", this.devCommandEnemyOneHp);
+    this.registerDevConsoleCommand(commands, "gf.enemy.1hp", this.devCommandEnemyOneHp);
     this.registerDevConsoleCommand(commands, "gf.pattern.list", this.devCommandPatternList);
     this.registerDevConsoleCommand(commands, "gf.pattern.spawn", this.devCommandPatternSpawn);
     this.registerDevConsoleCommand(commands, "gf.player.heal", this.devCommandPlayerHeal);
     this.registerDevConsoleCommand(commands, "gf.player.down", this.devCommandPlayerDown);
+    this.registerDevConsoleCommand(commands, "gf.player.kill", this.devCommandPlayerKill);
     this.registerDevConsoleCommand(commands, "gf.player.hp", this.devCommandPlayerHp);
     this.registerDevConsoleCommand(commands, "gf.item.all", this.devCommandItemAll);
     this.registerDevConsoleCommand(commands, "gf.item.give", this.devCommandItemGive);
@@ -231,7 +238,8 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
             "gf.enemy.load enemyId",
             "gf.enemy.kill enemyId OR gf.enemy.kill",
             "gf.enemy.damage amount",
-            "gf.enemy.hp amount"
+            "gf.enemy.hp amount",
+            "gf.enemy.onehp OR gf.enemy.onehp enemyId"
         ].join("\n");
     }
 
@@ -240,6 +248,7 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
             "Player commands:",
             "gf.player.heal all OR player",
             "gf.player.down all OR player",
+            "gf.player.kill player",
             "gf.player.hp target amount",
             "Targets: all, 1-4, or character id."
         ].join("\n");
@@ -299,6 +308,7 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
         "gf.help enemy player item pattern timer ui",
         "gf.enemy.load enemyId",
         "gf.enemy.kill enemyId OR gf.enemy.kill",
+        "gf.enemy.onehp OR gf.enemy.1hp",
         "gf.player.heal all OR player",
         "gf.item.all count",
         "gf.pattern.spawn patternId count",
@@ -494,6 +504,27 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyHp = function (amount) {
     return "Enemy HP set to " + this.enemyHealthCurrent + "/" + this.enemyHealthMax;
 };
 
+GraveFallGame.scene.Game.prototype.devCommandEnemyOneHp = function (enemyId) {
+    var resolvedId = null;
+
+    if (enemyId) {
+        resolvedId = this.devLoadEnemyById(enemyId);
+
+        if (!resolvedId) {
+            return "Unknown enemy: " + enemyId;
+        }
+    } else {
+        this.devPrepareImmediateBattle();
+        resolvedId = this.currentEnemyType;
+    }
+
+    this.enemyHealthCurrent = Math.min(this.enemyHealthMax, 1);
+    this.updateEnemyHealthBarUi();
+    this.updateEnemyDamageState();
+
+    return "Enemy set to 1 HP: " + resolvedId;
+};
+
 GraveFallGame.scene.Game.prototype.getDevPatternIds = function () {
     var enemies = GraveFallGame.scene.Game.ENEMIES || {};
     var seen = {};
@@ -672,6 +703,17 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerDown = function (target) {
 
     this.devRefreshPlayersAfterHealthChange(players);
     return "Downed players: " + players.length;
+};
+
+GraveFallGame.scene.Game.prototype.devCommandPlayerKill = function (target) {
+    var result;
+
+    if (!target) {
+        return "Usage: gf.player.kill player";
+    }
+
+    result = this.devCommandPlayerDown(target);
+    return result.replace("Downed", "Killed");
 };
 
 GraveFallGame.scene.Game.prototype.devCommandPlayerHp = function (target, amount) {
@@ -1123,6 +1165,7 @@ if (GraveFallGame.scene.CharacterSelect) {
     GraveFallGame.scene.CharacterSelect.DEV_COMMAND_NAMES = [
         "gf.start.help",
         "gf.start.quick",
+        "gf.start.boss",
         "gf.start.p1",
         "gf.start.list"
     ];
@@ -1146,6 +1189,7 @@ if (GraveFallGame.scene.CharacterSelect) {
 
         this.registerDevConsoleCommand(commands, "gf.start.help", this.devCommandSelectHelp);
         this.registerDevConsoleCommand(commands, "gf.start.quick", this.devCommandQuickStart);
+        this.registerDevConsoleCommand(commands, "gf.start.boss", this.devCommandBossQuickStart);
         this.registerDevConsoleCommand(commands, "gf.start.p1", this.devCommandQuickStart);
         this.registerDevConsoleCommand(commands, "gf.start.list", this.devCommandStartList);
 
@@ -1177,11 +1221,11 @@ if (GraveFallGame.scene.CharacterSelect) {
             "Character select dev commands:",
             "gf.start.help",
             "gf.start.quick",
-            "gf.start.quick random",
-            "gf.start.quick fighter",
-            "gf.start.quick assassin",
-            "gf.start.quick wizard",
-            "gf.start.quick ranger",
+            "gf.start.quick 1-4 random/classIds",
+            "gf.start.quick fighter wizard",
+            "gf.start.quick 4 random",
+            "gf.start.boss 1-4 random/classIds",
+            "gf.start.quick boss 4 random",
             "gf.start.list"
         ].join("\n");
     };
@@ -1222,44 +1266,114 @@ if (GraveFallGame.scene.CharacterSelect) {
         return null;
     };
 
-    GraveFallGame.scene.CharacterSelect.prototype.createDevSinglePlayerParty = function (template) {
-        var controller = this.controllers[0];
-        var menuWidth = 320;
-        var screenWidth = this.application && this.application.screen ? this.application.screen.width : 1280;
-        var member;
+    GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartCount = function (value) {
+        var count = parseInt(value, 10);
 
-        member = {
-            id: template.id + "_0",
-            name: template.name,
-            portrait: template.portrait,
-            classIcon: template.classIcon,
-            stand: template.stand,
-            hpCurrent: template.hpMax,
-            hpMax: template.hpMax,
-            themeIndex: controller.themeIndex,
-            attackMinigame: template.attackMinigame,
-            gamepadIndex: controller.gamepadIndex,
-            controls: controller.controls,
-            moveControls: controller.moveControls,
-            flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(0, 1),
-            attackDamage: template.attackDamage,
-            runPaletteKey: this.runPaletteKey,
-            x: GraveFallGame.scene.Game.getPartyMenuX(0, 1, menuWidth, screenWidth),
-            y: 592,
-            partyRenderIndex: 0,
-            partySize: 1,
-            activePartyIndex: 0
-        };
+        if (isNaN(count)) {
+            return null;
+        }
 
-        return [member];
+        return Math.max(1, Math.min(4, count));
     };
 
-    GraveFallGame.scene.CharacterSelect.prototype.devCommandQuickStart = function (classId, partyName) {
-        var template = this.resolveDevStartTemplate(classId || "random");
-        var party;
+    GraveFallGame.scene.CharacterSelect.prototype.createDevPartyFromTemplates = function (templates) {
+        var party = [];
+        var partySize = Math.max(1, Math.min(4, templates.length));
+        var menuWidth = 320;
+        var screenWidth = this.application && this.application.screen ? this.application.screen.width : 1280;
+        var i;
+        var template;
+        var controller;
+        var inputScheme;
 
-        if (!template) {
-            return "Usage: gf.start.quick random OR classId\nType gf.start.list";
+        for (i = 0; i < partySize; i++) {
+            template = templates[i];
+            controller = this.controllers[i] || this.controllers[0];
+            inputScheme = this.getCanonicalControllerInput ? this.getCanonicalControllerInput(controller) : controller;
+
+            party.push({
+                id: template.id + "_" + i,
+                name: template.name,
+                portrait: template.portrait,
+                classIcon: template.classIcon,
+                stand: template.stand,
+                hpCurrent: template.hpMax,
+                hpMax: template.hpMax,
+                themeIndex: controller.themeIndex,
+                attackMinigame: template.attackMinigame,
+                gamepadIndex: controller.gamepadIndex,
+                controls: inputScheme.controls || controller.controls,
+                moveControls: inputScheme.moveControls || controller.moveControls,
+                flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(i, partySize),
+                attackDamage: template.attackDamage,
+                runPaletteKey: this.runPaletteKey,
+                x: GraveFallGame.scene.Game.getPartyMenuX(i, partySize, menuWidth, screenWidth),
+                y: 592,
+                partyRenderIndex: i,
+                partySize: partySize,
+                activePartyIndex: i
+            });
+        }
+
+        return party;
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.createDevSinglePlayerParty = function (template) {
+        return this.createDevPartyFromTemplates([template]);
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartTemplates = function (args) {
+        var templates = [];
+        var partySize = null;
+        var firstTemplateArg = 0;
+        var template;
+        var i;
+        var arg;
+
+        args = args || [];
+
+        if (args.length > 0) {
+            partySize = this.resolveDevStartCount(args[0]);
+
+            if (partySize !== null) {
+                firstTemplateArg = 1;
+            }
+        }
+
+        if (partySize === null) {
+            partySize = Math.max(1, Math.min(4, args.length || 1));
+        }
+
+        for (i = 0; i < partySize; i++) {
+            arg = args[firstTemplateArg + i] || args[firstTemplateArg] || "random";
+            template = this.resolveDevStartTemplate(arg);
+
+            if (!template) {
+                return null;
+            }
+
+            templates.push(template);
+        }
+
+        return templates;
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.devStartRunFromArgs = function (args, bossMode) {
+        var templates;
+        var party;
+        var firstArg = args && args.length > 0 ? String(args[0] || "").toLowerCase() : "";
+
+        args = args || [];
+
+        if (firstArg === "boss" || firstArg === "bosses") {
+            bossMode = true;
+            args = args.slice(1);
+        }
+
+        templates = this.resolveDevStartTemplates(args);
+
+        if (!templates) {
+            return "Usage: gf.start.quick 1-4 random/classIds\nType gf.start.list";
         }
 
         if (!this.runPalette) {
@@ -1267,11 +1381,20 @@ if (GraveFallGame.scene.CharacterSelect) {
             this.runPaletteKey = this.runPalette.key;
         }
 
-        party = this.createDevSinglePlayerParty(template);
-        GraveFallGame.scene.Game.PARTY_NAME = partyName || "DEV RUN";
+        party = this.createDevPartyFromTemplates(templates);
+        GraveFallGame.scene.Game.PARTY_NAME = bossMode === true ? "DEV BOSS RUN" : "DEV RUN";
         GraveFallGame.scene.Game.PARTY_MEMBERS = party;
+        GraveFallGame.scene.Game.DEV_START_RANDOM_BOSS = bossMode === true;
         this.application.scenes.load([new GraveFallGame.scene.Game(party, this.runPaletteKey)]);
 
-        return "Quick started P1 as " + template.name + ".";
+        return "Quick started " + party.length + "P" + (bossMode === true ? " boss" : "") + " run.";
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.devCommandQuickStart = function () {
+        return this.devStartRunFromArgs(Array.prototype.slice.call(arguments), false);
+    };
+
+    GraveFallGame.scene.CharacterSelect.prototype.devCommandBossQuickStart = function () {
+        return this.devStartRunFromArgs(Array.prototype.slice.call(arguments), true);
     };
 }

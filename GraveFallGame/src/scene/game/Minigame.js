@@ -1312,11 +1312,12 @@ GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
     if (this.enemySprite) {
         this.enemySprite.visible = true;
         this.enemySprite.alpha = 1;
-        this.setDamageStateGroupState(this.enemySprite, "killed");
+        this.setDamageStateGroupState(this.enemySprite, this.getEnemyPendingDeathDamageState ? this.getEnemyPendingDeathDamageState() : "hp25");
     }
 
     if (this.finalStrikeQueue.length <= 0) {
         this.finalChargeCompleted = true;
+        this.setDamageStateGroupState(this.enemySprite, "killed");
         this.startEnemyDefeatedSequence();
         return;
     }
@@ -1348,9 +1349,9 @@ GraveFallGame.scene.Game.prototype.beginFinalStrikeStep = function () {
     this.startPlayerActionPreviewShake(menu, 0);
 
     damage = this.getFinalStrikeDamageForPlayer(menu);
-    this.setDamageStateGroupState(this.enemySprite, "killed");
     this.createEnemyDamagePopup(damage, menu.theme.accent);
     this.spawnEnemyDamageParticles(damage);
+    this.setDamageStateGroupState(this.enemySprite, "killed");
     this.setEnemyPreviewFlash(280);
     this.startEnemyDamagePreviewShake(280, 10, 6);
     this.shakeCamera(180, 6, 4, true);
@@ -1407,6 +1408,11 @@ GraveFallGame.scene.Game.prototype.finishFinalStrikeSequence = function () {
     this.clearFinalStrikeState();
     this.finalChargeCompleted = true;
     this.setEnemyHealthBarVisible(false);
+
+    if (this.enemySprite) {
+        this.setDamageStateGroupState(this.enemySprite, "killed");
+    }
+
     this.startEnemyDefeatedSequence();
 };
 

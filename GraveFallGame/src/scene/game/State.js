@@ -66,6 +66,8 @@ GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MIN = 1;
 GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MAX = 4;
 GraveFallGame.scene.Game.LEADERBOARD_MAX_ENTRIES = 10;
 GraveFallGame.scene.Game.HIGHSCORES = GraveFallGame.scene.Game.HIGHSCORES || {};
+GraveFallGame.scene.Game.DEV_START_RANDOM_BOSS = false;
+
 
 GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize = function (partySize) {
     var parsed = parseInt(partySize, 10);
@@ -1743,8 +1745,16 @@ GraveFallGame.scene.Game.prototype.getRandomEnemyType = function (enemyTypes, av
 
 GraveFallGame.scene.Game.prototype.getEnemyTypeForEncounter = function (encounterIndex) {
     var isBossEncounter = (encounterIndex + 1) % 3 === 0;
-    var enemyTypes = this.getEnemyTypesByBossFlag(isBossEncounter);
-    var avoidEnemyType = isBossEncounter === true ? this.lastBossEnemyType : this.lastNormalEnemyType;
+    var enemyTypes;
+    var avoidEnemyType;
+
+    if (GraveFallGame.scene.Game.DEV_START_RANDOM_BOSS === true) {
+        GraveFallGame.scene.Game.DEV_START_RANDOM_BOSS = false;
+        isBossEncounter = true;
+    }
+
+    enemyTypes = this.getEnemyTypesByBossFlag(isBossEncounter);
+    avoidEnemyType = isBossEncounter === true ? this.lastBossEnemyType : this.lastNormalEnemyType;
 
     if (enemyTypes.length <= 0) {
         enemyTypes = this.getEnemyTypesByBossFlag(!isBossEncounter);
@@ -2103,7 +2113,7 @@ GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {
 };
 
 GraveFallGame.scene.Game.prototype.getArenaInnerBounds = function () {
-    var borderPadding = 20;
+    var borderPadding = 16;
 
     return {
         x: borderPadding,

@@ -97,6 +97,180 @@ GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, ui
     this.backgroundBackdropResource = resource;
 };
 
+GraveFallGame.scene.Game.prototype.getFloorPaletteKey = function (floorNumber) {
+    var palettes = GraveFallGame.scene.Game.RUN_PALETTES || [];
+    var index;
+
+    if (palettes.length <= 0) {
+        return this.runPaletteKey || "dullBrown";
+    }
+
+    index = Math.max(0, Math.floor((floorNumber || 1) - 1)) % palettes.length;
+    return palettes[index].key;
+};
+
+GraveFallGame.scene.Game.prototype.replaceUiFrame = function (oldFrame, newFrame) {
+    var parent;
+    var index = -1;
+
+    if (!oldFrame || !newFrame || !oldFrame.parent) {
+        return newFrame;
+    }
+
+    parent = oldFrame.parent;
+
+    if (typeof parent.getChildIndex === "function") {
+        index = parent.getChildIndex(oldFrame);
+    }
+
+    parent.removeChild(oldFrame, true);
+
+    if (index >= 0 && typeof parent.addChildAt === "function") {
+        parent.addChildAt(newFrame, index);
+    } else {
+        parent.addChild(newFrame);
+    }
+
+    return newFrame;
+};
+
+GraveFallGame.scene.Game.prototype.rebuildPlayerMenuFramesForSkin = function (playerMenu, uiSkin) {
+    var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
+
+    if (!playerMenu || !playerMenu.container) {
+        return;
+    }
+
+    if (playerMenu.container) {
+        playerMenu.container.backgroundColor = uiSkin.panelBottom;
+    }
+
+    if (playerMenu.characterContainer) {
+        playerMenu.characterContainer.backgroundColor = uiSkin.panelTop;
+    }
+
+    if (playerMenu.actionsContainer) {
+        playerMenu.actionsContainer.backgroundColor = uiSkin.panelBottom;
+    }
+
+    if (playerMenu.uiFrame) {
+        playerMenu.uiFrame = this.replaceUiFrame(
+            playerMenu.uiFrame,
+            this.createBoxFrame(0, 0, playerMenu.container.width || 320, playerMenu.container.height || 128, framePaletteSwaps)
+        );
+    }
+
+    if (playerMenu.uiSeparator) {
+        playerMenu.uiSeparator = this.replaceUiFrame(
+            playerMenu.uiSeparator,
+            this.createSeparator(0, 60, playerMenu.container.width || 320, framePaletteSwaps)
+        );
+    }
+
+    if (playerMenu.tooltipBackground) {
+        playerMenu.tooltipBackground.backgroundColor = uiSkin.panelTop || "#191919";
+    }
+
+    if (playerMenu.tooltipFrame && playerMenu.tooltipContainer) {
+        playerMenu.tooltipFrame = this.replaceUiFrame(
+            playerMenu.tooltipFrame,
+            this.createBoxFrame(0, 0, playerMenu.tooltipContainer.width || 320, playerMenu.tooltipContainer.height || 50, framePaletteSwaps)
+        );
+    }
+};
+
+GraveFallGame.scene.Game.prototype.refreshPassageBackgroundPalette = function (keepTransform) {
+    var resource = this.backgroundBackdropResource || "Background_Test";
+
+    this.backgroundBackdropResource = null;
+    this.setPassageBackground(resource, this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, keepTransform === true);
+};
+
+GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
+    var paletteKey = this.getFloorPaletteKey(this.floorNumber || 1);
+    var palette = GraveFallGame.scene.Game.getRunPalette(paletteKey);
+    var framePaletteSwaps;
+    var i;
+
+    this.runPaletteKey = palette.key;
+    this.runPalette = palette;
+    this.uiSkin = palette.inside;
+    this.outsideUiSkin = palette.outside;
+    GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = palette.key;
+
+    framePaletteSwaps = this.getFramePaletteSwaps(this.uiSkin);
+
+    if (this.arenaBackground) {
+        this.arenaBackground.backgroundColor = this.uiSkin.panelBottom || "#000000";
+    }
+
+    if (this.arenaFrame) {
+        this.arenaFrame = this.replaceUiFrame(
+            this.arenaFrame,
+            this.createBoxFrame(this.arena.x, this.arena.y, this.arena.width, this.arena.height, framePaletteSwaps)
+        );
+        this.arenaFrame.visible = this.phase === GraveFallGame.scene.Game.PHASE_ACTION;
+    }
+
+    if (this.enemyHealthFrame) {
+        this.enemyHealthFrame = this.replaceUiFrame(
+            this.enemyHealthFrame,
+            this.createBoxFrame(this.enemyHealthBarX, this.enemyHealthBg.y, this.enemyHealthBarWidth, this.enemyHealthBg.height, framePaletteSwaps)
+        );
+        this.enemyHealthFrame.visible = this.enemyHealthBg ? this.enemyHealthBg.visible : true;
+        this.enemyHealthFrame.alpha = this.enemyHealthBg ? this.enemyHealthBg.alpha : 1;
+    }
+
+    if (this.floorText) {
+        this.floorText.text = "FLOOR: " + this.floorNumber;
+        this.tintBitmapFieldText(this.floorText, this.uiSkin.frame.light, true);
+    }
+
+    if (this.scoreText) {
+        this.tintBitmapFieldText(this.scoreText, this.uiSkin.frame.light, true);
+    }
+
+    if (this.turnTimerText) {
+        this.tintBitmapFieldText(this.turnTimerText, this.uiSkin.frame.light, true);
+    }
+
+    if (this.playerMenus) {
+        for (i = 0; i < this.playerMenus.length; i++) {
+            this.rebuildPlayerMenuFramesForSkin(this.playerMenus[i], this.uiSkin);
+        }
+    }
+
+    this.refreshPassageBackgroundPalette(true);
+};
+
+GraveFallGame.scene.Game.prototype.advanceFloorAfterBossDefeat = function () {
+    this.floorNumber++;
+
+    if (this.floorText) {
+        this.floorText.text = "FLOOR: " + this.floorNumber;
+    }
+
+    this.applyFloorVisualTheme();
+    this.addScorePopup(500, "FLOOR CLEARED");
+};
+
+GraveFallGame.scene.Game.prototype.queueFloorAdvanceAfterBlackout = function () {
+    this.passageTransitionPendingFloorAdvance = true;
+};
+
+GraveFallGame.scene.Game.prototype.applyPendingFloorAdvanceAfterBlackout = function (elapsedMs, blackStartMs) {
+    if (this.passageTransitionPendingFloorAdvance !== true) {
+        return;
+    }
+
+    if (elapsedMs < blackStartMs) {
+        return;
+    }
+
+    this.passageTransitionPendingFloorAdvance = false;
+    this.advanceFloorAfterBossDefeat();
+};
+
 GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
     this.arenaBackground.visible = visible;
     this.arenaProjectileLayer.visible = visible;
@@ -938,10 +1112,10 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     }
 
     this.addScorePopup(1000, "ENEMY DEFEATED");
-    
-    this.addScorePopup(500, "FLOOR CLEARED");
-    this.floorNumber++;
-    this.floorText.text = "FLOOR: " + this.floorNumber;
+
+    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true) {
+        this.queueFloorAdvanceAfterBlackout();
+    }
 
     if (this.encounterAllyDowned !== true) {
         this.addScorePopup(500, "FLAWLESS BATTLE");
@@ -991,6 +1165,7 @@ GraveFallGame.scene.Game.prototype.startNextEnemyEncounter = function () {
 GraveFallGame.scene.Game.prototype.resetBossEntranceState = function () {
     this.bossEntranceState = null;
     this.bossEntranceComplete = false;
+    this.bossEntranceActionFadeStartMs = null;
 
     if (this.enemySprite) {
         this.enemySprite.x = typeof this.enemyPreviewBaseX === "number" ? this.enemyPreviewBaseX : this.enemySprite.x;
@@ -1154,6 +1329,8 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     var walkStartMs;
     var blackStartMs;
     var bossEntranceComplete;
+    var bossActionsFadeDurationMs;
+    var bossActionsFadeEndMs;
 
     this.enemyDefeatedTimerMs -= step;
     this.passageTransitionTimerMs += step;
@@ -1169,6 +1346,7 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     actionsFadeEndMs = this.passageTransitionActionsFadeEndMs || 9000;
 
     this.applyPassageCameraTransition(elapsedMs);
+    this.applyPendingFloorAdvanceAfterBlackout(elapsedMs, blackStartMs);
 
     if (this.passageTransitionCorpseHidden !== true && elapsedMs >= (this.passageTransitionCorpseVanishMs || 1100)) {
         this.passageTransitionCorpseHidden = true;
@@ -1229,16 +1407,42 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
                 playerAlpha = 1;
             }
 
-            this.setPlayerTransitionVisibility(playerAlpha > 0, false);
-            this.setPlayerTransitionAlpha(playerAlpha, 0);
-            this.turnTimerText.visible = false;
-            this.turnTimerText.alpha = 0;
-
             if (bossEntranceComplete === true && this.passageTransitionActionsShown !== true) {
+                if (typeof this.bossEntranceActionFadeStartMs !== "number") {
+                    this.bossEntranceActionFadeStartMs = elapsedMs;
+                }
+
+                bossActionsFadeDurationMs = this.bossEntranceActionFadeDurationMs || Math.max(450, actionsFadeEndMs - actionsFadeStartMs);
+                bossActionsFadeEndMs = this.bossEntranceActionFadeStartMs + bossActionsFadeDurationMs;
+
+                if (elapsedMs < bossActionsFadeEndMs) {
+                    actionsAlpha = this.easePassageTransition((elapsedMs - this.bossEntranceActionFadeStartMs) / Math.max(1, bossActionsFadeDurationMs));
+                    this.setEnemyUiAlpha(1);
+                    this.setPlayerTransitionVisibility(true, true);
+                    this.setPlayerTransitionAlpha(playerAlpha, actionsAlpha);
+                    this.setPlayerActionMenusVisible(true);
+                    this.turnTimerText.visible = true;
+                    this.turnTimerText.alpha = actionsAlpha;
+                    this.turnTimerText.text = this.getTurnTimerLabel();
+                    return;
+                }
+
+                this.setEnemyUiAlpha(1);
+                this.setPlayerTransitionVisibility(true, true);
+                this.setPlayerTransitionAlpha(1, 1);
+                this.setPlayerActionMenusVisible(true);
+                this.turnTimerText.visible = true;
+                this.turnTimerText.alpha = 1;
+                this.turnTimerText.text = this.getTurnTimerLabel();
                 this.passageTransitionActionsShown = true;
                 this.finishEnemyDefeatedTransitionToCommand();
                 return;
             }
+
+            this.setPlayerTransitionVisibility(playerAlpha > 0, false);
+            this.setPlayerTransitionAlpha(playerAlpha, 0);
+            this.turnTimerText.visible = false;
+            this.turnTimerText.alpha = 0;
         } else {
             if (elapsedMs < enemyFadeStartMs) {
                 enemyAlpha = 0;
@@ -1396,11 +1600,20 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.clearProjectiles = function () {
+GraveFallGame.scene.Game.prototype.clearProjectiles = function (fadeOut) {
     var i;
 
     if (!this.projectiles) {
         this.projectiles = [];
+        return;
+    }
+
+    if (fadeOut === true) {
+        for (i = this.projectiles.length - 1; i >= 0; i--) {
+            if (this.projectiles[i] && typeof this.beginProjectileFadeOut === "function") {
+                this.beginProjectileFadeOut(this.projectiles[i], 12, false);
+            }
+        }
         return;
     }
 
@@ -1549,7 +1762,7 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     display.swayPhase = options.swayPhase || 0;
     display.swayAxis = options.swayAxis || "y";
     display.previousSwayOffset = 0;
-    display.fadeOutFrames = Math.max(0, Math.floor(options.fadeOutFrames || 0));
+    display.fadeOutFrames = Math.max(0, Math.floor(typeof options.fadeOutFrames === "number" ? options.fadeOutFrames : 10));
     display.fadeOutToZero = options.fadeOutToZero === true;
     display.faceVelocity = options.faceVelocity === true;
     display.faceVelocityOffset = typeof options.faceVelocityOffset === "number" ? options.faceVelocityOffset : 0;

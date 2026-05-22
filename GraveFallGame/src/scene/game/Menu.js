@@ -300,10 +300,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     battleAvatar.scaleY = battleAvatarScale;
     battleAvatar.visible = false;
     battleAvatar.alpha = 0;
-    // Keep the player damage hitbox close to the visible avatar while preserving
-    // the corrected top/bottom collision behavior from GraveFallGame(2).
+    // Keep collision and arena clamping on the same visible footprint so the
+    // avatar reaches the inside edge of the frame without leaving a wall gap.
     this.setObjectHitboxInset(battleAvatar, 8, 3, 8, 3);
-    this.setObjectClampInset(battleAvatar, 12, 12, 8, 8);
+    this.setObjectClampInset(battleAvatar, 8, 3, 8, 3);
 
     characterStand.scaleX = standScale;
     characterStand.scaleY = standScale;
@@ -377,6 +377,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         container: characterMenu,
         characterContainer: characterMenuCharacter,
         actionsContainer: characterMenuActions,
+        uiFrame: outerFrame,
+        uiSeparator: separator,
+        tooltipBackground: tooltipBackground,
+        tooltipFrame: tooltipFrame,
         stand: characterStand,
         portrait: characterIcon,
         classIcon: characterClassIcon,
@@ -508,11 +512,27 @@ GraveFallGame.scene.Game.prototype.updateAllPlayerDamageStates = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
-    this.setDamageStateGroupState(
-        this.enemySprite,
-        this.getHealthDamageState(this.enemyHealthCurrent, this.enemyHealthMax, false, false)
+GraveFallGame.scene.Game.prototype.getEnemyPendingDeathDamageState = function () {
+    return "hp25";
+};
+
+GraveFallGame.scene.Game.prototype.shouldKeepBossInDyingState = function () {
+    var enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+
+    return !!(
+        enemyConfig &&
+        enemyConfig.isBoss === true &&
+        this.enemyHealthCurrent <= 0 &&
+        this.finalChargeCompleted !== true
     );
+};
+
+GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
+    var state = this.shouldKeepBossInDyingState && this.shouldKeepBossInDyingState()
+        ? this.getEnemyPendingDeathDamageState()
+        : this.getHealthDamageState(this.enemyHealthCurrent, this.enemyHealthMax, false, false);
+
+    this.setDamageStateGroupState(this.enemySprite, state);
 };
 
 GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor, skipDefaultSfx) {

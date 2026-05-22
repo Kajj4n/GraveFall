@@ -2107,33 +2107,44 @@ GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
 };
 
 GraveFallGame.scene.Game.prototype.updateProjectileBounce = function (projectile, inner) {
-    var maxX;
-    var maxY;
+    var bounds;
+    var overflow;
     var bounced = false;
 
     if (!projectile || projectile.bounce !== true) {
         return;
     }
 
-    maxX = inner.x + inner.width - projectile.width;
-    maxY = inner.y + inner.height - projectile.height;
+    bounds = this.getCollisionBounds(projectile);
 
-    if (projectile.x < inner.x && projectile.vx < 0) {
-        projectile.x = inner.x;
-        projectile.vx *= -1;
-        bounced = true;
-    } else if (projectile.x > maxX && projectile.vx > 0) {
-        projectile.x = maxX;
+    overflow = inner.x - bounds.x;
+    if (overflow > 0 && projectile.vx < 0) {
+        projectile.x += overflow;
+        bounds.x += overflow;
         projectile.vx *= -1;
         bounced = true;
     }
 
-    if (projectile.y < inner.y && projectile.vy < 0) {
-        projectile.y = inner.y;
+    overflow = (bounds.x + bounds.width) - (inner.x + inner.width);
+    if (overflow > 0 && projectile.vx > 0) {
+        projectile.x -= overflow;
+        bounds.x -= overflow;
+        projectile.vx *= -1;
+        bounced = true;
+    }
+
+    overflow = inner.y - bounds.y;
+    if (overflow > 0 && projectile.vy < 0) {
+        projectile.y += overflow;
+        bounds.y += overflow;
         projectile.vy *= -1;
         bounced = true;
-    } else if (projectile.y > maxY && projectile.vy > 0) {
-        projectile.y = maxY;
+    }
+
+    overflow = (bounds.y + bounds.height) - (inner.y + inner.height);
+    if (overflow > 0 && projectile.vy > 0) {
+        projectile.y -= overflow;
+        bounds.y -= overflow;
         projectile.vy *= -1;
         bounced = true;
     }
@@ -2143,7 +2154,7 @@ GraveFallGame.scene.Game.prototype.updateProjectileBounce = function (projectile
         projectile.flippedX = projectile.vx < 0;
 
         if (projectile.bouncesRemaining <= 0) {
-            projectile.life = Math.min(projectile.life, 20);
+            projectile.life = Math.min(projectile.life, Math.max(12, projectile.fadeOutFrames || 12));
         }
     }
 };
@@ -2343,10 +2354,49 @@ GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (pro
     }
 };
 
-GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index) {
+GraveFallGame.scene.Game.prototype.beginProjectileFadeOut = function (projectile, frames, keepMotion) {
+    var duration;
+
+    if (!projectile || projectile.fadingOut === true) {
+        return;
+    }
+
+    duration = Math.max(1, Math.floor(frames || projectile.fadeOutFrames || 10));
+    projectile.fadingOut = true;
+    projectile.fadeOutTimer = duration;
+    projectile.fadeOutDuration = duration;
+    projectile.fadeStartAlpha = typeof projectile.alpha === "number" ? projectile.alpha : (typeof projectile.baseAlpha === "number" ? projectile.baseAlpha : 1);
+    projectile.damage = 0;
+    projectile.pendingDamage = 0;
+    projectile.hit = false;
+    projectile.hitFlashFrames = 0;
+    projectile.startDelay = 0;
+
+    if (keepMotion !== true) {
+        projectile.vx = (projectile.vx || 0) * 0.35;
+        projectile.vy = (projectile.vy || 0) * 0.35;
+        projectile.accelX = 0;
+        projectile.accelY = 0;
+        projectile.homingFrames = 0;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index, immediate) {
     var projectile = this.projectiles[index];
-    if (!projectile) return;
-    if (projectile.parent) projectile.parent.removeChild(projectile, true);
+
+    if (!projectile) {
+        return;
+    }
+
+    if (immediate !== true && projectile.fadingOut !== true) {
+        this.beginProjectileFadeOut(projectile, projectile.fadeOutFrames || 10, false);
+        return;
+    }
+
+    if (projectile.parent) {
+        projectile.parent.removeChild(projectile, true);
+    }
+
     this.projectiles.splice(index, 1);
 };
 
@@ -2584,12 +2634,23 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
             continue;
         }
 
+        if (projectile.fadingOut === true) {
+            projectile.fadeOutTimer--;
+            projectile.alpha = Math.max(0, (projectile.fadeStartAlpha || 1) * (projectile.fadeOutTimer / Math.max(1, projectile.fadeOutDuration || 1)));
+
+            if (projectile.fadeOutTimer <= 0) {
+                this.removeProjectileAt(i, true);
+            }
+
+            continue;
+        }
+
         if (projectile.hit) {
             projectile.hitFlashFrames--;
             projectile.alpha = projectile.hitFlashFrames % 2 === 0 ? 0.15 : 1;
 
             if (projectile.hitFlashFrames <= 0) {
-                this.removeProjectileAt(i);
+                this.beginProjectileFadeOut(projectile, projectile.fadeOutFrames || 8, false);
             }
 
             continue;
@@ -2647,7 +2708,7 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
                 this.explodeProjectile(projectile);
             }
 
-            this.removeProjectileAt(i);
+            this.removeProjectileAt(i, outsideBounds === true);
         }
     }
 };
