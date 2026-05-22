@@ -332,16 +332,26 @@ GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
 };
 
 GraveFallGame.scene.Menu.prototype.createControlHint = function (parent, x, y, iconResource, title, detail, color) {
-    var group = new rune.display.DisplayObjectContainer(x, y, 210, 44);
-    var icon = new rune.display.Sprite(0, 2, 100, 100, iconResource);
-    var titleText = this.createText(title, 44, 2, 1.15, 158);
-    var detailText = this.createText(detail, 44, 22, 1.05, 164);
+    var group = new rune.display.DisplayObjectContainer(x, y, 210, 54);
+    var icons = iconResource instanceof Array ? iconResource : [iconResource];
+    var icon;
+    var iconScale;
+    var iconYOffset;
+    var i;
+    var textOffsetX = iconResource instanceof Array ? 54 : 44;
+    var titleText = this.createText(title, textOffsetX, 5, 1.15, 158);
+    var detailText = this.createText(detail, textOffsetX, 27, 1.05, 164);
 
-    icon.scaleX = 0.32;
-    icon.scaleY = 0.32;
-    this.applyMonochromeIconColor(icon, color || this.menuSkin.frame.light);
+    for (i = 0; i < icons.length; i++) {
+        iconScale = icons.length > 1 ? 0.27 : 0.32;
+        iconYOffset = icons.length > 1 ? (0 + (i * 25)) : 6;
+        icon = new rune.display.Sprite(icons.length > 1 ? 7 : 5, iconYOffset, 100, 100, icons[i]);
+        icon.scaleX = iconScale;
+        icon.scaleY = iconScale;
+        this.applyMonochromeIconColor(icon, color || this.menuSkin.frame.light);
+        group.addChild(icon);
+    }
 
-    group.addChild(icon);
     group.addChild(titleText);
     group.addChild(detailText);
     this.tintBitmapFieldText(titleText, color || this.menuSkin.frame.light, true);
@@ -368,7 +378,7 @@ GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
     panel.addChild(heading);
     this.tintBitmapFieldText(heading, this.menuSkin.frame.light, true);
 
-    this.createControlHint(panel, 20, 38, "Gamepad_Button_Up_T", "MOVE", "W/S OR D-PAD", GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight);
+    this.createControlHint(panel, 20, 30, ["Gamepad_Button_Up_T", "Gamepad_Button_Down_T"], "MOVE", "W/S OR D-PAD", GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight);
     this.createControlHint(panel, 246, 38, "A_Button_Icon_T", "SELECT", "ENTER/SPACE OR A", GraveFallGame.scene.Game.PLAYER_THEMES[3].accentLight);
     this.createControlHint(panel, 476, 38, "Y_Button_Icon_T", "HELP", "H/R OR Y", GraveFallGame.scene.Game.PLAYER_THEMES[1].accentLight);
 

@@ -54,6 +54,8 @@ GraveFallGame.scene.Game.prototype.constructor = GraveFallGame.scene.Game;
 
 GraveFallGame.scene.Game.PHASE_COMMAND = "command";
 GraveFallGame.scene.Game.PHASE_MINIGAME = "minigame";
+GraveFallGame.scene.Game.PHASE_FINAL_CHARGE = "finalCharge";
+GraveFallGame.scene.Game.PHASE_FINAL_STRIKE = "finalStrike";
 GraveFallGame.scene.Game.PHASE_ACTION = "action";
 GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW = "actionPreview";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";

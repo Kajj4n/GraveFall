@@ -879,6 +879,12 @@ GraveFallGame.scene.Game.prototype.restorePlayerActionPreviewShake = function (p
         playerMenu.stand.y = playerMenu.previewStandBaseY;
     }
 
+    if (playerMenu.previewRestoreHidden === true && this.phase === GraveFallGame.scene.Game.PHASE_MINIGAME) {
+        playerMenu.stand.visible = false;
+        playerMenu.stand.alpha = 0;
+    }
+
+    playerMenu.previewRestoreHidden = false;
     playerMenu.previewShakeTimerMs = 0;
     playerMenu.previewShakeDurationMs = 0;
 };

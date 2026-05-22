@@ -395,13 +395,13 @@ GraveFallGame.scene.Rule.prototype.renderOverviewPage = function (root) {
 
     enemyCard = this.createRuleCard(root, 582, 0, 530, 306, "ENEMY LOOP AND HP", colors[2].accent);
     this.addCardLine(enemyCard, "YOU FIGHT TWO NORMAL ENEMIES, THEN ONE BOSS.", 28, 54, 1.18);
-    this.addCardLine(enemyCard, "THE CURRENT ENEMY ART USES PLACEHOLDER SPRITES.", 28, 82, 1.18, this.menuSkin.frame.light);
+    this.addCardLine(enemyCard, "YOU MAY ENCOUNTER EVENTS INBETWEEN FIGHTS, CAN BE GOOD GOOD OR BAD.", 28, 82, 1.18);
     this.addCardLine(enemyCard, "KILLING AN ENEMY RESTORES A SMALL AMOUNT OF HP.", 28, 110, 1.18);
     this.addCardLine(enemyCard, "ANY HP GAIN CAN BRING DOWNED PLAYERS BACK UP.", 28, 138, 1.18);
-    this.addCardLine(enemyCard, "BOSS FIGHTS USE THE SAME GAMEPLAYLOOP, BUT ARE HARDER.", 28, 166, 1.18);
+    this.addCardLine(enemyCard, "KILLING A BOSS WILL MAKE EVERY PLAYER BUTTON MASH FOR EXTRA SCORE.", 28, 166, 1.18);
 
     this.createEnemyStep(enemyCard, 38, 206, "ENEMY 1", "Ghoul_Idle_T", colors[0].accent);
-    this.createEnemyStep(enemyCard, 204, 206, "ENEMY 2", "Goblin_Idle_T", colors[1].accent);
+    this.createEnemyStep(enemyCard, 204, 206, "ENEMY 2", "BoneCaller_Idle_T", colors[1].accent);
     this.createEnemyStep(enemyCard, 370, 206, "BOSS", "HyDragon_Idle_T", colors[2].accent);
 };
 
@@ -481,7 +481,7 @@ GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
     icon = this.createSmallIcon(arena, 244, 54, "Ranger_Icon_T", 0.34, colors[2].accent);
     icon = this.createSmallIcon(arena, 324, 86, "Assassin_Icon_T", 0.34, colors[3].accent);
 
-    this.addCardLine(arenaCard, "PLAYER COLORS AND CLASS ICONS ARE USED THROUGHOUT THE UI.", 36, 316, 1.0, this.menuSkin.frame.light);
+    this.addCardLine(arenaCard, "PLAYER COLORS REMAIN THE SAME TROUGHOUT A RUN.", 36, 316, 1.0, this.menuSkin.frame.light);
     this.createPlayerColorLegend(arenaCard, 40, 340, "P1", "Fighter_Icon_T", colors[0].accent, "RED");
     this.createPlayerColorLegend(arenaCard, 156, 340, "P2", "Wizard_Icon_T", colors[1].accent, "BLUE");
     this.createPlayerColorLegend(arenaCard, 272, 340, "P3", "Ranger_Icon_T", colors[2].accent, "YELLOW");
@@ -534,7 +534,7 @@ GraveFallGame.scene.Rule.prototype.createFlowArrow = function (parent, x, y) {
 GraveFallGame.scene.Rule.prototype.createEnemyStep = function (parent, x, y, label, resource, color) {
     var step = new rune.display.DisplayObjectContainer(x, y, 126, 82);
     var bg = new rune.display.Graphic(0, 0, 126, 82);
-    var icon = new rune.display.Sprite(24, 4, 100, 100, resource);
+    var icon = new rune.display.Sprite(34, 4, 100, 100, resource);
     var text = this.createText(label, 0, 62, 1, 126);
 
     bg.backgroundColor = this.menuSkin.panelTop;
@@ -661,7 +661,7 @@ GraveFallGame.scene.Rule.prototype.createMinigamePreviewCard = function (parent,
 
     if (type === "buttonMash") instructionText = "PRESS SHOWN BUTTON REPEATEDLY.";
     if (type === "sequence") instructionText = "INPUT THE SEQUENCE LEFT TO RIGHT.";
-    if (type === "aim") instructionText = "MOVE/STICK STEERS; CONFIRM SHOOTS.";
+    if (type === "aim") instructionText = "MOVE/STICK STEERS, CONFIRM SHOOTS.";
     if (type === "timing") instructionText = "CONFIRM AS RETICLE CROSSES CENTER.";
 
     this.addCardLine(card, instructionText, 12, 188, 1.05, this.menuSkin.frame.light);

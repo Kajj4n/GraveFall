@@ -15,7 +15,7 @@ GraveFallGame.scene.CharacterSelect = function () {
         { id: "P1", label: "PLAYER 1", gamepadIndex: 0, controls: { left: "a", right: "d", confirm: "space" }, moveControls: { left: "a", right: "d", up: "w", down: "s" }, themeIndex: 0 },
         { id: "P2", label: "PLAYER 2", gamepadIndex: 1, controls: { left: "left", right: "right", confirm: "enter" }, moveControls: { left: "left", right: "right", up: "up", down: "down" }, themeIndex: 1 },
         { id: "P3", label: "PLAYER 3", gamepadIndex: 2, controls: { left: "j", right: "l", confirm: "m" }, moveControls: { left: "j", right: "l", up: "i", down: "k" }, themeIndex: 2 },
-        { id: "P4", label: "PLAYER 4", gamepadIndex: 3, controls: { left: "v", right: "n", confirm: "b" }, moveControls: { left: "f", right: "h", up: "t", down: "g" }, themeIndex: 3 }
+        { id: "P4", label: "PLAYER 4", gamepadIndex: 3, controls: { left: "f", right: "h", confirm: "b" }, moveControls: { left: "f", right: "h", up: "t", down: "g" }, themeIndex: 3 }
     ];
 
     this.players = [];
@@ -121,6 +121,24 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedDown = function (ctrl) 
     if (this.keyboard.justPressed(ctrl.moveControls.down)) return true;
     var gp = this.getGamepadForInput(ctrl);
     return gp && (gp.justPressed(13) || gp.stickLeftJustDown);
+};
+
+GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = function (controller) {
+    var controls = controller && controller.controls ? controller.controls : {};
+    var moveControls = controller && controller.moveControls ? controller.moveControls : {};
+
+    if (controller && controller.id === "P4") {
+        controls = { left: "v", right: "n", confirm: "b" };
+        moveControls = { left: "f", right: "h", up: "t", down: "g" };
+    } else {
+        controls = { left: controls.left, right: controls.right, confirm: controls.confirm };
+        moveControls = { left: moveControls.left, right: moveControls.right, up: moveControls.up, down: moveControls.down };
+    }
+
+    return {
+        controls: controls,
+        moveControls: moveControls
+    };
 };
 
 //------------------------------------------------------------------------------
@@ -538,22 +556,22 @@ GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription 
     var name = template && template.name ? String(template.name).toLowerCase() : "";
 
     if (id === "fighter" || name === "fighter" || name === "warrior") {
-        return "BUFF: DEFENCE x50%";
+        return "TEMP BUFF: DEFENCE x50%";
     }
 
     if (id === "assassin" || id === "rogue" || name === "rogue" || name === "assassin") {
-        return "BUFF: SPEED +1.6";
+        return "TEMP BUFF: SPEED +1.6";
     }
 
     if (id === "wizard" || name === "wizard") {
-        return "BUFF: HEAL 5% MAX HP";
+        return "TEMP BUFF: HEAL 10% MAX HP";
     }
 
     if (id === "ranger" || name === "ranger") {
-        return "BUFF: DAMAGE x1.5";
+        return "TEMP BUFF: DAMAGE x1.5";
     }
 
-    return "BUFF: DAMAGE x1.5";
+    return "TEMP BUFF: DAMAGE x1.5";
 };
 
 GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height, index) {
@@ -1457,6 +1475,8 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
         renderIndex = i;
         tmpl = this.classNodes[player.classIndex].template;
 
+        var inputScheme = this.getCanonicalControllerInput(player.controller);
+
         member = {
             id: tmpl.id + "_" + controllerIndex,
             name: tmpl.name,
@@ -1468,8 +1488,8 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
             themeIndex: player.controller.themeIndex,
             attackMinigame: tmpl.attackMinigame,
             gamepadIndex: player.controller.gamepadIndex, // Map to correct gamepad
-            controls: player.controller.controls,
-            moveControls: player.controller.moveControls,
+            controls: inputScheme.controls,
+            moveControls: inputScheme.moveControls,
             flipStandX: GraveFallGame.scene.Game.getPartyMemberFlippedX(renderIndex, partySize),
             attackDamage: tmpl.attackDamage,
             runPaletteKey: this.runPaletteKey,

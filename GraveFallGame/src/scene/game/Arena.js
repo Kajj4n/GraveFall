@@ -699,6 +699,13 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     this.enemyHealthMax = enemyConfig.hpMax;
     this.enemyHealthCurrent = this.enemyHealthMax;
     this.enemyDefeatedSoundPlayed = false;
+    this.finalChargeCompleted = false;
+    if (typeof this.clearFinalChargeUi === "function") {
+        this.clearFinalChargeUi();
+    }
+    if (typeof this.clearFinalStrikeState === "function") {
+        this.clearFinalStrikeState();
+    }
 
     if (enemyConfig && enemyConfig.isBoss === true && typeof this.prepareBossEncounterMusic === "function") {
         this.prepareBossEncounterMusic();
@@ -899,6 +906,17 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
     this.commandMenuResetDone = true;
 };
 
+GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
+    var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
+
+    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && this.finalChargeCompleted !== true) {
+        this.startFinalChargePhase();
+        return;
+    }
+
+    this.startEnemyDefeatedSequence();
+};
+
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     var i;
     var defeatedEnemyConfig;
@@ -956,6 +974,11 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     this.setPlayerTransitionVisibility(true, false);
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(1);
+
+    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && this.finalChargeCompleted === true && typeof this.setEnemyHealthBarVisible === "function") {
+        this.setEnemyHealthBarVisible(false);
+    }
+
     this.applyPassageCameraTransition(0);
 };
 
@@ -1299,7 +1322,7 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     }
 
     if (this.enemyHealthCurrent <= 0) {
-        this.startEnemyDefeatedSequence();
+        this.startEnemyDefeatResolution();
         return;
     }
 
@@ -1707,6 +1730,152 @@ GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
     this.arenaItem = null;
 };
 
+GraveFallGame.scene.Game.prototype.getArenaItemPickupColors = function () {
+    return ["#1E88E5", "#FDD835", "#E53935", "#43A047"];
+};
+
+GraveFallGame.scene.Game.prototype.hexPair = function (value) {
+    var out = Math.max(0, Math.min(255, Math.round(value))).toString(16).toUpperCase();
+    return out.length < 2 ? "0" + out : out;
+};
+
+GraveFallGame.scene.Game.prototype.lerpHexColor = function (fromColor, toColor, ratio) {
+    var fromHex = (fromColor || "#FFFFFF").replace("#", "");
+    var toHex = (toColor || "#FFFFFF").replace("#", "");
+    var t = Math.max(0, Math.min(1, typeof ratio === "number" ? ratio : 0));
+    var r1;
+    var g1;
+    var b1;
+    var r2;
+    var g2;
+    var b2;
+
+    if (fromHex.length !== 6 || toHex.length !== 6) {
+        return toColor || "#FFFFFF";
+    }
+
+    r1 = parseInt(fromHex.substring(0, 2), 16);
+    g1 = parseInt(fromHex.substring(2, 4), 16);
+    b1 = parseInt(fromHex.substring(4, 6), 16);
+    r2 = parseInt(toHex.substring(0, 2), 16);
+    g2 = parseInt(toHex.substring(2, 4), 16);
+    b2 = parseInt(toHex.substring(4, 6), 16);
+
+    return "#" + this.hexPair(r1 + ((r2 - r1) * t)) + this.hexPair(g1 + ((g2 - g1) * t)) + this.hexPair(b1 + ((b2 - b1) * t));
+};
+
+GraveFallGame.scene.Game.prototype.applyArenaItemPickupColor = function (item, targetColor) {
+    var swaps;
+    var sourceColors;
+    var i;
+
+    if (!item || !targetColor || !item.texture || typeof item.texture.replaceColor !== "function") {
+        return;
+    }
+
+    if (item.pickupTintColor === targetColor) {
+        return;
+    }
+
+    sourceColors = [
+        item.pickupTintColor,
+        GraveFallGame.scene.Game.MONO_ICON_SOURCE,
+        GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid,
+        "#FFFFFF",
+        "#E53935",
+        "#1E88E5",
+        "#FDD835",
+        "#43A047"
+    ];
+
+    swaps = [];
+
+    for (i = 0; i < sourceColors.length; i++) {
+        if (sourceColors[i]) {
+            swaps.push({ from: sourceColors[i], to: targetColor });
+        }
+    }
+
+    this.applyPaletteSwaps(item, swaps);
+    item.pickupTintColor = targetColor;
+};
+
+GraveFallGame.scene.Game.prototype.spawnArenaItemAmbientSparkles = function (item) {
+    var anchor;
+    var colors;
+
+    if (!item || !this.stage || typeof this.spawnParticleBurstAt !== "function") {
+        return;
+    }
+
+    anchor = this.getStageAnchorForNode(item, 0.5, 0.5);
+    colors = item.pickupColors || this.getArenaItemPickupColors();
+
+    this.spawnParticleBurstAt(anchor.x, anchor.y, {
+        effectType: "arenaItemSparkle",
+        colors: colors,
+        count: 2,
+        durationMs: 520,
+        minDistance: 4,
+        maxDistance: 18,
+        minSpeed: 0.002,
+        maxSpeed: 0.011,
+        minScale: 0.12,
+        maxScale: 0.26,
+        directional: false,
+        baseVy: -0.009,
+        primaryResource: "Sparkle_Particle_T",
+        secondaryResource: "Sparkle_Particle_T"
+    });
+};
+
+GraveFallGame.scene.Game.prototype.updateArenaItemPickupVisuals = function (item, step) {
+    var colors;
+    var elapsed;
+    var cycleMs;
+    var phase;
+    var index;
+    var nextIndex;
+    var ratio;
+    var eased;
+    var color;
+    var pulse;
+
+    if (!item) {
+        return;
+    }
+
+    step = typeof step === "number" && isFinite(step) && step > 0 ? step : 16.6667;
+    colors = item.pickupColors || this.getArenaItemPickupColors();
+
+    if (!colors || colors.length <= 0) {
+        return;
+    }
+
+    item.pickupPulseTimeMs = (item.pickupPulseTimeMs || 0) + step;
+    elapsed = item.pickupPulseTimeMs;
+    cycleMs = 900;
+    phase = (elapsed % (cycleMs * colors.length)) / cycleMs;
+    index = Math.floor(phase) % colors.length;
+    nextIndex = (index + 1) % colors.length;
+    ratio = phase - Math.floor(phase);
+    eased = 0.5 - (Math.cos(ratio * Math.PI) * 0.5);
+    color = this.lerpHexColor(colors[index], colors[nextIndex], eased);
+
+    this.applyArenaItemPickupColor(item, color);
+
+    pulse = 0.5 + (Math.sin(elapsed / 170) * 0.5);
+    item.scaleX = (item.baseScale || 0.45) * (1 + (pulse * 0.08));
+    item.scaleY = item.scaleX;
+
+    item.pickupSparkleTimerMs = (item.pickupSparkleTimerMs || 0) - step;
+
+    if (item.pickupSparkleTimerMs <= 0) {
+        this.spawnArenaItemAmbientSparkles(item);
+        item.pickupSparkleTimerMs = this.randomRange ? this.randomRange(170, 310) : (170 + Math.random() * 140);
+    }
+};
+
 GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
     var inner = this.getArenaInnerBounds();
     var itemScale = 0.45;
@@ -1716,10 +1885,15 @@ GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
     var maxX;
     var maxY;
 
+    item.baseScale = itemScale;
     item.scaleX = itemScale;
     item.scaleY = itemScale;
-    this.applyMonochromeIconColor(item, "#FFFFFF");
     item.buffType = itemType;
+    item.pickupColors = this.getArenaItemPickupColors();
+    item.pickupPulseTimeMs = Math.random() * 900;
+    item.pickupSparkleTimerMs = 80;
+    item.pickupTintColor = null;
+    this.applyArenaItemPickupColor(item, item.pickupColors[0]);
 
     maxX = inner.x + inner.width - (item.width * item.scaleX);
     maxY = inner.y + inner.height - (item.height * item.scaleY);
@@ -1732,12 +1906,17 @@ GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
     this.playSfx(GraveFallGame.SOUNDS.ITEM_SPAWN, 0.45);
 };
 
-GraveFallGame.scene.Game.prototype.updateArenaItem = function () {
-    if (this.arenaItem) return;
+GraveFallGame.scene.Game.prototype.updateArenaItem = function (step) {
+    if (this.arenaItem) {
+        this.updateArenaItemPickupVisuals(this.arenaItem, step);
+        return;
+    }
+
     if (this.itemSpawnTimer > 0) {
         this.itemSpawnTimer--;
         return;
     }
+
     this.spawnArenaItem();
 };
 
@@ -1765,7 +1944,7 @@ GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
     }
 };
 
-GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
+GraveFallGame.scene.Game.prototype.updateActionPhase = function (step) {
     var enemy = this.getCurrentEnemyConfig();
     var i;
 
@@ -1785,7 +1964,7 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function () {
     this.actionPhaseTimer--;
     this.nextPatternIn--;
 
-    this.updateArenaItem();
+    this.updateArenaItem(step);
     this.checkItemCollisions();
 
     if (this.nextPatternIn <= 0) {
