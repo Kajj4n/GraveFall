@@ -713,7 +713,7 @@ GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent,
     group.addChild(scoreText);
 
     if (type === "buttonMash") {
-        prompt = this.createText("MASH SHOWN", 0, 24, 1.5, width);
+        prompt = this.createText("MASH SHOWN", 0, 20, 1.5, width);
         this.centerText(prompt, Math.round(width / 2), 1.5);
         group.addChild(prompt);
 

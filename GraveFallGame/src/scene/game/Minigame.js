@@ -113,12 +113,34 @@ GraveFallGame.scene.Game.prototype.createHiddenMinigameFeedbackText = function (
     return feedback;
 };
 
-GraveFallGame.scene.Game.prototype.centerMinigameText = function (textField, width, y) {
+GraveFallGame.scene.Game.prototype.fitBitmapFieldToText = function (textField, text) {
     if (!textField) {
         return;
     }
 
-    textField.autoSize = true;
+    // Rune's BitmapField autoSize refits through the scaled width/height setters.
+    // Resizing the raw canvas dimensions keeps scaled, frequently-updated text
+    // from getting clipped when the label changes from e.g. PARTY POWER: 0 to 18.
+    textField.autoSize = false;
+
+    if (typeof text !== "undefined") {
+        textField.text = String(text);
+    }
+
+    textField.unscaledWidth = Math.max(1, Math.ceil(textField.textWidth || 1));
+    textField.unscaledHeight = Math.max(1, Math.ceil(textField.textHeight || 10));
+
+    if (typeof textField.breakCache === "function") {
+        textField.breakCache();
+    }
+};
+
+GraveFallGame.scene.Game.prototype.centerMinigameText = function (textField, width, y, text) {
+    if (!textField) {
+        return;
+    }
+
+    this.fitBitmapFieldToText(textField, text);
     textField.x = Math.round((width / 2) - (textField.width / 2));
     textField.y = y;
 };
@@ -552,9 +574,18 @@ GraveFallGame.scene.Game.prototype.updateButtonMashPromptText = function (menu, 
 
     minigame = menu.minigame;
     label = this.getButtonLabelForDirection(direction || minigame.currentMashDirection);
-    text = label ? ("MASH " + label) : "MASH BUTTON";
-    minigame.promptText.text = text;
-    this.centerMinigameText(minigame.promptText, minigame.group.width, minigame.promptText.y);
+
+    if (minigame.isFinalCharge === true) {
+        text = label ? ("MASH " + label) : "MASH BUTTON";
+    } else {
+        text = "MASH SHOWN";
+    }
+
+    this.centerMinigameText(minigame.promptText, minigame.group.width, minigame.promptText.y, text);
+
+    if (minigame.promptText.parent) {
+        minigame.promptText.parent.addChild(minigame.promptText);
+    }
 };
 
 GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
@@ -611,7 +642,7 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
     prompt.autoSize = true;
     prompt.scaleX = 1.5;
     prompt.scaleY = 1.5;
-    this.centerMinigameText(prompt, group.width, 24);
+    this.centerMinigameText(prompt, group.width, 20);
 
     feedback.autoSize = true;
     feedback.scaleX = 1;
@@ -698,12 +729,12 @@ GraveFallGame.scene.Game.prototype.setEnemyHealthBarVisible = function (visible)
     }
 };
 
-GraveFallGame.scene.Game.prototype.centerFinalChargeText = function (textField, containerWidth, y) {
+GraveFallGame.scene.Game.prototype.centerFinalChargeText = function (textField, containerWidth, y, text) {
     if (!textField) {
         return;
     }
 
-    textField.autoSize = true;
+    this.fitBitmapFieldToText(textField, text);
     textField.x = Math.round((containerWidth / 2) - (textField.width / 2));
     textField.y = y;
 };
@@ -732,23 +763,17 @@ GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
     timerFill.backgroundColor = this.getPlayerTheme(0).accent;
     timerFill.scaleX = 1;
 
-    title.autoSize = true;
     title.scaleX = 2.4;
     title.scaleY = 2.4;
-    title.x = Math.round((screenW / 2) - ((title.text.length * 6 * title.scaleX) / 2));
-    title.y = 56;
+    this.centerFinalChargeText(title, screenW, 56);
 
-    powerText.autoSize = true;
     powerText.scaleX = 2;
     powerText.scaleY = 2;
-    powerText.x = Math.round((screenW / 2) - ((powerText.text.length * 6 * powerText.scaleX) / 2));
-    powerText.y = y + 32;
+    this.centerFinalChargeText(powerText, screenW, y + 32);
 
-    timerText.autoSize = true;
     timerText.scaleX = 1;
     timerText.scaleY = 1;
-    timerText.x = Math.round((screenW / 2) - ((timerText.text.length * 6 * timerText.scaleX) / 2));
-    timerText.y = y + 66;
+    this.centerFinalChargeText(timerText, screenW, y + 66);
 
     group.addChild(title);
     group.addChild(bg);
@@ -843,17 +868,14 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
     barFill.backgroundColor = menu.theme.accent;
     barFill.scaleX = 0;
 
-    title.autoSize = true;
     title.scaleX = 1;
     title.scaleY = 1;
-    this.centerMinigameText(title, group.width, 6);
+    this.centerMinigameText(title, group.width, 5);
 
-    prompt.autoSize = true;
-    prompt.scaleX = 1;
-    prompt.scaleY = 1;
+    prompt.scaleX = 1.5;
+    prompt.scaleY = 1.5;
     this.centerMinigameText(prompt, group.width, 34);
 
-    powerText.autoSize = true;
     powerText.scaleX = 1;
     powerText.scaleY = 1;
     this.centerMinigameText(powerText, group.width, 132);
@@ -878,7 +900,7 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
         mashFill: barFill,
         buttonIcon: null,
         buttonIcons: [],
-        promptMatrixYOffset: 12,
+        promptMatrixYOffset: 14,
         powerText: powerText,
         promptText: prompt,
         feedbackText: null
@@ -913,8 +935,7 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu
     text = "POWER SCORE +" + score;
 
     if (minigame.powerText) {
-        minigame.powerText.text = text;
-        this.centerMinigameText(minigame.powerText, minigame.group.width, minigame.powerText.y);
+        this.centerMinigameText(minigame.powerText, minigame.group.width, minigame.powerText.y, text);
     }
 
     if (minigame.group && minigame.group.minigameTimerFill) {
@@ -981,8 +1002,7 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
 
     if (group.finalChargePowerText) {
         text = "PARTY POWER: " + total;
-        group.finalChargePowerText.text = text;
-        group.finalChargePowerText.x = Math.round((this.application.screen.width / 2) - ((text.length * 6 * group.finalChargePowerText.scaleX) / 2));
+        this.centerFinalChargeText(group.finalChargePowerText, this.application.screen.width, group.finalChargePowerText.y, text);
     }
 };
 
