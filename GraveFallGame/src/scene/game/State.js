@@ -59,7 +59,6 @@ GraveFallGame.scene.Game.PHASE_FINAL_STRIKE = "finalStrike";
 GraveFallGame.scene.Game.PHASE_ACTION = "action";
 GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW = "actionPreview";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
-GraveFallGame.scene.Game.PHASE_RANDOM_EVENT = "random_event";
 GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED = "enemyDefeated";
 
 GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MIN = 1;
@@ -293,9 +292,6 @@ GraveFallGame.scene.Game.prototype.resetCommandTurnTimer = function (visible, al
         this.turnTimerText.text = this.getTurnTimerLabel(this.turnTimerMs);
     }
 
-    if (typeof this.applyRandomEventStartOfTurnEffects === "function") {
-        this.applyRandomEventStartOfTurnEffects();
-    }
 };
 
 GraveFallGame.scene.Game.prototype.getMinigameDurationMs = function () {

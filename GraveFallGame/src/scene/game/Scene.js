@@ -15,14 +15,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.currentEncounterDifficultyMode = null;
     this.nextEncounterDifficultyMode = null;
     this.encounterDifficultyModeActive = null;
-    this.randomEventActive = false;
-    this.randomEventCurrent = null;
-    this.randomEventCurrentStage = null;
-    this.randomEventResolving = false;
-    this.randomEventResolutionTimerMs = 0;
-    this.randomEventStatusEffects = [];
-    this.randomEventLastFloor = 0;
-    this.randomEventNextFloor = Math.floor(this.randomRange ? this.randomRange(2, 5) : (2 + Math.floor(Math.random() * 3)));
     this.lastNormalEnemyType = null;
     this.lastBossEnemyType = null;
     this.currentEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
@@ -70,6 +62,10 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.firstActionPhasePromptShown = false;
     this.actionPhaseStartDelayFrames = 0;
     this.actionPromptTimerFrames = 0;
+    this.isPaused = false;
+    this.pauseOverlay = null;
+    this.pauseOverlayTitle = null;
+    this.pauseOverlayHint = null;
 
     this.arenaItem = null;
     this.itemSpawnTimer = 0;
@@ -246,6 +242,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
             gamepadIndex: partyMember.gamepadIndex,
             attackMinigame: partyMember.attackMinigame,
             attackDamage: partyMember.attackDamage || 5,
+            themeIndex: typeof partyMember.themeIndex === "number" ? partyMember.themeIndex : partyIndex,
             uiSkin: this.uiSkin
         }));
     }
@@ -650,12 +647,41 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
     var secondsLeft;
     var autoSelected;
     var requiresMinigame;
+    var pauseRequested;
+    var gp;
 
     rune.scene.Scene.prototype.update.call(this, step);
 
     this.updateMusicFades(step);
 
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
+        return;
+    }
+
+    pauseRequested = false;
+    if (this.keyboard.justPressed("escape")) {
+        pauseRequested = true;
+    }
+
+    for (i = 0; i < 4 && pauseRequested !== true; i++) {
+        try {
+            gp = this.gamepads.get(i);
+        } catch (e) {
+            gp = null;
+        }
+
+        if (gp && gp.connected && gp.justPressed(9)) {
+            pauseRequested = true;
+        }
+    }
+
+    if (this.isPaused === true) {
+        this.updatePauseMenu(step);
+        return;
+    }
+
+    if (this.phase !== GraveFallGame.scene.Game.PHASE_GAME_OVER && pauseRequested === true) {
+        this.togglePauseState();
         return;
     }
 
@@ -694,12 +720,6 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
         return;
     }
 
-    if (this.phase === GraveFallGame.scene.Game.PHASE_RANDOM_EVENT) {
-        if (typeof this.updateRandomEventPhase === "function") {
-            this.updateRandomEventPhase(step);
-        }
-        return;
-    }
 
     if (this.phase === GraveFallGame.scene.Game.PHASE_COMMAND) {
         if (!this.commandMenuResetDone && this.turnTimerMs === this.getTurnTimerDurationMs()) {
@@ -774,11 +794,109 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
         this.updateActionPhase(step);
     }
 
+};
+
+GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
+    var screen;
+    var framePaletteSwaps;
+    var overlay;
+    var panel;
+    var title;
+    var hint;
+
+    if (this.pauseOverlay) {
+        return this.pauseOverlay;
+    }
+
+    screen = this.application.screen;
+    framePaletteSwaps = this.getFramePaletteSwaps(this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown);
+
+    overlay = new rune.display.DisplayObjectContainer(0, 0, screen.width, screen.height);
+    overlay.visible = false;
+    overlay.alpha = 0.96;
+
+    panel = new rune.display.Graphic(0, 0, screen.width, screen.height);
+    panel.backgroundColor = "#000000";
+    panel.alpha = 0.72;
+    overlay.addChild(panel);
+    overlay.addChild(this.createBoxFrame(36, 72, screen.width - 72, screen.height - 144, framePaletteSwaps));
+
+    title = new rune.text.BitmapField("PAUSED");
+    title.width = 1000;
+    title.scaleX = 3.5;
+    title.scaleY = 3.5;
+    title.x = Math.round((screen.width / 2) - ((title.text.length * 6 * 3.5) / 2));
+    title.y = Math.round(screen.height * 0.36);
+    overlay.addChild(title);
+
+    hint = new rune.text.BitmapField("PRESS ESC OR OPTIONS TO RESUME");
+    hint.width = 1200;
+    hint.scaleX = 1.8;
+    hint.scaleY = 1.8;
+    hint.x = Math.round((screen.width / 2) - ((hint.text.length * 6 * 1.8) / 2));
+    hint.y = Math.round(screen.height * 0.48);
+    overlay.addChild(hint);
+
+    this.stage.addChild(overlay);
+    this.pauseOverlay = overlay;
+    this.pauseOverlayTitle = title;
+    this.pauseOverlayHint = hint;
+
+    if (typeof this.tintBitmapFieldText === "function") {
+        this.tintBitmapFieldText(title, this.uiSkin.frame.light, true);
+        this.tintBitmapFieldText(hint, this.uiSkin.frame.light, true);
+    }
+
+    return overlay;
+};
+
+GraveFallGame.scene.Game.prototype.showPauseOverlay = function () {
+    var overlay = this.ensurePauseOverlay();
+
+    overlay.visible = true;
+    overlay.alpha = 0.96;
+};
+
+GraveFallGame.scene.Game.prototype.hidePauseOverlay = function () {
+    if (this.pauseOverlay) {
+        this.pauseOverlay.visible = false;
+        this.pauseOverlay.alpha = 0;
+    }
+};
+
+GraveFallGame.scene.Game.prototype.togglePauseState = function () {
+    this.isPaused = !this.isPaused;
+
+    if (this.isPaused) {
+        this.showPauseOverlay();
+    } else {
+        this.hidePauseOverlay();
+    }
+};
+
+GraveFallGame.scene.Game.prototype.updatePauseMenu = function (step) {
+    var i;
+    var gp;
+    var resumeRequested = false;
+
     if (this.keyboard.justPressed("escape")) {
-        this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
-        this.application.scenes.load([
-            new GraveFallGame.scene.Menu()
-        ]);
+        resumeRequested = true;
+    }
+
+    for (i = 0; i < 4 && resumeRequested !== true; i++) {
+        try {
+            gp = this.gamepads.get(i);
+        } catch (e) {
+            gp = null;
+        }
+
+        if (gp && gp.connected && gp.justPressed(9)) {
+            resumeRequested = true;
+        }
+    }
+
+    if (resumeRequested === true) {
+        this.togglePauseState();
     }
 };
 

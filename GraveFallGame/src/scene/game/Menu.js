@@ -408,9 +408,6 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         theme: options.playerTheme,
         selectedIndex: 0,
         selectedAction: null,
-        randomEventChoiceCount: 0,
-        randomEventChoices: null,
-        selectedEventChoice: null,
         confirmed: false,
         baseY: options.y,
         confirmedY: options.y + 58,
@@ -428,6 +425,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         baseMoveSpeed: 4,
         moveSpeed: 4,
         attackDamage: options.attackDamage || 5,
+        themeIndex: typeof options.themeIndex === "number" ? options.themeIndex : 0,
         attackDamageBonus: 0,
         permanentAttackBonus: 0,
         permanentDefenseBonus: 0,
@@ -1169,17 +1167,6 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
         return ["DEFEND: HEAL 15% + DEF x50%", "SELECTED PLAYER"];
     }
 
-    if (playerMenu.menuState === "randomEvent") {
-        if (playerMenu.randomEventChoices && playerMenu.randomEventChoices[playerMenu.selectedIndex]) {
-            return [
-                String(playerMenu.randomEventChoices[playerMenu.selectedIndex].label || "CHOOSE"),
-                String(playerMenu.randomEventChoices[playerMenu.selectedIndex].description || "")
-            ];
-        }
-
-        return ["CHOOSE YOUR OPTION", "USE THIS MENU TO DECIDE"];
-    }
-
     if (playerMenu.selectedIndex === 0) {
         return ["ATTACK", "DEAL DAMAGE TO ENEMY"];
     }
@@ -1255,7 +1242,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (
         return;
     }
 
-    if (playerMenu.confirmed === true || playerMenu.healthCurrent <= 0 || (this.phase && this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND && this.phase !== GraveFallGame.scene.Game.PHASE_RANDOM_EVENT)) {
+    if (playerMenu.confirmed === true || playerMenu.healthCurrent <= 0 || (this.phase && this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND)) {
         playerMenu.tooltipHoverKey = null;
         playerMenu.tooltipHoverFrames = 0;
         this.hideCharacterMenuTooltip(playerMenu);
@@ -1299,22 +1286,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (
 };
 
 
-GraveFallGame.scene.Game.prototype.getRandomEventMenuActionPositions = function (playerMenu) {
-    var positions = playerMenu && playerMenu.actionPositions ? playerMenu.actionPositions.slice(0, 4) : [10, 95, 180, 255];
-
-    while (positions.length < 4) {
-        positions.push(positions.length > 0 ? positions[positions.length - 1] : 10);
-    }
-
-    return positions;
-};
-
 
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
     var i;
     var isItemMenu = playerMenu.menuState === "items";
     var isDefendMenu = playerMenu.menuState === "defendTarget";
-    var isRandomEventMenu = playerMenu.menuState === "randomEvent";
     var activeIcons = isItemMenu ? playerMenu.itemIcons : (isDefendMenu ? playerMenu.defendTargetIcons : playerMenu.actions);
     var positions = isItemMenu ? playerMenu.itemActionPositions : (isDefendMenu ? playerMenu.defendActionPositions : playerMenu.actionPositions);
     var iconScale = isItemMenu ? 0.52 : (isDefendMenu ? 0.8 : 0.6);
@@ -1322,7 +1298,6 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
     var downed = playerMenu.healthCurrent <= 0;
     var enabled;
     var buffType;
-    var randomEventPositions;
 
     if (!downed && !this.isMenuIndexSelectable(playerMenu, playerMenu.menuState, playerMenu.selectedIndex)) {
         playerMenu.selectedIndex = this.findSelectableMenuIndex(playerMenu, playerMenu.menuState, playerMenu.selectedIndex, 1);
@@ -1346,14 +1321,9 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
         this.updateDefendTargetMenuIcons(playerMenu);
     }
 
-    if (isRandomEventMenu) {
-        randomEventPositions = this.getRandomEventMenuActionPositions(playerMenu);
-        positions = randomEventPositions;
-        iconScale = 0.58;
-    }
 
     for (i = 0; i < activeIcons.length; i++) {
-        activeIcons[i].visible = isRandomEventMenu ? (i < Math.max(1, playerMenu.randomEventChoiceCount || 0)) : true;
+        activeIcons[i].visible = true;
         currentIconScale = typeof activeIcons[i].menuScale === "number" ? activeIcons[i].menuScale : iconScale;
         activeIcons[i].scaleX = currentIconScale;
         activeIcons[i].scaleY = currentIconScale;
@@ -1367,7 +1337,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
         activeIcons[i].alpha = enabled ? 1 : 0.28;
     }
 
-    if (!isItemMenu && !isDefendMenu && !isRandomEventMenu && activeIcons[3]) {
+    if (!isItemMenu && !isDefendMenu && activeIcons[3]) {
         activeIcons[3].alpha = (!downed && this.getPlayerTotalItemCount(playerMenu) > 0) ? 1 : 0.28;
     }
 
@@ -1376,7 +1346,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
     }
 
     if (typeof playerMenu.selectionBar.width === "number") {
-        playerMenu.selectionBar.width = isRandomEventMenu ? 60 : (isItemMenu ? 50 : 60);
+        playerMenu.selectionBar.width = isItemMenu ? 50 : 60;
     }
 
     if (positions && typeof positions[playerMenu.selectedIndex] === "number") {
@@ -1399,9 +1369,6 @@ GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMen
     }
 
     playerMenu.menuState = "main";
-    playerMenu.randomEventChoiceCount = 0;
-    playerMenu.randomEventChoices = null;
-    playerMenu.selectedEventChoice = null;
     playerMenu.selectedIndex = 0;
     playerMenu.selectedAction = null;
     playerMenu.selectedDefendTargetPartyIndex = null;
@@ -1812,9 +1779,6 @@ GraveFallGame.scene.Game.prototype.isMenuIndexSelectable = function (playerMenu,
         return playerMenu.defendTargetPartyIndexes && typeof playerMenu.defendTargetPartyIndexes[index] === "number";
     }
 
-    if (menuState === "randomEvent") {
-        return index >= 0 && index < Math.max(1, playerMenu.randomEventChoiceCount || 0);
-    }
 
     if (index === 3) {
         return this.getPlayerTotalItemCount(playerMenu) > 0;
@@ -1824,7 +1788,7 @@ GraveFallGame.scene.Game.prototype.isMenuIndexSelectable = function (playerMenu,
 };
 
 GraveFallGame.scene.Game.prototype.findSelectableMenuIndex = function (playerMenu, menuState, startIndex, direction) {
-    var count = menuState === "items" ? playerMenu.itemIcons.length : (menuState === "defendTarget" ? playerMenu.defendTargetIcons.length : (menuState === "randomEvent" ? Math.max(1, playerMenu.randomEventChoiceCount || 0) : playerMenu.actions.length));
+    var count = menuState === "items" ? playerMenu.itemIcons.length : (menuState === "defendTarget" ? playerMenu.defendTargetIcons.length : playerMenu.actions.length);
     var index = startIndex;
     var i;
 
@@ -2402,19 +2366,6 @@ GraveFallGame.scene.Game.prototype.confirmPlayerMenuSelection = function (player
         return;
     }
 
-    if (playerMenu.menuState === "randomEvent") {
-        playerMenu.selectedEventChoice = playerMenu.randomEventChoices && playerMenu.randomEventChoices[playerMenu.selectedIndex]
-            ? playerMenu.randomEventChoices[playerMenu.selectedIndex]
-            : null;
-        playerMenu.selectedAction = playerMenu.selectedIndex;
-        playerMenu.confirmed = true;
-        playerMenu.container.y = playerMenu.confirmedY;
-        playerMenu.standActionState = null;
-        this.updatePlayerDamageState(playerMenu, this.areAllPlayersDown());
-        this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, 0.55);
-        this.updateCharacterMenuVisuals(playerMenu);
-        return;
-    }
 
     if (playerMenu.menuState === "main" && playerMenu.selectedIndex === 1) {
         if (playerMenu.defendTargetIcons && playerMenu.defendTargetIcons.length > 1) {
@@ -2485,10 +2436,6 @@ GraveFallGame.scene.Game.prototype.confirmPlayerMenuSelection = function (player
 };
 
 GraveFallGame.scene.Game.prototype.handlePlayerMenuFaceAction = function (playerMenu) {
-    if (playerMenu.menuState === "randomEvent") {
-        return false;
-    }
-
     if (playerMenu.menuState === "items") {
         if (this.justPressedBack(playerMenu)) {
             this.returnPlayerItemMenuToMain(playerMenu);
