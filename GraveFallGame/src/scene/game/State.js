@@ -942,7 +942,7 @@ GraveFallGame.scene.Game.ENEMIES = {
         damageStateResources: GraveFallGame.scene.Game.GHOUL_DAMAGE_STATE_RESOURCES,
         hpMax: 95,
         actionPhaseDuration: 260,
-        patternInterval: 44,
+        patternInterval: 32,
         patterns: [
             "ghoul_orb_crawl",
             "ghoul_dart_ambush",
