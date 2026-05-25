@@ -741,14 +741,22 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     var menu;
     var healAmount;
     var wasDowned;
+    var beforeHealth;
+    var healedAmount;
     var healedAny = false;
     var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
     var ratio = defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true
         ? (typeof this.bossDefeatedHealRatio === "number" ? this.bossDefeatedHealRatio : 0.25)
         : (typeof this.enemyDefeatedHealRatio === "number" ? this.enemyDefeatedHealRatio : 0.15);
+    var summary = {
+        totalHealed: 0,
+        affectedCount: 0,
+        revivedCount: 0,
+        ratio: ratio
+    };
 
     if (!this.playerMenus) {
-        return;
+        return summary;
     }
 
     for (i = 0; i < this.playerMenus.length; i++) {
@@ -760,6 +768,7 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
 
         healAmount = Math.max(1, Math.floor(menu.healthMax * ratio));
         wasDowned = menu.healthCurrent <= 0;
+        beforeHealth = Math.max(0, menu.healthCurrent || 0);
 
         if (wasDowned === true) {
             menu.healthCurrent = Math.min(menu.healthMax, healAmount);
@@ -811,6 +820,24 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
             menu.healthCurrent = Math.min(menu.healthMax, menu.healthCurrent + healAmount);
         }
 
+        healedAmount = Math.max(0, menu.healthCurrent - beforeHealth);
+        if (healedAmount > 0) {
+            summary.totalHealed += healedAmount;
+            summary.affectedCount += 1;
+
+            if (typeof this.ensurePlayerStats === "function") {
+                this.ensurePlayerStats(menu);
+                menu.stats.healingReceived += healedAmount;
+                if (wasDowned === true) {
+                    menu.stats.timesRevived += 1;
+                }
+            }
+        }
+
+        if (wasDowned === true && menu.healthCurrent > 0) {
+            summary.revivedCount += 1;
+        }
+
         this.updatePlayerHealthUi(menu);
         this.updatePlayerDamageState(menu, this.areAllPlayersDown());
         this.updateCharacterMenuVisuals(menu);
@@ -820,6 +847,8 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     if (healedAny === true) {
         this.playSfx(GraveFallGame.SOUNDS.ITEM_PICKUP, 0.42);
     }
+
+    return summary;
 };
 
 GraveFallGame.scene.Game.prototype.getClassBuffType = function (playerMenu) {
