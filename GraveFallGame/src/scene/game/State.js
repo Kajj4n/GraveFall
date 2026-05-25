@@ -662,7 +662,7 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         title: "FIGHTER: MASH",
         setup: "setupButtonMashMinigame",
         update: "updateButtonMashMinigame",
-        damagePerCycle: 8,
+        damagePerCycle: 10,
         maxUsefulPresses: 18
     },
     buttonSequence: {
@@ -680,12 +680,12 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         title: "RANGER: AIM",
         setup: "setupTargetReticleMinigame",
         update: "updateTargetReticleMinigame",
-        perfectDamage: 5,
-        goodDamage: 3,
-        okDamage: 1,
+        perfectDamage: 4,
+        goodDamage: 2,
+        okDamage: 0,
         shotCooldownMs: 280,
         settleDurationMs: 700,
-        resetDistance: 28,
+        resetDistance: 36,
         aimSpeed: 0.0011,
         aimFriction: 0.78,
         aimMaxX: 42,
@@ -701,6 +701,10 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         perfectDamage: 5,
         goodDamage: 3,
         okDamage: 1,
+        perfectWindow: 3,
+        goodWindow: 12,
+        okWindow: 24,
+        blockSlotCenterX: 7,
         baseSpeed: 0.22,
         speedVariance: 0.12
     }

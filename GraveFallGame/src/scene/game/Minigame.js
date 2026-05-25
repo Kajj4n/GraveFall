@@ -1639,14 +1639,23 @@ GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, 
         jitterTimer: 0,
         hitCooldown: 0,
         resetForce: 1,
-        resetAngle: Math.random() * Math.PI * 2,
+        resetAngle: this.getTargetReticleResetAngle(),
         settleDurationMs: definition.settleDurationMs || 700,
         resetDistance: definition.resetDistance || 28,
         reticle: reticle,
         feedbackText: feedback
     };
 
+    this.resetTargetReticleAim(menu);
+    reticle.x = Math.max(menu.minigame.targetX + 4, Math.min(menu.minigame.targetX + menu.minigame.targetWidth - 20, (menu.minigame.centerX - 8) + (Math.cos(menu.minigame.resetAngle) * menu.minigame.resetDistance)));
+    reticle.y = Math.max(menu.minigame.targetY + 4, Math.min(menu.minigame.targetY + menu.minigame.targetHeight - 20, (menu.minigame.centerY - 8) + (Math.sin(menu.minigame.resetAngle) * menu.minigame.resetDistance * 0.5)));
+
     this.stage.addChild(group);
+};
+
+GraveFallGame.scene.Game.prototype.getTargetReticleResetAngle = function () {
+    var side = Math.random() < 0.5 ? 0 : Math.PI;
+    return side + ((Math.random() - 0.5) * 1.1);
 };
 
 GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
@@ -1657,10 +1666,14 @@ GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
     }
 
     minigame.resetForce = 1;
-    minigame.resetAngle = Math.random() * Math.PI * 2;
+    minigame.resetAngle = this.getTargetReticleResetAngle();
+    minigame.aimOffsetX = 0;
+    minigame.aimOffsetY = 0;
+    minigame.aimVelocityX = 0;
+    minigame.aimVelocityY = 0;
     minigame.jitterTimer = 80 + Math.random() * 120;
-    minigame.jitterX = -3 + Math.random() * 6;
-    minigame.jitterY = -2 + Math.random() * 4;
+    minigame.jitterX = -2 + Math.random() * 4;
+    minigame.jitterY = -1.25 + Math.random() * 2.5;
 };
 
 GraveFallGame.scene.Game.prototype.getTargetReticleAimInput = function (menu) {
@@ -1731,6 +1744,9 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     var aimFriction;
     var aimMaxX;
     var aimMaxY;
+    var perfectDamage;
+    var goodDamage;
+    var okDamage;
 
     minigame = menu.minigame;
     minigame.time += step;
@@ -1798,14 +1814,18 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
         distance = Math.sqrt((dx * dx) + (dy * dy));
         bonus = 0;
 
+        perfectDamage = typeof minigame.definition.perfectDamage === "number" ? minigame.definition.perfectDamage : 5;
+        goodDamage = typeof minigame.definition.goodDamage === "number" ? minigame.definition.goodDamage : 3;
+        okDamage = typeof minigame.definition.okDamage === "number" ? minigame.definition.okDamage : 1;
+
         if (distance <= 6) {
-            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.perfectDamage || 5);
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, perfectDamage);
             this.setMinigameFeedback(menu, "PERFECT +" + bonus);
         } else if (distance <= 12) {
-            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.goodDamage || 3);
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, goodDamage);
             this.setMinigameFeedback(menu, "GOOD +" + bonus);
         } else if (distance <= 20) {
-            bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.okDamage || 1);
+            bonus = this.applyAttackItemBonusToMinigameDamage(menu, okDamage);
             this.setMinigameFeedback(menu, "OK +" + bonus);
         } else {
             this.setMinigameFeedback(menu, "MISS");
@@ -1867,6 +1887,7 @@ GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, defi
         block: block,
         blockX: 0,
         blockWidth: 14,
+        blockSlotCenterX: typeof definition.blockSlotCenterX === "number" ? definition.blockSlotCenterX : 7,
         speed: 0,
         feedbackText: feedback
     };
@@ -1878,32 +1899,43 @@ GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, defi
 // --- UPDATED TO USE UNIVERSAL INPUT HELPERS ---
 GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, step) {
     var minigame;
-    var blockCenter;
+    var blockSlotCenter;
+    var scoredBlockX;
     var distance;
     var bonus;
+    var confirmPressed;
+    var perfectWindow;
+    var goodWindow;
+    var okWindow;
 
     minigame = menu.minigame;
+    confirmPressed = this.justPressedConfirm(menu);
+    scoredBlockX = minigame.blockX;
+
     minigame.blockX += minigame.speed * step;
     minigame.block.x = minigame.barX + minigame.blockX;
 
-    if (minigame.blockX > minigame.barWidth + 8) {
+    if (!confirmPressed && minigame.blockX > minigame.barWidth + 8) {
         this.resetTimingBlock(menu);
         this.setMinigameFeedback(menu, "READY");
         return;
     }
 
-    if (this.justPressedConfirm(menu)) {
-        blockCenter = minigame.block.x + (minigame.blockWidth / 2);
-        distance = Math.abs(blockCenter - minigame.hitCenterX);
+    if (confirmPressed) {
+        blockSlotCenter = minigame.barX + scoredBlockX + minigame.blockSlotCenterX;
+        distance = Math.abs(blockSlotCenter - minigame.hitCenterX);
         bonus = 0;
+        perfectWindow = typeof minigame.definition.perfectWindow === "number" ? minigame.definition.perfectWindow : 4;
+        goodWindow = typeof minigame.definition.goodWindow === "number" ? minigame.definition.goodWindow : 12;
+        okWindow = typeof minigame.definition.okWindow === "number" ? minigame.definition.okWindow : 24;
 
-        if (distance <= 4) {
+        if (distance <= perfectWindow) {
             bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.perfectDamage || 5);
             this.setMinigameFeedback(menu, "PERFECT +" + bonus);
-        } else if (distance <= 12) {
+        } else if (distance <= goodWindow) {
             bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.goodDamage || 3);
             this.setMinigameFeedback(menu, "GOOD +" + bonus);
-        } else if (distance <= 24) {
+        } else if (distance <= okWindow) {
             bonus = this.applyAttackItemBonusToMinigameDamage(menu, minigame.definition.okDamage || 1);
             this.setMinigameFeedback(menu, "OK +" + bonus);
         } else {
