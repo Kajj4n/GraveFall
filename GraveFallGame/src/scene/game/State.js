@@ -958,10 +958,10 @@ GraveFallGame.scene.Game.ENEMIES = {
         damageStateResources: GraveFallGame.scene.Game.CRYPT_IMPALER_DAMAGE_STATE_RESOURCES,
         hpMax: 120,
         actionPhaseDuration: 270,
-        patternInterval: 42,
+        patternInterval: 54,
         patterns: [
             "crypt_spear_corridor",
-            "ghoul_impaled_sword_drop",
+            "crypt_spear_rise_fall",
             "crypt_arrow_crossfire"
         ]
     },
@@ -1416,6 +1416,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "ghoul_dart_ambush":
         case "ghoul_bone_shard_spread":
         case "crypt_spear_corridor":
+        case "crypt_spear_rise_fall":
         case "crypt_arrow_crossfire":
         case "bonecaller_shard_arc":
         case "bonecaller_bone_spiral":

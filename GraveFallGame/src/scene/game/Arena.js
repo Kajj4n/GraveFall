@@ -1512,14 +1512,60 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function (fadeOut) {
 
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
+    var sprite;
+    var hasCustomSpriteBounds;
+    var rotationHandledBySprite = false;
     
     // SCALE CONSTANTS
     var dmgMulti = this.getDifficultyMultiplier ? this.getDifficultyMultiplier() : 1.0;
     var spdMulti = this.getDifficultySpeedMultiplier ? this.getDifficultySpeedMultiplier() : 1.0;
 
     options = options || {};
+    hasCustomSpriteBounds = options.resource && (
+        typeof options.collisionWidth === "number" ||
+        typeof options.collisionHeight === "number" ||
+        typeof options.spriteWidth === "number" ||
+        typeof options.spriteHeight === "number" ||
+        typeof options.spriteOffsetX === "number" ||
+        typeof options.spriteOffsetY === "number" ||
+        typeof options.spriteRotation === "number"
+    );
 
-    if (options.resource) {
+    if (hasCustomSpriteBounds) {
+        display = new rune.display.DisplayObjectContainer(
+            options.x,
+            options.y,
+            options.collisionWidth || options.width,
+            options.collisionHeight || options.height
+        );
+        sprite = new rune.display.Sprite(
+            typeof options.spriteOffsetX === "number" ? options.spriteOffsetX : 0,
+            typeof options.spriteOffsetY === "number" ? options.spriteOffsetY : 0,
+            options.spriteWidth || options.width,
+            options.spriteHeight || options.height,
+            options.resource
+        );
+        this.applyPaletteSwaps(
+            sprite,
+            this.getProjectilePaletteSwaps(options.projectilePalette)
+        );
+
+        this.applyProjectileAnimation(sprite, options.animation);
+
+        if (typeof options.spriteRotation === "number") {
+            sprite.rotation = options.spriteRotation;
+            rotationHandledBySprite = true;
+        } else if (options.rotation) {
+            sprite.rotation = options.rotation;
+            rotationHandledBySprite = true;
+        }
+
+        if (options.flippedX === true) {
+            sprite.flippedX = true;
+        }
+
+        display.addChild(sprite);
+    } else if (options.resource) {
         display = new rune.display.Sprite(options.x, options.y, options.width, options.height, options.resource);
         this.applyPaletteSwaps(
             display,
@@ -1532,11 +1578,11 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
         display.backgroundColor = options.color || "#FFFFFF";
     }
 
-    if (options.rotation) {
+    if (options.rotation && rotationHandledBySprite !== true) {
         display.rotation = options.rotation;
     }
 
-    if (options.flippedX === true) {
+    if (options.flippedX === true && hasCustomSpriteBounds !== true) {
         display.flippedX = true;
     }
 
