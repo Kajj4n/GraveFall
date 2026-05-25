@@ -35,6 +35,7 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "crypt_arrow_crossfire": this.spawnCryptArrowCrossfire(); break;
         case "bonecaller_shard_arc": this.spawnBoneCallerShardArc(); break;
         case "bonecaller_skull_ring": this.spawnBoneCallerSkullRing(); break;
+        case "bonecaller_bone_spiral": this.spawnBoneCallerBoneSpiral(); break;
         case "crystal_rain": this.spawnCrystalRain(); break;
         case "crystal_wall": this.spawnCrystalWall(); break;
         case "crystal_orb_split": this.spawnCrystalOrbSplit(); break;
@@ -403,7 +404,7 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossSwordPincer = function () {
 
 GraveFallGame.scene.Game.prototype.spawnGoblinBossHeadToss = function () {
     var inner = this.getArenaInnerBounds();
-    var count = 6 + Math.floor(Math.random() * 3);
+    var count = 4 + Math.floor(Math.random() * 2);
     var i;
     var fromLeft;
 
@@ -420,13 +421,14 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossHeadToss = function () {
             vy: this.randomRange(3.8, 5.8),
             rotation: fromLeft ? this.randomRange(12, 28) : this.randomRange(-28, -12),
             damage: 8,
-            life: 210,
-            startDelay: i * 4,
+            life: 170,
+            startDelay: i * 5,
             bounce: true,
-            bouncesRemaining: 2,
-            speedMultiplier: 1.006,
+            bouncesRemaining: 1,
+            speedMultiplier: 1.004,
             speedMultiplierStart: 35,
-            maxSpeed: 6.8,
+            maxSpeed: 6.2,
+            fadeOutFrames: 12,
             type: "goblin_bouncing_head",
             spin: fromLeft ? 6 : -6
         });
@@ -728,8 +730,8 @@ GraveFallGame.scene.Game.prototype.spawnGhoulBoneShardSpread = function () {
             width: 16,
             height: 8,
             resource: "Bone_Shard_Attack_T",
-            vx: spread * 0.9,
-            vy: this.randomRange(3.4, 4.8),
+            vx: spread * 1.02,
+            vy: this.randomRange(3.8, 5.35),
             rotation: spread * 8,
             damage: 6,
             life: 165,
@@ -752,12 +754,12 @@ GraveFallGame.scene.Game.prototype.spawnGhoulBoneShardSpread = function () {
         height: 20,
         resource: "Orb_Attack_T",
         vx: this.randomRange(-0.35, 0.35),
-        vy: this.randomRange(1.6, 2.2),
+        vy: this.randomRange(1.9, 2.55),
         damage: 6,
         life: 210,
         splitAt: 142,
         splitCount: 8,
-        splitSpeed: 2.85,
+        splitSpeed: 3.2,
         splitLife: 185,
         splitDamage: 4,
         splitResource: "Bone_Shard_Attack_T",
@@ -1217,12 +1219,12 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerShardArc = function () {
             width: 16,
             height: 8,
             resource: "Bone_Shard_Attack_T",
-            vx: spread * 0.72,
-            vy: this.randomRange(3.7, 5.2),
+            vx: spread * 0.82,
+            vy: this.randomRange(4.15, 5.85),
             rotation: spread * 7,
             damage: 6,
             life: 160,
-            startDelay: Math.abs(spread) * 3,
+            startDelay: Math.abs(spread) * 2,
             swayAmplitude: 0.35,
             swayFrequency: 0.13,
             swayPhase: i * 0.6,
@@ -1237,46 +1239,119 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerShardArc = function () {
 
 GraveFallGame.scene.Game.prototype.spawnBoneCallerSkullRing = function () {
     var inner = this.getArenaInnerBounds();
-    var positions = [
-        { x: inner.x - 54, y: inner.y + 30, vx: 3.9, vy: 5.3 },
-        { x: inner.x + inner.width + 22, y: inner.y + 52, vx: -3.9, vy: -5.1 },
-        { x: inner.x - 58, y: inner.y + inner.height - 64, vx: 4.2, vy: -5.4 },
-        { x: inner.x + inner.width + 26, y: inner.y + inner.height - 36, vx: -4.2, vy: 5.2 },
-        { x: inner.x + (inner.width * 0.22), y: inner.y - 54, vx: 2.2, vy: 5.8 },
-        { x: inner.x + (inner.width * 0.78), y: inner.y + inner.height + 22, vx: -2.2, vy: -5.8 }
-    ];
+    var count = 4;
     var i;
+    var side;
+    var x;
+    var y;
+    var angle;
+    var speed;
+    var vx;
+    var vy;
 
-    // Bone Caller should feel like it is throwing loose skulls into a haunted
-    // pinball machine: faster, more vertical travel, and enough bounces that
-    // the arena keeps changing after the first dodge.
-    for (i = 0; i < positions.length; i++) {
+    // Fewer skulls overall, but each enters from a less predictable lane so the
+    // Bone Caller still pressures movement without flooding the arena.
+    for (i = 0; i < count; i++) {
+        side = Math.floor(this.randomRange(0, 4));
+        speed = this.randomRange(4.0, 5.65);
+
+        if (side === 0) {
+            x = inner.x - 40 - this.randomRange(0, 28);
+            y = inner.y + this.randomRange(22, inner.height - 54);
+            angle = this.randomRange(-0.75, 0.75);
+        } else if (side === 1) {
+            x = inner.x + inner.width + 8 + this.randomRange(0, 28);
+            y = inner.y + this.randomRange(22, inner.height - 54);
+            angle = Math.PI + this.randomRange(-0.75, 0.75);
+        } else if (side === 2) {
+            x = inner.x + this.randomRange(22, inner.width - 54);
+            y = inner.y - 40 - this.randomRange(0, 28);
+            angle = (Math.PI / 2) + this.randomRange(-0.85, 0.85);
+        } else {
+            x = inner.x + this.randomRange(22, inner.width - 54);
+            y = inner.y + inner.height + 8 + this.randomRange(0, 28);
+            angle = -(Math.PI / 2) + this.randomRange(-0.85, 0.85);
+        }
+
+        vx = Math.cos(angle) * speed;
+        vy = Math.sin(angle) * speed;
+
         this.spawnProjectile({
-            x: positions[i].x,
-            y: positions[i].y,
+            x: x,
+            y: y,
             width: 32,
             height: 32,
             resource: "Skull_Attack_T",
-            flippedX: positions[i].vx < 0,
-            vx: positions[i].vx + this.randomRange(-0.35, 0.35),
-            vy: positions[i].vy + this.randomRange(-0.45, 0.45),
+            flippedX: vx < 0,
+            vx: vx,
+            vy: vy,
             damage: 8,
-            life: 380,
+            life: 240,
             startDelay: i * 5,
             bounce: true,
-            bouncesRemaining: 16,
-            speedMultiplier: 1.002,
+            bouncesRemaining: 8,
+            speedMultiplier: 1.001,
             speedMultiplierStart: 36,
-            maxSpeed: 6.6,
-            pulseSpeedAmplitude: 0.35,
+            maxSpeed: 6.65,
+            pulseSpeedAmplitude: 0.25,
             pulseSpeedFrequency: 0.11,
             pulseSpeedPhase: i * 0.7,
-            fadeOutFrames: 16,
+            fadeOutFrames: 18,
             type: "bonecaller_bouncing_skull",
             hitboxInsetX: 4,
             hitboxInsetY: 4,
-            spin: i % 2 === 0 ? 6 : -6
+            spin: vx >= 0 ? 5 : -5
         });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
+    var inner = this.getArenaInnerBounds();
+    var centerX = inner.x + (inner.width / 2);
+    var centerY = inner.y + (inner.height / 2);
+    var radius = Math.max(inner.width, inner.height) * 0.58;
+    var count = 14;
+    var angleOffset = this.randomRange(0, Math.PI * 2);
+    var clockwise = Math.random() > 0.5 ? 1 : -1;
+    var i;
+    var angle;
+    var shard;
+
+    // Bones begin around the whole arena, then spiral inward instead of flying
+    // straight at the center. The fade starts near the middle so the pattern
+    // resolves cleanly without leaving lingering hitboxes.
+    for (i = 0; i < count; i++) {
+        angle = angleOffset + ((Math.PI * 2) * (i / count));
+        shard = this.spawnProjectile({
+            x: centerX + (Math.cos(angle) * radius) - 8,
+            y: centerY + (Math.sin(angle) * radius) - 4,
+            width: 16,
+            height: 8,
+            resource: "Bone_Shard_Attack_T",
+            vx: 0,
+            vy: 0,
+            rotation: (angle * (180 / Math.PI)) + 90,
+            damage: 7,
+            life: 160,
+            startDelay: i % 2 === 0 ? 0 : 5,
+            fadeOutFrames: 14,
+            type: "bonecaller_bone_spiral",
+            hitboxInsetX: 2,
+            hitboxInsetY: 1,
+            spin: 0
+        });
+
+        shard.spiralCenterX = centerX;
+        shard.spiralCenterY = centerY;
+        shard.spiralAngle = angle;
+        shard.spiralRadius = radius;
+        shard.spiralRadialSpeed = this.randomRange(2.35, 2.75);
+        shard.spiralAngularSpeed = clockwise * this.randomRange(0.040, 0.052);
+        shard.spiralMinRadius = this.randomRange(18, 30);
+        shard.spiralFadeRadius = 48;
+        shard.spiralFacePath = true;
+        shard.spiralRotationOffset = 90;
+        shard.spiralSpriteSpin = clockwise > 0 ? 3.5 : -3.5;
     }
 };
 
@@ -1899,17 +1974,17 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossFuseBombs = function () {
                 framerate: 14,
                 looped: false
             },
-            shrapnelCount: 8,
-            shrapnelSpeed: 3.25,
+            shrapnelCount: 6,
+            shrapnelSpeed: 3.0,
             shrapnelDamage: 5,
-            shrapnelLife: 220,
+            shrapnelLife: 150,
             shrapnelResource: "Goblin_Head_Attack_T",
             shrapnelWidth: 16,
             shrapnelHeight: 16,
             shrapnelBounce: true,
-            shrapnelBouncesRemaining: 3,
-            shrapnelMaxSpeed: 5.2,
-            shrapnelFadeOutFrames: 12,
+            shrapnelBouncesRemaining: 1,
+            shrapnelMaxSpeed: 4.8,
+            shrapnelFadeOutFrames: 14,
             type: "goblin_fuse_bomb",
             hitboxInsetX: 4,
             hitboxInsetY: 4,
@@ -2233,6 +2308,24 @@ GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (pro
         return;
     }
 
+    if (typeof projectile.spiralCenterX === "number" && typeof projectile.spiralCenterY === "number") {
+        projectile.spiralAngle += projectile.spiralAngularSpeed || 0;
+        projectile.spiralRadius = Math.max(
+            typeof projectile.spiralMinRadius === "number" ? projectile.spiralMinRadius : 0,
+            projectile.spiralRadius - (projectile.spiralRadialSpeed || 0)
+        );
+        projectile.x = projectile.spiralCenterX + (Math.cos(projectile.spiralAngle) * projectile.spiralRadius) - ((projectile.width || 0) / 2);
+        projectile.y = projectile.spiralCenterY + (Math.sin(projectile.spiralAngle) * projectile.spiralRadius) - ((projectile.height || 0) / 2);
+
+        if (projectile.spiralFacePath === true) {
+            projectile.rotation = (projectile.spiralAngle * (180 / Math.PI)) + (projectile.spiralRotationOffset || 0) + (projectile.age * (projectile.spiralSpriteSpin || 0));
+        }
+
+        if (projectile.spiralRadius <= (projectile.spiralFadeRadius || 42)) {
+            this.beginProjectileFadeOut(projectile, projectile.fadeOutFrames || 12, true);
+        }
+    }
+
     if (projectile.homingFrames > 0 && projectile.age >= (projectile.homingDelay || 0)) {
         centerX = projectile.x + ((projectile.width || 0) / 2);
         centerY = projectile.y + ((projectile.height || 0) / 2);
@@ -2300,6 +2393,7 @@ GraveFallGame.scene.Game.prototype.beginProjectileFadeOut = function (projectile
 
     duration = Math.max(1, Math.floor(frames || projectile.fadeOutFrames || 10));
     projectile.fadingOut = true;
+    projectile.fadeKeepMotion = keepMotion === true;
     projectile.fadeOutTimer = duration;
     projectile.fadeOutDuration = duration;
     projectile.fadeStartAlpha = typeof projectile.alpha === "number" ? projectile.alpha : (typeof projectile.baseAlpha === "number" ? projectile.baseAlpha : 1);
@@ -2514,6 +2608,20 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
         }
 
         if (projectile.fadingOut === true) {
+            if (projectile.fadeKeepMotion === true) {
+                projectile.age++;
+
+                if (projectile.spin) {
+                    projectile.rotation += projectile.spin;
+                }
+
+                this.updateProjectileDynamicMotion(projectile);
+                projectile.x += projectile.vx || 0;
+                projectile.y += projectile.vy || 0;
+                this.updateProjectileBounce(projectile, inner);
+                this.updateProjectileFacing(projectile);
+            }
+
             projectile.fadeOutTimer--;
             projectile.alpha = Math.max(0, (projectile.fadeStartAlpha || 1) * (projectile.fadeOutTimer / Math.max(1, projectile.fadeOutDuration || 1)));
 
@@ -2571,7 +2679,8 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
         if (projectile.explodeOnExpire === true && projectile.life <= 30) {
             projectile.alpha = projectile.life % 8 < 4 ? 0.35 : 1;
         } else if (projectile.fadeOutFrames > 0 && projectile.life <= projectile.fadeOutFrames) {
-            projectile.alpha = Math.max(projectile.fadeOutToZero === true ? 0 : 0.15, (typeof projectile.baseAlpha === "number" ? projectile.baseAlpha : 1) * (projectile.life / projectile.fadeOutFrames));
+            this.beginProjectileFadeOut(projectile, Math.max(1, projectile.life), true);
+            continue;
         }
 
         expiredByLife = projectile.life <= 0;
@@ -2585,6 +2694,8 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
         if (expiredByLife || outsideBounds) {
             if (expiredByLife && projectile.explodeOnExpire === true) {
                 this.explodeProjectile(projectile);
+                this.removeProjectileAt(i, true);
+                continue;
             }
 
             this.removeProjectileAt(i, outsideBounds === true);

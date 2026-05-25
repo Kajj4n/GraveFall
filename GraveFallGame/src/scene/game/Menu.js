@@ -302,10 +302,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     battleAvatar.scaleY = battleAvatarScale;
     battleAvatar.visible = false;
     battleAvatar.alpha = 0;
-    // Keep collision and arena clamping on the same visible footprint so the
-    // avatar reaches the inside edge of the frame without leaving a wall gap.
+    // Keep collision and arena clamping on the icon's visible footprint. The
+    // arena frame has transparent 16px tiles but only a 4px visible wall.
     this.setObjectHitboxInset(battleAvatar, 8, 3, 8, 3);
-    this.setObjectClampInset(battleAvatar, 8, 3, 8, 3);
+    this.setObjectClampInset(battleAvatar, 5, 3, 5, 0);
 
     characterStand.scaleX = standScale;
     characterStand.scaleY = standScale;

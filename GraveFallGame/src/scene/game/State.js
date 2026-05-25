@@ -968,11 +968,11 @@ GraveFallGame.scene.Game.ENEMIES = {
         damageStateResources: GraveFallGame.scene.Game.BONE_CALLER_DAMAGE_STATE_RESOURCES,
         hpMax: 105,
         actionPhaseDuration: 280,
-        patternInterval: 38,
+        patternInterval: 36,
         patterns: [
+            "bonecaller_bone_spiral",
             "bonecaller_skull_ring",
             "bonecaller_shard_arc",
-            "bonecaller_skull_ring",
             "ghoul_bone_shard_spread"
         ]
     },
@@ -1414,6 +1414,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "crypt_spear_corridor":
         case "crypt_arrow_crossfire":
         case "bonecaller_shard_arc":
+        case "bonecaller_bone_spiral":
         case "crystal_rain":
         case "crystal_wall":
         case "hydragon_fang_fan":
@@ -2071,7 +2072,10 @@ GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {
 };
 
 GraveFallGame.scene.Game.prototype.getArenaInnerBounds = function () {
-    var borderPadding = 16;
+    // The frame sprites are 16x16, but the visible straight border is only
+    // four pixels thick. Clamp and bounce against the visible wall, not the
+    // full transparent frame tile.
+    var borderPadding = 4;
 
     return {
         x: borderPadding,
