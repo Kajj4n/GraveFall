@@ -1309,22 +1309,25 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
     var inner = this.getArenaInnerBounds();
     var centerX = inner.x + (inner.width / 2);
     var centerY = inner.y + (inner.height / 2);
-    var radius = Math.max(inner.width, inner.height) * 0.58;
-    var count = 14;
+    var radiusX = Math.max(48, (inner.width / 2) - 18);
+    var radiusY = Math.max(48, (inner.height / 2) - 14);
+    var count = 10;
     var angleOffset = this.randomRange(0, Math.PI * 2);
     var clockwise = Math.random() > 0.5 ? 1 : -1;
+    var angularSpeed = clockwise * 0.024;
     var i;
     var angle;
     var shard;
 
-    // Bones begin around the whole arena, then spiral inward instead of flying
-    // straight at the center. The fade starts near the middle so the pattern
-    // resolves cleanly without leaving lingering hitboxes.
+    // Keep this as a readable ring: ten evenly spaced bones begin around the
+    // arena edges, orbit together, and shrink inward slowly instead of each
+    // picking its own fast random path.
     for (i = 0; i < count; i++) {
         angle = angleOffset + ((Math.PI * 2) * (i / count));
+
         shard = this.spawnProjectile({
-            x: centerX + (Math.cos(angle) * radius) - 8,
-            y: centerY + (Math.sin(angle) * radius) - 4,
+            x: centerX + (Math.cos(angle) * radiusX) - 8,
+            y: centerY + (Math.sin(angle) * radiusY) - 4,
             width: 16,
             height: 8,
             resource: "Bone_Shard_Attack_T",
@@ -1332,9 +1335,9 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
             vy: 0,
             rotation: (angle * (180 / Math.PI)) + 90,
             damage: 7,
-            life: 160,
-            startDelay: i % 2 === 0 ? 0 : 5,
-            fadeOutFrames: 14,
+            life: 300,
+            startDelay: 0,
+            fadeOutFrames: 22,
             type: "bonecaller_bone_spiral",
             hitboxInsetX: 2,
             hitboxInsetY: 1,
@@ -1344,14 +1347,19 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
         shard.spiralCenterX = centerX;
         shard.spiralCenterY = centerY;
         shard.spiralAngle = angle;
-        shard.spiralRadius = radius;
-        shard.spiralRadialSpeed = this.randomRange(2.35, 2.75);
-        shard.spiralAngularSpeed = clockwise * this.randomRange(0.040, 0.052);
-        shard.spiralMinRadius = this.randomRange(18, 30);
-        shard.spiralFadeRadius = 48;
+        shard.spiralRadiusX = radiusX;
+        shard.spiralRadiusY = radiusY;
+        shard.spiralStartRadiusX = radiusX;
+        shard.spiralStartRadiusY = radiusY;
+        shard.spiralScale = 1;
+        shard.spiralShrinkRate = 0.00245;
+        shard.spiralMinScale = 0.28;
+        shard.spiralFadeScale = 0.34;
+        shard.spiralAngularSpeed = angularSpeed;
         shard.spiralFacePath = true;
         shard.spiralRotationOffset = 90;
-        shard.spiralSpriteSpin = clockwise > 0 ? 3.5 : -3.5;
+        shard.spiralSpriteSpin = clockwise > 0 ? 5.8 : -5.8;
+        shard.spiralMotionOnly = true;
     }
 };
 
@@ -2310,19 +2318,39 @@ GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (pro
 
     if (typeof projectile.spiralCenterX === "number" && typeof projectile.spiralCenterY === "number") {
         projectile.spiralAngle += projectile.spiralAngularSpeed || 0;
-        projectile.spiralRadius = Math.max(
-            typeof projectile.spiralMinRadius === "number" ? projectile.spiralMinRadius : 0,
-            projectile.spiralRadius - (projectile.spiralRadialSpeed || 0)
-        );
-        projectile.x = projectile.spiralCenterX + (Math.cos(projectile.spiralAngle) * projectile.spiralRadius) - ((projectile.width || 0) / 2);
-        projectile.y = projectile.spiralCenterY + (Math.sin(projectile.spiralAngle) * projectile.spiralRadius) - ((projectile.height || 0) / 2);
+
+        if (typeof projectile.spiralRadiusX === "number" && typeof projectile.spiralRadiusY === "number") {
+            projectile.spiralScale = Math.max(
+                typeof projectile.spiralMinScale === "number" ? projectile.spiralMinScale : 0.25,
+                (typeof projectile.spiralScale === "number" ? projectile.spiralScale : 1) - (projectile.spiralShrinkRate || 0)
+            );
+            projectile.spiralRadiusX = (projectile.spiralStartRadiusX || projectile.spiralRadiusX) * projectile.spiralScale;
+            projectile.spiralRadiusY = (projectile.spiralStartRadiusY || projectile.spiralRadiusY) * projectile.spiralScale;
+            projectile.x = projectile.spiralCenterX + (Math.cos(projectile.spiralAngle) * projectile.spiralRadiusX) - ((projectile.width || 0) / 2);
+            projectile.y = projectile.spiralCenterY + (Math.sin(projectile.spiralAngle) * projectile.spiralRadiusY) - ((projectile.height || 0) / 2);
+
+            if (projectile.spiralScale <= (projectile.spiralFadeScale || 0.35)) {
+                this.beginProjectileFadeOut(projectile, projectile.fadeOutFrames || 12, true);
+            }
+        } else {
+            projectile.spiralRadius = Math.max(
+                typeof projectile.spiralMinRadius === "number" ? projectile.spiralMinRadius : 0,
+                projectile.spiralRadius - (projectile.spiralRadialSpeed || 0)
+            );
+            projectile.x = projectile.spiralCenterX + (Math.cos(projectile.spiralAngle) * projectile.spiralRadius) - ((projectile.width || 0) / 2);
+            projectile.y = projectile.spiralCenterY + (Math.sin(projectile.spiralAngle) * projectile.spiralRadius) - ((projectile.height || 0) / 2);
+
+            if (projectile.spiralRadius <= (projectile.spiralFadeRadius || 42)) {
+                this.beginProjectileFadeOut(projectile, projectile.fadeOutFrames || 12, true);
+            }
+        }
 
         if (projectile.spiralFacePath === true) {
             projectile.rotation = (projectile.spiralAngle * (180 / Math.PI)) + (projectile.spiralRotationOffset || 0) + (projectile.age * (projectile.spiralSpriteSpin || 0));
         }
 
-        if (projectile.spiralRadius <= (projectile.spiralFadeRadius || 42)) {
-            this.beginProjectileFadeOut(projectile, projectile.fadeOutFrames || 12, true);
+        if (projectile.spiralMotionOnly === true) {
+            return;
         }
     }
 

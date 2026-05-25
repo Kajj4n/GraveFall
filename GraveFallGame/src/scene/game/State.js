@@ -968,7 +968,7 @@ GraveFallGame.scene.Game.ENEMIES = {
         damageStateResources: GraveFallGame.scene.Game.BONE_CALLER_DAMAGE_STATE_RESOURCES,
         hpMax: 105,
         actionPhaseDuration: 280,
-        patternInterval: 36,
+        patternInterval: 32,
         patterns: [
             "bonecaller_bone_spiral",
             "bonecaller_skull_ring",

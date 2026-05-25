@@ -1778,6 +1778,7 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
     var speed = playerMenu.moveSpeed || 3;
     var avatar = playerMenu.battleAvatar;
     var inner = this.getArenaInnerBounds();
+    var playerBounds;
     var oldX = avatar.x;
     var oldY = avatar.y;
     var nextX = avatar.x;
@@ -1804,7 +1805,18 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
         nextY += speed;
     }
 
-    clamped = this.clampObjectHitboxToBounds(avatar, nextX, nextY, inner);
+    playerBounds = {
+        x: inner.x,
+        y: inner.y,
+        // Top/left already line up with the visible 4px frame. Pull only the
+        // right and bottom limits in a few pixels so the visible avatar never
+        // slips over those frame edges. Right needs one extra pixel because the
+        // icon was still just touching through the frame on that side.
+        width: Math.max(0, inner.width - 3),
+        height: Math.max(0, inner.height - 3)
+    };
+
+    clamped = this.clampObjectHitboxToBounds(avatar, nextX, nextY, playerBounds);
     nextX = clamped.x;
     nextY = clamped.y;
 
