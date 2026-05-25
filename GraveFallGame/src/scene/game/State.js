@@ -968,7 +968,7 @@ GraveFallGame.scene.Game.ENEMIES = {
         damageStateResources: GraveFallGame.scene.Game.BONE_CALLER_DAMAGE_STATE_RESOURCES,
         hpMax: 105,
         actionPhaseDuration: 280,
-        patternInterval: 32,
+        patternInterval: 36,
         patterns: [
             "bonecaller_bone_spiral",
             "bonecaller_skull_ring",
@@ -2032,15 +2032,18 @@ GraveFallGame.scene.Game.prototype.setObjectHitboxInset = function (object, inse
     scaledWidth = Math.abs((object.width || 0) * scaleX);
     scaledHeight = Math.abs((object.height || 0) * scaleY);
 
-    insetLeft = Math.max(0, insetX || 0);
-    insetTop = Math.max(0, insetY || 0);
-    insetRight = Math.max(0, typeof insetRight === "number" ? insetRight : insetLeft);
-    insetBottom = Math.max(0, typeof insetBottom === "number" ? insetBottom : insetTop);
+    // Positive values inset the hitbox. Negative values intentionally outset it,
+    // which lets sprites with less transparent padding match the Assassin's
+    // already-tuned collision footprint.
+    insetLeft = typeof insetX === "number" ? insetX : 0;
+    insetTop = typeof insetY === "number" ? insetY : 0;
+    insetRight = typeof insetRight === "number" ? insetRight : insetLeft;
+    insetBottom = typeof insetBottom === "number" ? insetBottom : insetTop;
 
-    insetLeft = Math.min(insetLeft, scaledWidth / 2);
-    insetRight = Math.min(insetRight, Math.max(0, scaledWidth - insetLeft));
-    insetTop = Math.min(insetTop, scaledHeight / 2);
-    insetBottom = Math.min(insetBottom, Math.max(0, scaledHeight - insetTop));
+    insetLeft = Math.max(-scaledWidth, Math.min(insetLeft, scaledWidth / 2));
+    insetRight = Math.max(-scaledWidth, Math.min(insetRight, Math.max(0, scaledWidth - insetLeft)));
+    insetTop = Math.max(-scaledHeight, Math.min(insetTop, scaledHeight / 2));
+    insetBottom = Math.max(-scaledHeight, Math.min(insetBottom, Math.max(0, scaledHeight - insetTop)));
 
     localX = insetLeft / scaleX;
     localY = insetTop / scaleY;
@@ -2061,10 +2064,12 @@ GraveFallGame.scene.Game.prototype.setObjectClampInset = function (object, inset
         return;
     }
 
-    object.hitboxClampInsetLeft = Math.max(0, insetLeft || 0);
-    object.hitboxClampInsetTop = Math.max(0, insetTop || 0);
-    object.hitboxClampInsetRight = Math.max(0, typeof insetRight === "number" ? insetRight : object.hitboxClampInsetLeft);
-    object.hitboxClampInsetBottom = Math.max(0, typeof insetBottom === "number" ? insetBottom : object.hitboxClampInsetTop);
+    // Clamp insets also accept negative values. A negative value acts as an
+    // outset, making the sprite stop earlier on that side of the arena.
+    object.hitboxClampInsetLeft = typeof insetLeft === "number" ? insetLeft : 0;
+    object.hitboxClampInsetTop = typeof insetTop === "number" ? insetTop : 0;
+    object.hitboxClampInsetRight = typeof insetRight === "number" ? insetRight : object.hitboxClampInsetLeft;
+    object.hitboxClampInsetBottom = typeof insetBottom === "number" ? insetBottom : object.hitboxClampInsetTop;
 };
 
 GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {

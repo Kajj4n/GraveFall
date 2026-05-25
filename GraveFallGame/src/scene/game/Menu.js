@@ -135,6 +135,44 @@ GraveFallGame.scene.Game.prototype.getGamepadForInput = function (inputOwner) {
     return gp && gp.connected ? gp : null;
 };
 
+// Battle avatars all render into an 80x80 transparent class icon, but each
+// class has different transparent padding around the visible character. These
+// corrections keep every class aligned to the ASSASSIN avatar, whose arena
+// collision/clamp tuning is the baseline that matches the UI frame.
+GraveFallGame.scene.Game.BATTLE_AVATAR_HITBOX_CORRECTIONS = {
+    Assassin_Icon_T: { hitbox: [8, 3, 8, 3], clamp: [5, 3, 3, 0] },
+    Fighter_Icon_T: { hitbox: [5, 1, 5, -4], clamp: [2, 1, 0, -7] },
+    Wizard_Icon_T: { hitbox: [5, 1, 4, -4], clamp: [2, 1, -1, -7] },
+    Ranger_Icon_T: { hitbox: [3, 6, 3, -2], clamp: [0, 6, -2, -5] }
+};
+
+GraveFallGame.scene.Game.prototype.getBattleAvatarHitboxCorrection = function (classIconResource) {
+    var corrections = GraveFallGame.scene.Game.BATTLE_AVATAR_HITBOX_CORRECTIONS || {};
+
+    return corrections[classIconResource] || corrections.Assassin_Icon_T;
+};
+
+GraveFallGame.scene.Game.prototype.applyBattleAvatarHitboxCorrection = function (battleAvatar, classIconResource) {
+    var correction = this.getBattleAvatarHitboxCorrection(classIconResource);
+    var hitbox;
+    var clamp;
+
+    if (!battleAvatar || !correction) {
+        return;
+    }
+
+    hitbox = correction.hitbox || [8, 3, 8, 3];
+    clamp = correction.clamp || [5, 3, 3, 0];
+
+    if (battleAvatar.flippedX === true) {
+        this.setObjectHitboxInset(battleAvatar, hitbox[2], hitbox[1], hitbox[0], hitbox[3]);
+        this.setObjectClampInset(battleAvatar, clamp[2], clamp[1], clamp[0], clamp[3]);
+    } else {
+        this.setObjectHitboxInset(battleAvatar, hitbox[0], hitbox[1], hitbox[2], hitbox[3]);
+        this.setObjectClampInset(battleAvatar, clamp[0], clamp[1], clamp[2], clamp[3]);
+    }
+};
+
 GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var menuWidth = 320;
     var menuHeight = 128;
@@ -302,16 +340,14 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     battleAvatar.scaleY = battleAvatarScale;
     battleAvatar.visible = false;
     battleAvatar.alpha = 0;
-    // Keep collision and arena clamping on the icon's visible footprint. The
-    // arena frame has transparent 16px tiles but only a 4px visible wall.
-    this.setObjectHitboxInset(battleAvatar, 8, 3, 8, 3);
-    this.setObjectClampInset(battleAvatar, 5, 3, 3, 0);
+    battleAvatar.flippedX = shouldFlip;
+    battleAvatar.battleAvatarResource = options.classIcon;
+    this.applyBattleAvatarHitboxCorrection(battleAvatar, options.classIcon);
 
     characterStand.scaleX = standScale;
     characterStand.scaleY = standScale;
 
     this.setDamageStateGroupFlippedX(characterStand, shouldFlip);
-    battleAvatar.flippedX = shouldFlip;
     characterMenu.addChild(characterMenuCharacter);
     characterMenu.addChild(characterMenuActions);
     characterMenu.addChild(outerFrame);
@@ -387,6 +423,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         portrait: characterIcon,
         classIcon: characterClassIcon,
         battleAvatar: battleAvatar,
+        battleAvatarResource: options.classIcon,
         actions: [fightIcon, defendIcon, buffIcon, itemIcon],
         itemIcons: itemIconsArray,
         defendTargetIcons: defendTargetIconsArray,

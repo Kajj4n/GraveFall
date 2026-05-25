@@ -362,6 +362,7 @@ GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
             typeof this.playerMenus[i].partyRenderIndex === "number" ? this.playerMenus[i].partyRenderIndex : i,
             this.playerMenus[i].partySize || this.playerMenus.length
         );
+        this.applyBattleAvatarHitboxCorrection(avatar, avatar.battleAvatarResource || this.playerMenus[i].battleAvatarResource);
 
         targetX = inner.x + (spacing * (slotIndex + 1)) - (avatar.width / 2);
         avatar.x = targetX;
@@ -1808,11 +1809,11 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
     playerBounds = {
         x: inner.x,
         y: inner.y,
-        // Top/left already line up with the visible 4px frame. Pull only the
-        // right and bottom limits in a few pixels so the visible avatar never
-        // slips over those frame edges. Right needs one extra pixel because the
-        // icon was still just touching through the frame on that side.
-        width: Math.max(0, inner.width - 3),
+        // The UI frame sprites are 16x16, but their solid visible border is 4px.
+        // Top, left, and bottom already line up with that visible wall. Keep
+        // those as-is and only pull the right limit in a little further so the
+        // battle avatar cannot overlap the right wall during the action phase.
+        width: Math.max(0, inner.width - 5),
         height: Math.max(0, inner.height - 3)
     };
 

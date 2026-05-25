@@ -1315,19 +1315,26 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
     var angleOffset = this.randomRange(0, Math.PI * 2);
     var clockwise = Math.random() > 0.5 ? 1 : -1;
     var angularSpeed = clockwise * 0.024;
+    var entryStartScale = 1.28;
+    var entryFrames = 48;
     var i;
     var angle;
+    var entryRadiusX;
+    var entryRadiusY;
     var shard;
 
-    // Keep this as a readable ring: ten evenly spaced bones begin around the
-    // arena edges, orbit together, and shrink inward slowly instead of each
-    // picking its own fast random path.
+    // Keep this as a readable ring: ten evenly spaced bones now start outside
+    // the arena and ease into the orbit before shrinking inward. That keeps the
+    // pattern readable without spawning a damaging bone directly on a player.
     for (i = 0; i < count; i++) {
         angle = angleOffset + ((Math.PI * 2) * (i / count));
 
+        entryRadiusX = radiusX * entryStartScale;
+        entryRadiusY = radiusY * entryStartScale;
+
         shard = this.spawnProjectile({
-            x: centerX + (Math.cos(angle) * radiusX) - 8,
-            y: centerY + (Math.sin(angle) * radiusY) - 4,
+            x: centerX + (Math.cos(angle) * entryRadiusX) - 8,
+            y: centerY + (Math.sin(angle) * entryRadiusY) - 4,
             width: 16,
             height: 8,
             resource: "Bone_Shard_Attack_T",
@@ -1335,7 +1342,7 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
             vy: 0,
             rotation: (angle * (180 / Math.PI)) + 90,
             damage: 7,
-            life: 300,
+            life: 360,
             startDelay: 0,
             fadeOutFrames: 22,
             type: "bonecaller_bone_spiral",
@@ -1347,11 +1354,14 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
         shard.spiralCenterX = centerX;
         shard.spiralCenterY = centerY;
         shard.spiralAngle = angle;
-        shard.spiralRadiusX = radiusX;
-        shard.spiralRadiusY = radiusY;
+        shard.spiralRadiusX = entryRadiusX;
+        shard.spiralRadiusY = entryRadiusY;
         shard.spiralStartRadiusX = radiusX;
         shard.spiralStartRadiusY = radiusY;
-        shard.spiralScale = 1;
+        shard.spiralScale = entryStartScale;
+        shard.spiralEntryStartScale = entryStartScale;
+        shard.spiralEntryFrames = entryFrames;
+        shard.spiralEntryAge = 0;
         shard.spiralShrinkRate = 0.00245;
         shard.spiralMinScale = 0.28;
         shard.spiralFadeScale = 0.34;
@@ -2311,6 +2321,9 @@ GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (pro
     var pulseSpeed;
     var newSwayOffset;
     var swayDelta;
+    var entryProgress;
+    var entryEase;
+    var entryStartScale;
 
     if (!projectile) {
         return;
@@ -2320,10 +2333,24 @@ GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (pro
         projectile.spiralAngle += projectile.spiralAngularSpeed || 0;
 
         if (typeof projectile.spiralRadiusX === "number" && typeof projectile.spiralRadiusY === "number") {
-            projectile.spiralScale = Math.max(
-                typeof projectile.spiralMinScale === "number" ? projectile.spiralMinScale : 0.25,
-                (typeof projectile.spiralScale === "number" ? projectile.spiralScale : 1) - (projectile.spiralShrinkRate || 0)
-            );
+            if (typeof projectile.spiralEntryFrames === "number" && projectile.spiralEntryFrames > 0) {
+                projectile.spiralEntryAge = Math.min(projectile.spiralEntryFrames, (projectile.spiralEntryAge || 0) + 1);
+                entryProgress = projectile.spiralEntryAge / Math.max(1, projectile.spiralEntryFrames);
+                entryEase = 1 - Math.pow(1 - entryProgress, 2);
+                entryStartScale = typeof projectile.spiralEntryStartScale === "number" ? projectile.spiralEntryStartScale : 1.25;
+                projectile.spiralScale = entryStartScale + ((1 - entryStartScale) * entryEase);
+
+                if (projectile.spiralEntryAge >= projectile.spiralEntryFrames) {
+                    projectile.spiralEntryFrames = 0;
+                    projectile.spiralScale = 1;
+                }
+            } else {
+                projectile.spiralScale = Math.max(
+                    typeof projectile.spiralMinScale === "number" ? projectile.spiralMinScale : 0.25,
+                    (typeof projectile.spiralScale === "number" ? projectile.spiralScale : 1) - (projectile.spiralShrinkRate || 0)
+                );
+            }
+
             projectile.spiralRadiusX = (projectile.spiralStartRadiusX || projectile.spiralRadiusX) * projectile.spiralScale;
             projectile.spiralRadiusY = (projectile.spiralStartRadiusY || projectile.spiralRadiusY) * projectile.spiralScale;
             projectile.x = projectile.spiralCenterX + (Math.cos(projectile.spiralAngle) * projectile.spiralRadiusX) - ((projectile.width || 0) / 2);
@@ -2753,10 +2780,15 @@ GraveFallGame.scene.Game.prototype.getClampBoundsAt = function (object, x, y) {
     scaleY = object.scaleY || 1;
     width = Math.abs((object.width || 0) * scaleX);
     height = Math.abs((object.height || 0) * scaleY);
-    insetLeft = Math.max(0, Math.min(width / 2, object.hitboxClampInsetLeft || 0));
-    insetTop = Math.max(0, Math.min(height / 2, object.hitboxClampInsetTop || 0));
-    insetRight = Math.max(0, Math.min(width - insetLeft, object.hitboxClampInsetRight || insetLeft));
-    insetBottom = Math.max(0, Math.min(height - insetTop, object.hitboxClampInsetBottom || insetTop));
+    insetLeft = typeof object.hitboxClampInsetLeft === "number" ? object.hitboxClampInsetLeft : 0;
+    insetTop = typeof object.hitboxClampInsetTop === "number" ? object.hitboxClampInsetTop : 0;
+    insetRight = typeof object.hitboxClampInsetRight === "number" ? object.hitboxClampInsetRight : insetLeft;
+    insetBottom = typeof object.hitboxClampInsetBottom === "number" ? object.hitboxClampInsetBottom : insetTop;
+
+    insetLeft = Math.max(-width, Math.min(width / 2, insetLeft));
+    insetRight = Math.max(-width, Math.min(width - insetLeft, insetRight));
+    insetTop = Math.max(-height, Math.min(height / 2, insetTop));
+    insetBottom = Math.max(-height, Math.min(height - insetTop, insetBottom));
 
     return {
         x: boundsX + insetLeft,
