@@ -1102,22 +1102,22 @@ GraveFallGame.scene.Game.prototype.getClassBuffTooltipLines = function (playerMe
     var minigame = playerMenu && playerMenu.attackMinigame ? playerMenu.attackMinigame : "";
 
     if (id === "fighter" || id.indexOf("fighter_") === 0 || minigame === "buttonMash") {
-        return ["BUFF: PARTY DEFENCE x50%", "NEXT ACTION PHASE"];
+        return ["BUFF: PARTY DEFENCE x50%", "ONE TURN ONLY"];
     }
 
     if (id === "assassin" || id.indexOf("assassin_") === 0 || minigame === "timingBar") {
-        return ["BUFF: PARTY SPEED +1.6", "NEXT ACTION PHASE"];
+        return ["BUFF: PARTY SPEED +1.6", "ONE TURN ONLY"];
     }
 
     if (id === "wizard" || id.indexOf("wizard_") === 0 || minigame === "buttonSequence") {
-        return ["BUFF: HEAL PARTY 10% MAX HP", "[REVIVES IF DOWNED]"];
+        return ["BUFF: HEAL PARTY 10% HP", "[REVIVES IF DOWNED]"];
     }
 
     if (id === "ranger" || id.indexOf("ranger_") === 0 || minigame === "targetReticle") {
-        return ["BUFF: PARTY DAMAGE x1.5", "NEXT ATTACK THIS TURN"];
+        return ["BUFF: PARTY DAMAGE x1.5", "ONE TURN ONLY"];
     }
 
-    return ["BUFF: DAMAGE x1.5", "NEXT ATTACK THIS TURN"];
+    return ["BUFF: DAMAGE x1.5", "ONE TURN ONLY"];
 };
 
 GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
@@ -1134,19 +1134,19 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
         }
 
         if (playerMenu.selectedIndex === 0) {
-            return ["HP ITEM: +30 MAX HP PERMANENT", "FOR PARTY [REVIVES IF DOWNED]"];
+            return ["HP ITEM: +30 PERMANENT MAX HP", "FOR PARTY [REVIVES IF DOWNED]"];
         }
 
         if (playerMenu.selectedIndex === 1) {
-            return ["ATK ITEM: +1 DAMAGE PERMANENT", "FOR THE WHOLE PARTY"];
+            return ["ATK ITEM: +1 PERMANENT DAMAGE", "FOR THE WHOLE PARTY"];
         }
 
         if (playerMenu.selectedIndex === 2) {
-            return ["DEF ITEM: -8% DAMAGE [MAX 6]", "PERMANENT FOR PARTY"];
+            return ["DEF ITEM: -8% PERMANENT DEFENCE", "FOR THE WHOLE PARTY"];
         }
 
         if (playerMenu.selectedIndex === 3) {
-            return ["SPD ITEM: +0.4 SPEED PERMANENT", "FOR THE WHOLE PARTY"];
+            return ["SPD ITEM: +0.4 PERMANENT SPEED", "FOR THE WHOLE PARTY"];
         }
 
         return null;
@@ -1164,7 +1164,7 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
             return ["DEFEND " + String(target.characterName).toUpperCase(), "HEAL 15% + DEF x50%"];
         }
 
-        return ["DEFEND: HEAL 15% + DEF x50%", "SELECTED PLAYER"];
+        return ["DEFEND: HEAL 15% + DEF x50%", "[REVIVES IF DOWNED]"];
     }
 
     if (playerMenu.selectedIndex === 0) {
@@ -1172,7 +1172,7 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
     }
 
     if (playerMenu.selectedIndex === 1) {
-        return ["DEFEND: HEAL 15% + DEF x50%", "SELECTED PLAYER"];
+        return ["DEFEND: HEAL 15% + DEF x50%", "[REVIVES IF DOWNED]"];
     }
 
     if (playerMenu.selectedIndex === 2) {
@@ -1180,7 +1180,7 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
     }
 
     if (playerMenu.selectedIndex === 3) {
-        return ["ITEM: PERMANENT STACKING STAT", "FOR THE WHOLE PARTY"];
+        return ["ITEM: PERMANENT STAT BUFFS", "FOR THE WHOLE PARTY"];
     }
 
     return null;
