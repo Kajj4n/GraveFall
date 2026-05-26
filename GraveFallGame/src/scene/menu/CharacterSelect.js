@@ -146,6 +146,8 @@ GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = func
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.CharacterSelect.prototype.init = function () {
+    GraveFallGame.useTestBitmapFont();
+
     rune.scene.Scene.prototype.init.call(this);
 
     var screenWidth = this.application.screen.width;

@@ -3,6 +3,8 @@
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.Game.prototype.init = function () {
+    GraveFallGame.useTestBitmapFont();
+
     rune.scene.Scene.prototype.init.call(this);
 
     this.runPaletteKey = GraveFallGame.scene.Game.resolveRunPaletteKey(this.runPaletteKey);

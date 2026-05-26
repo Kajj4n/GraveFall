@@ -67,6 +67,30 @@ var GraveFallGame = function() {
 }();
 
 //------------------------------------------------------------------------------
+// Font resources
+//------------------------------------------------------------------------------
+
+/**
+ * Test 6x10 bitmap font atlas generated from the current GraveFall alphabet.
+ *
+ * NOTE: Do NOT assign this to rune.text.BitmapFormat.FONT_SMALL here. Rune
+ * creates internal debug BitmapFields before game resources are available, so
+ * setting the global default font during bootstrap can make Rune look for this
+ * texture too early and crash in BitmapFormat.getTexture().
+ */
+GraveFallGame.FONT_TEST_SMALL = "GF_Font_Test_192x30";
+
+/**
+ * Enables the custom GraveFall test font after resources are available.
+ * Call this from scene init methods, before creating game BitmapFields.
+ */
+GraveFallGame.useTestBitmapFont = function() {
+    if (rune && rune.text && rune.text.BitmapFormat) {
+        rune.text.BitmapFormat.FONT_SMALL = GraveFallGame.FONT_TEST_SMALL;
+    }
+};
+
+//------------------------------------------------------------------------------
 // Public static methods
 //------------------------------------------------------------------------------
 

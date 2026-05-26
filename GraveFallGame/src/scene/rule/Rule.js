@@ -58,6 +58,8 @@ GraveFallGame.scene.Rule.prototype.resourceExists = GraveFallGame.scene.Game.pro
  * @returns {undefined}
  */
 GraveFallGame.scene.Rule.prototype.init = function () {
+    GraveFallGame.useTestBitmapFont();
+
     var screen;
     var palette;
     var framePaletteSwaps;

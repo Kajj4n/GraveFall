@@ -51,6 +51,8 @@ GraveFallGame.scene.Menu.prototype.isDevConsoleInputActive = GraveFallGame.scene
  * @inheritDoc
  */
 GraveFallGame.scene.Menu.prototype.init = function () {
+    GraveFallGame.useTestBitmapFont();
+
     var screen;
     var paletteKey;
     var palette;
