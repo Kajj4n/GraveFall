@@ -536,6 +536,19 @@ GraveFallGame.scene.Game.FRAME_SOURCE = {
     dark: "#942f97"
 };
 
+// New flat background textures are authored with this 8-color source palette.
+// Keep these keys stable so future backgrounds can use the same palette map.
+GraveFallGame.scene.Game.BACKGROUND_SOURCE = {
+    glow: "#ff00ff",
+    bright: "#d000c2",
+    light: "#b408a1",
+    mid: "#9a009a",
+    base: "#800080",
+    shadow: "#510051",
+    deep: "#340034",
+    darkest: "#080008"
+};
+
 GraveFallGame.scene.Game.UI_SKINS = {
     dungeonGrey: {
         panelTop: "#141312",
@@ -544,7 +557,17 @@ GraveFallGame.scene.Game.UI_SKINS = {
             light: "#8F8B85",
             mid: "#5D5953",
             dark: "#2F2C29"
-        }
+        },
+        background: [
+            "#D7D2C8",
+            "#AAA59B",
+            "#827D74",
+            "#5D5953",
+            "#3F3B36",
+            "#25231F",
+            "#141312",
+            "#060605"
+        ]
     },
     dullBrown: {
         panelTop: "#211A14",
@@ -553,7 +576,17 @@ GraveFallGame.scene.Game.UI_SKINS = {
             light: "#B08C68",
             mid: "#7A5B3B",
             dark: "#463322"
-        }
+        },
+        background: [
+            "#F1C982",
+            "#C49358",
+            "#9B6E42",
+            "#704B2D",
+            "#463322",
+            "#2A1D13",
+            "#18120D",
+            "#070503"
+        ]
     },
     outsideCampfireBrown: {
         panelTop: "#15110D",
@@ -562,7 +595,17 @@ GraveFallGame.scene.Game.UI_SKINS = {
             light: "#765D45",
             mid: "#4E3926",
             dark: "#23180F"
-        }
+        },
+        background: [
+            "#FFD284",
+            "#D8893A",
+            "#A95C2F",
+            "#773A25",
+            "#4E261B",
+            "#2F1710",
+            "#140A07",
+            "#040201"
+        ]
     },
     outsideCampfireGrey: {
         panelTop: "#111111",
@@ -571,7 +614,17 @@ GraveFallGame.scene.Game.UI_SKINS = {
             light: "#66635F",
             mid: "#3F3C39",
             dark: "#1C1A18"
-        }
+        },
+        background: [
+            "#C8C1B8",
+            "#918B83",
+            "#6C6761",
+            "#4A4641",
+            "#302D29",
+            "#1C1A18",
+            "#0A0A0A",
+            "#030303"
+        ]
     },
     outsideCampfireDark: {
         panelTop: "#15110D",
@@ -580,7 +633,17 @@ GraveFallGame.scene.Game.UI_SKINS = {
             light: "#765D45",
             mid: "#4E3926",
             dark: "#23180F"
-        }
+        },
+        background: [
+            "#B8874C",
+            "#895C33",
+            "#614026",
+            "#42291A",
+            "#2B1A12",
+            "#1B100B",
+            "#0E0A07",
+            "#030201"
+        ]
     }
 };
 
@@ -696,7 +759,17 @@ GraveFallGame.scene.Game.RUN_PALETTES = [
                 light: hslToHex(baseHue, 14, 58),
                 mid: hslToHex(baseHue, 16, 34),
                 dark: hslToHex(baseHue, 18, 18)
-            }
+            },
+            background: [
+                hslToHex(baseHue + 4, 34, 70),
+                hslToHex(baseHue + 2, 30, 55),
+                hslToHex(baseHue, 28, 43),
+                hslToHex(baseHue - 2, 26, 32),
+                hslToHex(baseHue - 4, 24, 23),
+                hslToHex(baseHue - 6, 22, 15),
+                hslToHex(baseHue - 8, 18, 9),
+                hslToHex(baseHue - 10, 16, 4)
+            ]
         };
 
         GraveFallGame.scene.Game.UI_SKINS[outsideKey] = {
@@ -706,7 +779,17 @@ GraveFallGame.scene.Game.RUN_PALETTES = [
                 light: hslToHex(baseHue, 10, 52),
                 mid: hslToHex(baseHue, 12, 28),
                 dark: hslToHex(baseHue, 14, 14)
-            }
+            },
+            background: [
+                hslToHex(baseHue + 4, 24, 58),
+                hslToHex(baseHue + 2, 22, 45),
+                hslToHex(baseHue, 20, 34),
+                hslToHex(baseHue - 2, 18, 25),
+                hslToHex(baseHue - 4, 16, 18),
+                hslToHex(baseHue - 6, 14, 12),
+                hslToHex(baseHue - 8, 12, 7),
+                hslToHex(baseHue - 10, 10, 3)
+            ]
         };
 
         GraveFallGame.scene.Game.RUN_PALETTES.push({
@@ -1907,6 +1990,46 @@ GraveFallGame.scene.Game.prototype.getFramePaletteSwaps = function (uiSkin) {
             from: GraveFallGame.scene.Game.FRAME_SOURCE.dark,
             to: uiSkin.frame.dark
         }
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getBackgroundPaletteColors = function (uiSkin) {
+    uiSkin = uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+
+    if (uiSkin.background && uiSkin.background.length >= 8) {
+        return uiSkin.background;
+    }
+
+    return [
+        uiSkin.frame && uiSkin.frame.light ? uiSkin.frame.light : "#FFFFFF",
+        uiSkin.frame && uiSkin.frame.light ? uiSkin.frame.light : "#CCCCCC",
+        uiSkin.frame && uiSkin.frame.mid ? uiSkin.frame.mid : "#999999",
+        uiSkin.frame && uiSkin.frame.mid ? uiSkin.frame.mid : "#777777",
+        uiSkin.frame && uiSkin.frame.dark ? uiSkin.frame.dark : "#444444",
+        uiSkin.frame && uiSkin.frame.dark ? uiSkin.frame.dark : "#222222",
+        uiSkin.panelBottom || "#111111",
+        "#000000"
+    ];
+};
+
+GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps = function (uiSkin) {
+    var source = GraveFallGame.scene.Game.BACKGROUND_SOURCE;
+    var colors = GraveFallGame.scene.Game.prototype.getBackgroundPaletteColors.call(this, uiSkin);
+
+    return [
+        { from: source.glow, to: colors[0] },
+        { from: source.bright, to: colors[1] },
+        { from: source.light, to: colors[2] },
+        { from: source.mid, to: colors[3] },
+        { from: source.base, to: colors[4] },
+        { from: source.shadow, to: colors[5] },
+        { from: source.deep, to: colors[6] },
+        { from: source.darkest, to: colors[7] },
+
+        // Compatibility for older 3-color placeholder backgrounds.
+        { from: GraveFallGame.scene.Game.FRAME_SOURCE.light, to: colors[1] },
+        { from: GraveFallGame.scene.Game.FRAME_SOURCE.mid, to: colors[3] },
+        { from: GraveFallGame.scene.Game.FRAME_SOURCE.dark, to: colors[5] }
     ];
 };
 

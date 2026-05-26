@@ -48,6 +48,7 @@ GraveFallGame.scene.CharacterSelect.prototype.constructor = GraveFallGame.scene.
 
 GraveFallGame.scene.CharacterSelect.prototype.applyPaletteSwaps = GraveFallGame.scene.Game.prototype.applyPaletteSwaps;
 GraveFallGame.scene.CharacterSelect.prototype.getFramePaletteSwaps = GraveFallGame.scene.Game.prototype.getFramePaletteSwaps;
+GraveFallGame.scene.CharacterSelect.prototype.getBackgroundPaletteSwaps = GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps;
 GraveFallGame.scene.CharacterSelect.prototype.getClothingPaletteSwaps = GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps;
 GraveFallGame.scene.CharacterSelect.prototype.applyMonochromeIconColor = GraveFallGame.scene.Game.prototype.applyMonochromeIconColor;
 GraveFallGame.scene.CharacterSelect.prototype.resourceExists = GraveFallGame.scene.Game.prototype.resourceExists;
@@ -166,7 +167,7 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     this.selectionSkin = this.runPalette.inside;
 
     this.background = new rune.display.Sprite(0, 0, screenWidth, screenHeight, "Outside_Campfire");
-    this.applyPaletteSwaps(this.background, this.getFramePaletteSwaps(this.backgroundSkin));
+    this.applyPaletteSwaps(this.background, this.getBackgroundPaletteSwaps(this.backgroundSkin));
     this.stage.addChild(this.background);
 
     this.titleText = new rune.text.BitmapField("SELECT CHARACTER");

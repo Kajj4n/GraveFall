@@ -36,6 +36,7 @@ GraveFallGame.scene.Menu.prototype.constructor = GraveFallGame.scene.Menu;
 
 GraveFallGame.scene.Menu.prototype.applyPaletteSwaps = GraveFallGame.scene.Game.prototype.applyPaletteSwaps;
 GraveFallGame.scene.Menu.prototype.getFramePaletteSwaps = GraveFallGame.scene.Game.prototype.getFramePaletteSwaps;
+GraveFallGame.scene.Menu.prototype.getBackgroundPaletteSwaps = GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps;
 GraveFallGame.scene.Menu.prototype.applyMonochromeIconColor = GraveFallGame.scene.Game.prototype.applyMonochromeIconColor;
 GraveFallGame.scene.Menu.prototype.createFramePiece = GraveFallGame.scene.Game.prototype.createFramePiece;
 GraveFallGame.scene.Menu.prototype.createBoxFrame = GraveFallGame.scene.Game.prototype.createBoxFrame;
@@ -72,8 +73,8 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     this.menuSkin = palette.inside;
     framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
 
-    background = new rune.display.Sprite(0, 0, screen.width, screen.height, "Outside_Campfire");
-    this.applyPaletteSwaps(background, this.getFramePaletteSwaps(this.backgroundSkin));
+    background = new rune.display.Sprite(0, 0, screen.width, screen.height, "MainMenu_Background");
+    this.applyPaletteSwaps(background, this.getBackgroundPaletteSwaps(this.backgroundSkin));
     this.stage.addChild(background);
     this.background = background;
 

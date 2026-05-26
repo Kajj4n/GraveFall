@@ -72,7 +72,7 @@ GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, ui
         resource
     );
 
-    this.applyPaletteSwaps(newBackground, this.getFramePaletteSwaps(uiSkin));
+    this.applyPaletteSwaps(newBackground, this.getBackgroundPaletteSwaps(uiSkin));
 
     if (oldBackground && keepTransform === true) {
         newBackground.x = oldBackground.x;

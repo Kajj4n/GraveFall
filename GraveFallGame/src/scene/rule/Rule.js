@@ -39,6 +39,7 @@ GraveFallGame.scene.Rule.prototype.constructor = GraveFallGame.scene.Rule;
 
 GraveFallGame.scene.Rule.prototype.applyPaletteSwaps = GraveFallGame.scene.Game.prototype.applyPaletteSwaps;
 GraveFallGame.scene.Rule.prototype.getFramePaletteSwaps = GraveFallGame.scene.Game.prototype.getFramePaletteSwaps;
+GraveFallGame.scene.Rule.prototype.getBackgroundPaletteSwaps = GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps;
 GraveFallGame.scene.Rule.prototype.getProjectilePaletteSwaps = GraveFallGame.scene.Game.prototype.getProjectilePaletteSwaps;
 GraveFallGame.scene.Rule.prototype.applyMonochromeIconColor = GraveFallGame.scene.Game.prototype.applyMonochromeIconColor;
 GraveFallGame.scene.Rule.prototype.createFramePiece = GraveFallGame.scene.Game.prototype.createFramePiece;
@@ -87,8 +88,8 @@ GraveFallGame.scene.Rule.prototype.init = function () {
         { title: "MINIGAMES", renderer: this.renderMinigamesPage }
     ];
 
-    background = new rune.display.Sprite(0, 0, screen.width, screen.height, "Outside_Campfire");
-    this.applyPaletteSwaps(background, this.getFramePaletteSwaps(this.backgroundSkin));
+    background = new rune.display.Sprite(0, 0, screen.width, screen.height, "MainMenu_Background");
+    this.applyPaletteSwaps(background, this.getBackgroundPaletteSwaps(this.backgroundSkin));
     this.stage.addChild(background);
 
     shell = this.createPanel(42, 26, screen.width - 84, screen.height - 94, this.menuSkin, framePaletteSwaps);

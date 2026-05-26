@@ -154,7 +154,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.backgroundBackdropResource = "Outside_Campfire";
     this.applyPaletteSwaps(
         this.backgroundBackdrop,
-        this.getFramePaletteSwaps(this.outsideUiSkin)
+        this.getBackgroundPaletteSwaps(this.outsideUiSkin)
     );
     this.stage.addChild(this.backgroundBackdrop);
 
