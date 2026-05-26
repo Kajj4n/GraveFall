@@ -93,11 +93,11 @@ GraveFallGame.scene.Rule.prototype.init = function () {
     this.stage.addChild(shell);
     this.shell = shell;
 
-    title = this.createText("HOW TO PLAY", 0, 56, 3.3, 520);
+    title = this.createText("HOW TO PLAY", 0, 60, 3.3, 520);
     this.centerText(title, screen.centerX, 3.3);
     this.stage.addChild(title);
 
-    subtitle = this.createText("A LOCAL 1-4 PLAYER GAME GUIDE", 0, 104, 1.45, 620);
+    subtitle = this.createText("A LOCAL 1-4 PLAYER GAME GUIDE", 0, 100, 1.45, 620);
     this.centerText(subtitle, screen.centerX, 1.45);
     this.stage.addChild(subtitle);
     this.tintBitmapFieldText(subtitle, this.menuSkin.frame.light, true);
@@ -216,15 +216,12 @@ GraveFallGame.scene.Rule.prototype.createPanel = function (x, y, width, height, 
     var panel = new rune.display.DisplayObjectContainer(x, y, width, height);
     var top = new rune.display.Graphic(0, 0, width, Math.round(height * 0.45));
     var bottom = new rune.display.Graphic(0, Math.round(height * 0.45), width, height - Math.round(height * 0.45));
-    var accent = new rune.display.Graphic(16, 16, width - 32, 4);
 
     top.backgroundColor = skin.panelTop;
     bottom.backgroundColor = skin.panelBottom;
-    accent.backgroundColor = skin.frame.mid;
 
     panel.addChild(top);
     panel.addChild(bottom);
-    panel.addChild(accent);
     panel.addChild(this.createBoxFrame(0, 0, width, height, framePaletteSwaps));
 
     return panel;
@@ -335,7 +332,7 @@ GraveFallGame.scene.Rule.prototype.createPageDots = function () {
     this.pageDots = [];
 
     for (i = 0; i < this.pages.length; i++) {
-        dot = new rune.display.Graphic(startX + (i * 28), 630, 14, 14);
+        dot = new rune.display.Graphic(startX + (i * 28), 618, 14, 14);
         dot.backgroundColor = GraveFallGame.scene.Game.PLAYER_THEMES[i].accent;
         this.stage.addChild(dot);
         this.pageDots.push(dot);
@@ -365,7 +362,7 @@ GraveFallGame.scene.Rule.prototype.renderPage = function () {
         this.pageContainer.parent.removeChild(this.pageContainer, true);
     }
 
-    this.pageContainer = new rune.display.DisplayObjectContainer(74, 198, 1132, 414);
+    this.pageContainer = new rune.display.DisplayObjectContainer(74, 186, 1132, 414);
     this.stage.addChild(this.pageContainer);
 
     renderer = this.pages[this.pageIndex].renderer;
