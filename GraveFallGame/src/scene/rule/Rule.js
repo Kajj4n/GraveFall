@@ -95,11 +95,11 @@ GraveFallGame.scene.Rule.prototype.init = function () {
     this.stage.addChild(shell);
     this.shell = shell;
 
-    title = this.createText("HOW TO PLAY", 0, 60, 3.3, 520);
+    title = this.createText("HOW TO PLAY", 0, 56, 3.3, 520);
     this.centerText(title, screen.centerX, 3.3);
     this.stage.addChild(title);
 
-    subtitle = this.createText("A LOCAL 1-4 PLAYER GAME GUIDE", 0, 100, 1.45, 620);
+    subtitle = this.createText("A LOCAL 1-4 PLAYER GAME GUIDE", 0, 104, 1.45, 620);
     this.centerText(subtitle, screen.centerX, 1.45);
     this.stage.addChild(subtitle);
     this.tintBitmapFieldText(subtitle, this.menuSkin.frame.light, true);
@@ -364,7 +364,7 @@ GraveFallGame.scene.Rule.prototype.renderPage = function () {
         this.pageContainer.parent.removeChild(this.pageContainer, true);
     }
 
-    this.pageContainer = new rune.display.DisplayObjectContainer(74, 186, 1132, 414);
+    this.pageContainer = new rune.display.DisplayObjectContainer(74, 198, 1132, 414);
     this.stage.addChild(this.pageContainer);
 
     renderer = this.pages[this.pageIndex].renderer;
@@ -392,21 +392,18 @@ GraveFallGame.scene.Rule.prototype.renderOverviewPage = function (root) {
     var card;
     var enemyCard;
 
-    card = this.createRuleCard(root, 18, 0, 530, 306, "BASIC RULES", colors[0].accent);
+    card = this.createRuleCard(root, 22, 0, 530, 306, "BASIC RULES", colors[0].accent);
     this.addCardLine(card, "1-4 LOCAL PLAYERS CAN JOIN THE RUN.", 28, 54, 1.18);
-    this.addCardLine(card, "CONTROLLER IS THE PREFERRED PLAY METHOD.", 28, 82, 1.18, this.menuSkin.frame.light);
-    this.addCardLine(card, "KEYBOARD ALSO WORKS BUT MIGHT BE CONFUSING.", 28, 110, 1.18);
-    this.addCardLine(card, "EACH PLAYER PICKS A CLASS TO PLAY AS.", 28, 138, 1.18);
-    this.addCardLine(card, "COMMAND PHASE: CHOOSE FIGHT, DEFEND, BUFF, OR ITEM.", 28, 166, 1.18);
-    this.addCardLine(card, "ACTION PHASE: MOVE IN THE ARENA, AVOID HAZARDS AND PICK UP ITEMS.", 28, 194, 1.18);
-    this.addCardLine(card, "IF EVERYONE IS DOWN, THE RUN ENDS.", 28, 222, 1.18, colors[0].accentLight);
+    this.addCardLine(card, "EACH PLAYER PICKS A CLASS TO PLAY AS.", 28, 82, 1.18);
+    this.addCardLine(card, "COMMAND PHASE: CHOOSE FIGHT, DEFEND, BUFF, OR ITEM.", 28, 110, 1.18);
+    this.addCardLine(card, "ACTION PHASE: MOVE IN THE ARENA, AVOID HAZARDS AND PICK UP ITEMS.", 28, 138, 1.18);
+    this.addCardLine(card, "IF EVERYONE IS DOWN, THE RUN ENDS.", 28, 166, 1.18);
 
-    enemyCard = this.createRuleCard(root, 582, 0, 530, 306, "ENEMY LOOP AND HP", colors[2].accent);
+    enemyCard = this.createRuleCard(root, 564, 0, 530, 306, "ENEMY LOOP AND HP", colors[2].accent);
     this.addCardLine(enemyCard, "YOU FIGHT TWO NORMAL ENEMIES, THEN ONE BOSS.", 28, 54, 1.18);
-    this.addCardLine(enemyCard, "YOU MAY ENCOUNTER EVENTS BETWEEN FIGHTS, CAN BE GOOD OR BAD.", 28, 82, 1.18);
-    this.addCardLine(enemyCard, "KILLING AN ENEMY RESTORES A SMALL AMOUNT OF HP.", 28, 110, 1.18);
-    this.addCardLine(enemyCard, "ANY HP GAIN CAN BRING DOWNED PLAYERS BACK UP.", 28, 138, 1.18);
-    this.addCardLine(enemyCard, "KILLING A BOSS WILL MAKE EVERY PLAYER BUTTON MASH FOR EXTRA SCORE.", 28, 166, 1.18);
+    this.addCardLine(enemyCard, "KILLING AN ENEMY RESTORES A SMALL AMOUNT OF HP.", 28, 82, 1.18);
+    this.addCardLine(enemyCard, "ANY HP GAIN CAN BRING DOWNED PLAYERS BACK UP.", 28, 110, 1.18);
+    this.addCardLine(enemyCard, "KILLING A BOSS WILL MAKE EVERY PLAYER BUTTON MASH FOR EXTRA SCORE.", 28, 138, 1.18);
 
     this.createEnemyStep(enemyCard, 38, 206, "ENEMY 1", "Ghoul_Idle_T", colors[0].accent);
     this.createEnemyStep(enemyCard, 204, 206, "ENEMY 2", "BoneCaller_Idle_T", colors[1].accent);
@@ -419,38 +416,35 @@ GraveFallGame.scene.Rule.prototype.renderControlsPage = function (root) {
     var keyCard;
     var header;
 
-    card = this.createRuleCard(root, 18, 0, 530, 410, "CONTROLLER LAYOUT", colors[1].accent);
-    this.addCardLine(card, "ONE CONTROLLER PER PLAYER.", 28, 54, 1.18, this.menuSkin.frame.light);
+    card = this.createRuleCard(root, 22, 0, 530, 410, "CONTROLLER LAYOUT", colors[1].accent);
+    this.addCardLine(card, "SHOWN BUTTON PROMPTS MAY DIFFER FROM YOUR GAMING CONTROLLER.", 24, 40, 1.0, this.menuSkin.frame.light);
 
-    this.createSmallIcon(card, 54, 100, "Gamepad_Button_Up_T", 0.44, colors[2].accentLight);
-    this.createSmallIcon(card, 22, 132, "Gamepad_Button_Left_T", 0.44, colors[1].accentLight);
-    this.createSmallIcon(card, 86, 132, "Gamepad_Button_Right_T", 0.44, colors[0].accentLight);
-    this.createSmallIcon(card, 54, 164, "Gamepad_Button_Down_T", 0.44, colors[3].accentLight);
-    this.addCardLine(card, "D-PAD / LEFT STICK", 156, 120, 1.35, colors[2].accentLight);
-    this.addCardLine(card, "MOVE, EVADE, SELECT, AIM, AND NAVIGATE.", 156, 150, 1.1);
+    this.createSmallIcon(card, 56, 96, "Gamepad_Button_Up_T", 0.44, colors[2].accentLight);
+    this.createSmallIcon(card, 24, 128, "Gamepad_Button_Left_T", 0.44, colors[1].accentLight);
+    this.createSmallIcon(card, 88, 128, "Gamepad_Button_Right_T", 0.44, colors[0].accentLight);
+    this.createSmallIcon(card, 56, 160, "Gamepad_Button_Down_T", 0.44, colors[3].accentLight);
+    this.addCardLine(card, "D-PAD / LEFT STICK", 156, 116, 1.35, colors[2].accentLight);
+    this.addCardLine(card, "MOVE, EVADE, SELECT, AIM, AND NAVIGATE.", 156, 144, 1.1);
 
-    this.createSmallIcon(card, 54, 234, "Y_Button_Icon_T", 0.44, colors[2].accentLight);
-    this.createSmallIcon(card, 22, 266, "X_Button_Icon_T", 0.44, colors[1].accentLight);
-    this.createSmallIcon(card, 86, 266, "B_Button_Icon_T", 0.44, colors[0].accentLight);
-    this.createSmallIcon(card, 54, 298, "A_Button_Icon_T", 0.44, colors[3].accentLight);
-    this.addCardLine(card, "FACE BUTTONS", 156, 246, 1.35, colors[3].accentLight);
-    this.addCardLine(card, "A = CONFIRM / ATTACK / ACCEPT.", 156, 276, 1.1);
-    this.addCardLine(card, "B = BACK / CANCEL / RETURN TO PREVIOUS MENU.", 156, 302, 1.1, colors[0].accentLight);
-    this.addCardLine(card, "X / Y / A / B ARE ALSO USED IN MINIGAMES.", 156, 328, 1.1);
-    this.addCardLine(card, "SHOWN BUTTON PROMPTS MAY DIFFER FROM YOUR GAMING CONTROLLER.", 28, 372, 1.0, this.menuSkin.frame.light);
+    this.createSmallIcon(card, 56, 238, "Y_Button_Icon_T", 0.44, colors[2].accentLight);
+    this.createSmallIcon(card, 24, 270, "X_Button_Icon_T", 0.44, colors[1].accentLight);
+    this.createSmallIcon(card, 88, 270, "B_Button_Icon_T", 0.44, colors[0].accentLight);
+    this.createSmallIcon(card, 56, 302, "A_Button_Icon_T", 0.44, colors[3].accentLight);
+    this.addCardLine(card, "FACE BUTTONS", 156, 240, 1.35, colors[3].accentLight);
+    this.addCardLine(card, "A = CONFIRM / ATTACK / ACCEPT.", 156, 270, 1.1);
+    this.addCardLine(card, "B = BACK / CANCEL / RETURN TO PREVIOUS MENU.", 156, 296, 1.1);
+    this.addCardLine(card, "X / Y / A / B ARE ALSO USED IN MINIGAMES.", 156, 322, 1.1);
 
-    keyCard = this.createRuleCard(root, 582, 0, 530, 410, "KEYBOARD MAP", colors[0].accent);
-    this.addCardLine(keyCard, "ESC = OPEN / LEAVE MENUS      BACKSPACE = BACK", 24, 48, 1.06, this.menuSkin.frame.light);
+    keyCard = this.createRuleCard(root, 564, 0, 530, 410, "KEYBOARD MAP", colors[0].accent);
+    this.addCardLine(keyCard, "ESC = OPEN / LEAVE MENUS      BACKSPACE = BACK", 24, 40, 1.06, this.menuSkin.frame.light);
 
-    header = this.createPlayerHeaderRow(keyCard, 24, 84, 482);
+    header = this.createPlayerHeaderRow(keyCard, 24, 74, 482);
     header.alpha = 0.9;
 
-    this.createPlayerControlRow(keyCard, 24, 120, "P1", "MOVE: W A S D", "MENU: A / D", "OK: SPACE", colors[0].accent);
-    this.createPlayerControlRow(keyCard, 24, 180, "P2", "MOVE: ARROWS", "MENU: LEFT / RIGHT", "OK: ENTER", colors[1].accent);
-    this.createPlayerControlRow(keyCard, 24, 240, "P3", "MOVE: I J K L", "MENU: J / L", "OK: M", colors[2].accent);
-    this.createPlayerControlRow(keyCard, 24, 300, "P4", "MOVE: T F G H", "MENU: V / N", "OK: B", colors[3].accent);
-
-    this.addCardLine(keyCard, "MINIGAMES USE EACH PLAYER'S MOVEMENT KEYS ON KEYBOARD.", 24, 370, 1.0, this.menuSkin.frame.light);
+    this.createPlayerControlRow(keyCard, 24, 110, "P1", "W A S D", "A / D", "SPACE", colors[0].accent);
+    this.createPlayerControlRow(keyCard, 24, 170, "P2", "ARROWS", "LEFT / RIGHT", "ENTER", colors[1].accent);
+    this.createPlayerControlRow(keyCard, 24, 230, "P3", "I J K L", "J / L", "M", colors[2].accent);
+    this.createPlayerControlRow(keyCard, 24, 290, "P4", "T F G H", "V / N", "B", colors[3].accent);
 };
 
 GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
@@ -460,19 +454,19 @@ GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
     var arena;
     var icon;
 
-    commandCard = this.createRuleCard(root, 18, 0, 530, 410, "COMMAND PHASE", colors[2].accent);
-    this.addCardLine(commandCard, "MOVE LEFT / RIGHT BETWEEN COMMANDS, THEN CONFIRM.", 26, 54, 1.08, this.menuSkin.frame.light);
-    this.createCommandIconCard(commandCard, 28, 96, "FIGHT", "Fight_Icon_T", colors[0].accent, "START ATTACK MINIGAME");
-    this.createCommandIconCard(commandCard, 280, 96, "DEFEND", "Defend_Icon_T", colors[1].accent, "PROTECT SELF OR ALLY");
-    this.createCommandIconCard(commandCard, 28, 224, "BUFF", "Buff_Icon_T", colors[2].accent, "USE CLASS SUPPORT");
-    this.createCommandIconCard(commandCard, 280, 224, "ITEM", "Item_Icon_T", colors[3].accent, "HEAL OR PERMANENT BUFF");
+    commandCard = this.createRuleCard(root, 22, 0, 530, 410, "COMMAND PHASE", colors[2].accent);
+    this.addCardLine(commandCard, "MOVE LEFT / RIGHT BETWEEN COMMANDS, THEN CONFIRM.", 24, 40, 1.08, this.menuSkin.frame.light);
+    this.createCommandIconCard(commandCard, 28, 88, "FIGHT", "Fight_Icon_T", colors[0].accent, "START ATTACK MINIGAME");
+    this.createCommandIconCard(commandCard, 280, 88, "DEFEND", "Defend_Icon_T", colors[1].accent, "PROTECT SELF OR ALLY");
+    this.createCommandIconCard(commandCard, 28, 216, "BUFF", "Buff_Icon_T", colors[2].accent, "USE CLASS SUPPORT");
+    this.createCommandIconCard(commandCard, 280, 216, "ITEM", "Item_Icon_T", colors[3].accent, "HEAL OR PERMANENT BUFF");
 
-    arenaCard = this.createRuleCard(root, 582, 0, 530, 410, "ACTION PHASE", colors[3].accent);
-    this.addCardLine(arenaCard, "AFTER COMMANDS RESOLVE, THE ENEMY ATTACK PATTERN STARTS.", 26, 54, 1.02, this.menuSkin.frame.light);
-    this.addCardLine(arenaCard, "MOVE AROUND THE ARENA AND AVOID ENEMY PROJECTILES.", 26, 78, 1.06);
-    this.addCardLine(arenaCard, "SURVIVE THE TIMER TO REACH THE NEXT COMMAND TURN.", 26, 102, 1.06);
+    arenaCard = this.createRuleCard(root, 564, 0, 530, 410, "ACTION PHASE", colors[3].accent);
+    this.addCardLine(arenaCard, "AFTER COMMANDS RESOLVE, THE ENEMY ATTACK PATTERN STARTS.", 24, 40, 1.02, this.menuSkin.frame.light);
+    this.addCardLine(arenaCard, "MOVE AROUND THE ARENA AND AVOID ENEMY PROJECTILES.", 26, 70, 1.06);
+    this.addCardLine(arenaCard, "SURVIVE THE TIMER TO REACH THE NEXT COMMAND TURN.", 26, 94, 1.06);
 
-    arena = new rune.display.DisplayObjectContainer(46, 136, 434, 166);
+    arena = new rune.display.DisplayObjectContainer(48, 126, 434, 166);
     arena.backgroundColor = "#090807";
     arena.addChild(this.createBoxFrame(0, 0, 434, 166, this.getFramePaletteSwaps(this.menuSkin)));
     arenaCard.addChild(arena);
@@ -489,21 +483,20 @@ GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
     icon = this.createSmallIcon(arena, 244, 54, "Ranger_Icon_T", 0.34, colors[2].accent);
     icon = this.createSmallIcon(arena, 324, 86, "Assassin_Icon_T", 0.34, colors[3].accent);
 
-    this.addCardLine(arenaCard, "PLAYER COLORS REMAIN THE SAME THROUGHOUT A RUN.", 36, 316, 1.0, this.menuSkin.frame.light);
-    this.createPlayerColorLegend(arenaCard, 40, 340, "P1", "Fighter_Icon_T", colors[0].accent, "RED");
-    this.createPlayerColorLegend(arenaCard, 156, 340, "P2", "Wizard_Icon_T", colors[1].accent, "BLUE");
-    this.createPlayerColorLegend(arenaCard, 272, 340, "P3", "Ranger_Icon_T", colors[2].accent, "YELLOW");
-    this.createPlayerColorLegend(arenaCard, 388, 340, "P4", "Assassin_Icon_T", colors[3].accent, "GREEN");
+    this.createPlayerColorLegend(arenaCard, 40, 336, "P1", "Fighter_Icon_T", colors[0].accent, "RED");
+    this.createPlayerColorLegend(arenaCard, 156, 336, "P2", "Wizard_Icon_T", colors[1].accent, "BLUE");
+    this.createPlayerColorLegend(arenaCard, 272, 336, "P3", "Ranger_Icon_T", colors[2].accent, "YELLOW");
+    this.createPlayerColorLegend(arenaCard, 388, 336, "P4", "Assassin_Icon_T", colors[3].accent, "GREEN");
 };
 
 GraveFallGame.scene.Rule.prototype.renderMinigamesPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
     var colorCard;
 
-    this.createMinigamePreviewCard(root, 4, 0, 270, 222, "FIGHTER", "Fighter_Icon_T", colors[0].accent, "buttonMash");
-    this.createMinigamePreviewCard(root, 286, 0, 270, 222, "WIZARD", "Wizard_Icon_T", colors[1].accent, "sequence");
-    this.createMinigamePreviewCard(root, 568, 0, 270, 222, "RANGER", "Ranger_Icon_T", colors[2].accent, "aim");
-    this.createMinigamePreviewCard(root, 850, 0, 270, 222, "ASSASSIN", "Assassin_Icon_T", colors[3].accent, "timing");
+    this.createMinigamePreviewCard(root, 0, 0, 270, 222, "FIGHTER", "Fighter_Icon_T", colors[0].accent, "buttonMash");
+    this.createMinigamePreviewCard(root, 282, 0, 270, 222, "WIZARD", "Wizard_Icon_T", colors[1].accent, "sequence");
+    this.createMinigamePreviewCard(root, 564, 0, 270, 222, "RANGER", "Ranger_Icon_T", colors[2].accent, "aim");
+    this.createMinigamePreviewCard(root, 846, 0, 270, 222, "ASSASSIN", "Assassin_Icon_T", colors[3].accent, "timing");
 };
 
 //------------------------------------------------------------------------------
@@ -567,10 +560,10 @@ GraveFallGame.scene.Rule.prototype.createPlayerHeaderRow = function (parent, x, 
     bg.backgroundColor = this.menuSkin.panelBottom;
     row.addChild(bg);
     row.addChild(this.createBoxFrame(0, 0, width, 28, this.getFramePaletteSwaps(this.menuSkin)));
-    row.addChild(this.createText("PLAYER", 16, 7, 1.05, 68));
-    row.addChild(this.createText("MOVE", 100, 7, 1.05, 130));
-    row.addChild(this.createText("MENU", 248, 7, 1.05, 130));
-    row.addChild(this.createText("OK", 408, 7, 1.05, 58));
+    row.addChild(this.createText("", 16, 10, 1.05, 68));
+    row.addChild(this.createText("MOVE", 73, 10, 1.05, 130));
+    row.addChild(this.createText("MENU", 225, 10, 1.05, 130));
+    row.addChild(this.createText("OK", 397, 10, 1.05, 58));
     parent.addChild(row);
     this.tintBitmapFieldText(row.getChildAt(2), this.menuSkin.frame.light, true);
     this.tintBitmapFieldText(row.getChildAt(3), this.menuSkin.frame.light, true);
@@ -672,7 +665,10 @@ GraveFallGame.scene.Rule.prototype.createMinigamePreviewCard = function (parent,
     if (type === "aim") instructionText = "MOVE/STICK STEERS, CONFIRM SHOOTS.";
     if (type === "timing") instructionText = "CONFIRM AS RETICLE CROSSES CENTER.";
 
-    this.addCardLine(card, instructionText, 12, 188, 1.05, this.menuSkin.frame.light);
+    var instruction = this.createText(instructionText, 0, 186, 1.02, width);
+    this.centerText(instruction, Math.round(width / 2), 1.02);
+    card.addChild(instruction);
+    this.tintBitmapFieldText(instruction, this.menuSkin.frame.light, true);
 
     return panel;
 };
