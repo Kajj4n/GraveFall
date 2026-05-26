@@ -2372,7 +2372,7 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         var portraitWidth = 100;
         var portraitHeight = 100;
         var portraitX = Math.round((cardWidth / 2) - ((portraitWidth * portraitScale) / 2));
-        var portraitY = 34;
+        var portraitY = 44;
 
         if (!standResource || !this.resourceExists(standResource)) {
             sprite = new rune.display.Graphic(Math.round((cardWidth / 2) - 42), portraitY + 8, 84, 84);
@@ -2412,8 +2412,8 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         var field = new rune.text.BitmapField(safeText);
 
         field.width = width;
-        field.scaleX = 0.95;
-        field.scaleY = 0.95;
+        field.scaleX = 1.1;
+        field.scaleY = 1.1;
         field.x = x;
         field.y = y;
 
@@ -2429,7 +2429,6 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         var bgTop = new rune.display.Graphic(0, 0, width, Math.round(height * 0.38));
         var bgBottom = new rune.display.Graphic(0, Math.round(height * 0.38), width, Math.round(height * 0.62));
         var accent = new rune.display.Graphic(0, 0, 8, height);
-        var portraitBg = new rune.display.Graphic(14, 28, width - 28, 132);
         var badgeBg = new rune.display.Graphic(18, 10, width - 36, 22);
         var badgeText = new rune.text.BitmapField("");
         var nameText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText(playerEntry.name || "PLAYER") : String(playerEntry.name || "PLAYER"));
@@ -2451,10 +2450,10 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
             { label: "ITEMS", value: stats.itemsUsed },
             { label: "KOs", value: stats.enemiesDefeated }
         ];
-        var statTextY = 196;
-        var statLeftX = 18;
-        var statRightX = Math.floor(width / 2) + 4;
-        var statLineGap = 23;
+        var statTextY = 204;
+        var statLeftX = 20;
+        var statRightX = Math.floor(width / 2) + 8;
+        var statLineGap = 27;
         var i;
         var statLine;
         var footerText;
@@ -2463,27 +2462,24 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         bgBottom.backgroundColor = uiSkin.panelBottom;
         bgBottom.alpha = 0.97;
         accent.backgroundColor = theme.accent;
-        portraitBg.backgroundColor = uiSkin.panelTop;
-        portraitBg.alpha = 0.88;
         badgeBg.backgroundColor = theme.accentDark;
         badgeBg.alpha = 0.98;
 
         badgeText.text = this.sanitizeBitmapText ? this.sanitizeBitmapText("BEST: " + (bestStat.label || "")) : ("BEST: " + (bestStat.label || ""));
         badgeText.width = width - 44;
-        badgeText.scaleX = 1.1;
-        badgeText.scaleY = 1.1;
+        badgeText.scaleX = 1.25;
+        badgeText.scaleY = 1.25;
         badgeText.x = 28;
-        badgeText.y = 14;
+        badgeText.y = 12;
 
         nameText.width = width - 24;
-        nameText.scaleX = 1.7;
-        nameText.scaleY = 1.7;
-        nameText.x = Math.round((width / 2) - ((nameText.text.length * 6 * 1.7) / 2));
-        nameText.y = 156;
+        nameText.scaleX = 1.9;
+        nameText.scaleY = 1.9;
+        nameText.x = Math.round((width / 2) - ((nameText.text.length * 6 * 1.9) / 2));
+        nameText.y = 150;
 
         card.addChild(bgTop);
         card.addChild(bgBottom);
-        card.addChild(portraitBg);
         card.addChild(badgeBg);
         card.addChild(accent);
         if (portrait) {
@@ -2521,14 +2517,18 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         footerText = this.createGameOverStatLine(
             "BEST: " + (this.sanitizeBitmapText ? this.sanitizeBitmapText(bestStat.label || "") : (bestStat.label || "")) + " - " + String(bestStat.value || 0),
-            18,
-            height - 26,
-            width - 36,
+            20,
+            height - 34,
+            width - 40,
             theme.accentLight
         );
         card.addChild(footerText);
 
         card.addChild(this.createBoxFrame(0, 0, width, height, this.getFramePaletteSwaps(uiSkin)));
+
+        if (typeof this.tintBitmapFieldText === "function") {
+            this.tintBitmapFieldText(footerText, theme.accentLight, true);
+        }
 
         return card;
     };
@@ -2543,10 +2543,10 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         var panelW = screen.width - 88;
         var panelH = screen.height - 112;
         var headerY = 16;
-        var cardsY = 122;
+        var cardsY = 116;
         var cardGap = 16;
         var cardWidth;
-        var cardHeight = 356;
+        var cardHeight = 410;
         var totalWidth;
         var startX;
         var i;
@@ -2567,9 +2567,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         titleText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("POST-BATTLE STATS") : "POST-BATTLE STATS");
         titleText.width = 1200;
-        titleText.scaleX = 3.2;
-        titleText.scaleY = 3.2;
-        titleText.x = Math.round((panelW / 2) - ((titleText.text.length * 6 * 3.2) / 2));
+        titleText.scaleX = 3.55;
+        titleText.scaleY = 3.55;
+        titleText.x = Math.round((panelW / 2) - ((titleText.text.length * 6 * 3.55) / 2));
         titleText.y = headerY;
         this.gameOverStatsPanel.addChild(titleText);
         if (typeof this.tintBitmapFieldText === "function") {
@@ -2578,9 +2578,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         partyText = new rune.text.BitmapField("PARTY: " + (this.sanitizeBitmapText ? this.sanitizeBitmapText(summary.partyName || "THE FALLEN") : String(summary.partyName || "THE FALLEN")));
         partyText.width = 1200;
-        partyText.scaleX = 2.2;
-        partyText.scaleY = 2.2;
-        partyText.x = Math.round((panelW / 2) - ((partyText.text.length * 6 * 2.2) / 2));
+        partyText.scaleX = 2.45;
+        partyText.scaleY = 2.45;
+        partyText.x = Math.round((panelW / 2) - ((partyText.text.length * 6 * 2.45) / 2));
         partyText.y = 54;
         this.gameOverStatsPanel.addChild(partyText);
         if (typeof this.tintBitmapFieldText === "function") {
@@ -2589,9 +2589,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         scoreText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("FINAL SCORE: " + String(summary.score)) : ("FINAL SCORE: " + String(summary.score)));
         scoreText.width = 800;
-        scoreText.scaleX = 2;
-        scoreText.scaleY = 2;
-        scoreText.x = Math.round((panelW / 2) - ((scoreText.text.length * 6 * 2) / 2));
+        scoreText.scaleX = 2.25;
+        scoreText.scaleY = 2.25;
+        scoreText.x = Math.round((panelW / 2) - ((scoreText.text.length * 6 * 2.25) / 2));
         scoreText.y = 88;
         this.gameOverStatsPanel.addChild(scoreText);
         if (typeof this.tintBitmapFieldText === "function") {
@@ -2611,9 +2611,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         if (!summary.players || summary.players.length <= 0) {
             var noPlayers = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("NO PARTY DATA AVAILABLE") : "NO PARTY DATA AVAILABLE");
             noPlayers.width = 1000;
-            noPlayers.scaleX = 1.6;
-            noPlayers.scaleY = 1.6;
-            noPlayers.x = Math.round((panelW / 2) - ((noPlayers.text.length * 6 * 1.6) / 2));
+            noPlayers.scaleX = 1.85;
+            noPlayers.scaleY = 1.85;
+            noPlayers.x = Math.round((panelW / 2) - ((noPlayers.text.length * 6 * 1.85) / 2));
             noPlayers.y = 210;
             this.gameOverStatsPanel.addChild(noPlayers);
             if (typeof this.tintBitmapFieldText === "function") {
@@ -2622,7 +2622,7 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         } else {
             cardGap = summary.players.length > 4 ? 10 : 16;
             cardWidth = Math.floor((panelW - 40 - (cardGap * (summary.players.length - 1))) / summary.players.length);
-            cardWidth = Math.max(230, Math.min(280, cardWidth));
+            cardWidth = Math.max(250, Math.min(310, cardWidth));
             totalWidth = (cardWidth * summary.players.length) + (cardGap * (summary.players.length - 1));
             startX = Math.round((panelW - totalWidth) / 2);
 
@@ -2636,13 +2636,13 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         if (!this.gameOverCountdownText) {
             this.gameOverCountdownText = new rune.text.BitmapField("");
             this.gameOverCountdownText.width = 1200;
-            this.gameOverCountdownText.scaleX = 1.5;
-            this.gameOverCountdownText.scaleY = 1.5;
+            this.gameOverCountdownText.scaleX = 1.7;
+            this.gameOverCountdownText.scaleY = 1.7;
             this.gameOverStatsPanel.addChild(this.gameOverCountdownText);
         }
 
         this.gameOverCountdownText.text = this.sanitizeBitmapText ? this.sanitizeBitmapText("LEADERBOARD IN 20 SECONDS") : "LEADERBOARD IN 20 SECONDS";
-        this.gameOverCountdownText.x = Math.round((panelW / 2) - ((this.gameOverCountdownText.text.length * 6 * 1.5) / 2));
+        this.gameOverCountdownText.x = Math.round((panelW / 2) - ((this.gameOverCountdownText.text.length * 6 * 1.7) / 2));
         this.gameOverCountdownText.y = panelH - 54;
         if (typeof this.tintBitmapFieldText === "function") {
             this.tintBitmapFieldText(this.gameOverCountdownText, uiSkin.frame.light, true);
@@ -2651,13 +2651,13 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         if (!this.gameOverInstruction) {
             this.gameOverInstruction = new rune.text.BitmapField("");
             this.gameOverInstruction.width = 1200;
-            this.gameOverInstruction.scaleX = 1.5;
-            this.gameOverInstruction.scaleY = 1.5;
+            this.gameOverInstruction.scaleX = 1.7;
+            this.gameOverInstruction.scaleY = 1.7;
             this.gameOverStatsPanel.addChild(this.gameOverInstruction);
         }
 
         this.gameOverInstruction.text = this.sanitizeBitmapText ? this.sanitizeBitmapText("PRESS [SPACE] OR [A] TO CONTINUE") : "PRESS [SPACE] OR [A] TO CONTINUE";
-        this.gameOverInstruction.x = Math.round((panelW / 2) - ((this.gameOverInstruction.text.length * 6 * 1.5) / 2));
+        this.gameOverInstruction.x = Math.round((panelW / 2) - ((this.gameOverInstruction.text.length * 6 * 1.7) / 2));
         this.gameOverInstruction.y = panelH - 28;
         if (typeof this.tintBitmapFieldText === "function") {
             this.tintBitmapFieldText(this.gameOverInstruction, uiSkin.frame.light, true);

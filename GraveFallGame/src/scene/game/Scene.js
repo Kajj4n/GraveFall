@@ -996,6 +996,7 @@ GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
     var buttonGap;
     var i;
     var button;
+    var buttonFrame;
     var label;
     var selected;
     var labelX;
@@ -1052,6 +1053,9 @@ GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
         button.alpha = selected ? 1 : 0.88;
         buttonContainer.addChild(button);
 
+        buttonFrame = this.createBoxFrame(buttonX, buttonY + (i * (buttonHeight + buttonGap)), buttonWidth, buttonHeight, framePaletteSwaps);
+        buttonContainer.addChild(buttonFrame);
+
         label = new rune.text.BitmapField(options[i]);
         label.width = buttonWidth;
         label.scaleX = 1.8;
@@ -1065,7 +1069,7 @@ GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
             this.tintBitmapFieldText(label, selected ? this.uiSkin.frame.light : this.uiSkin.frame.mid, true);
         }
 
-        this.pauseMenuButtons.push({ button: button, label: label });
+        this.pauseMenuButtons.push({ button: button, frame: buttonFrame, label: label });
     }
 
     this.stage.addChild(overlay);
