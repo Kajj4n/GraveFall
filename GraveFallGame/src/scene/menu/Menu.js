@@ -135,11 +135,6 @@ GraveFallGame.scene.Menu.prototype.init = function () {
         accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight
     }));
 
-    this.pointer = new rune.ui.VTMenuPointer();
-    this.pointer.scaleX = 4;
-    this.pointer.scaleY = 4;
-    this.stage.addChild(this.pointer);
-
     this.createQuickControls();
 
     this.createScreenFooter("CONTROLLER PREFERRED GAME METHOD    BETA BUILD", framePaletteSwaps);
