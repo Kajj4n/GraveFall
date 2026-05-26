@@ -789,7 +789,7 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         title: "FIGHTER: MASH",
         setup: "setupButtonMashMinigame",
         update: "updateButtonMashMinigame",
-        damagePerCycle: 8,
+        damagePerCycle: 10,
         maxUsefulPresses: 18
     },
     buttonSequence: {
@@ -807,12 +807,12 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         title: "RANGER: AIM",
         setup: "setupTargetReticleMinigame",
         update: "updateTargetReticleMinigame",
-        perfectDamage: 5,
-        goodDamage: 3,
-        okDamage: 1,
+        perfectDamage: 4,
+        goodDamage: 2,
+        okDamage: 0,
         shotCooldownMs: 280,
         settleDurationMs: 700,
-        resetDistance: 28,
+        resetDistance: 36,
         aimSpeed: 0.0011,
         aimFriction: 0.78,
         aimMaxX: 42,
@@ -828,6 +828,10 @@ GraveFallGame.scene.Game.MINIGAME_DEFINITIONS = {
         perfectDamage: 5,
         goodDamage: 3,
         okDamage: 1,
+        perfectWindow: 3,
+        goodWindow: 12,
+        okWindow: 24,
+        blockSlotCenterX: 7,
         baseSpeed: 0.22,
         speedVariance: 0.12
     }
@@ -1065,7 +1069,7 @@ GraveFallGame.scene.Game.ENEMIES = {
         damageStateResources: GraveFallGame.scene.Game.GHOUL_DAMAGE_STATE_RESOURCES,
         hpMax: 95,
         actionPhaseDuration: 260,
-        patternInterval: 44,
+        patternInterval: 32,
         patterns: [
             "ghoul_orb_crawl",
             "ghoul_dart_ambush",
@@ -1081,10 +1085,10 @@ GraveFallGame.scene.Game.ENEMIES = {
         damageStateResources: GraveFallGame.scene.Game.CRYPT_IMPALER_DAMAGE_STATE_RESOURCES,
         hpMax: 120,
         actionPhaseDuration: 270,
-        patternInterval: 42,
+        patternInterval: 54,
         patterns: [
             "crypt_spear_corridor",
-            "ghoul_impaled_sword_drop",
+            "crypt_spear_rise_fall",
             "crypt_arrow_crossfire"
         ]
     },
@@ -1539,6 +1543,7 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
         case "ghoul_dart_ambush":
         case "ghoul_bone_shard_spread":
         case "crypt_spear_corridor":
+        case "crypt_spear_rise_fall":
         case "crypt_arrow_crossfire":
         case "bonecaller_shard_arc":
         case "bonecaller_bone_spiral":

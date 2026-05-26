@@ -226,13 +226,9 @@ GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
         this.tintBitmapFieldText(this.floorText, this.uiSkin.frame.light, true);
     }
 
-    if (this.scoreText) {
-        this.tintBitmapFieldText(this.scoreText, this.uiSkin.frame.light, true);
-    }
-
-    if (this.turnTimerText) {
-        this.tintBitmapFieldText(this.turnTimerText, this.uiSkin.frame.light, true);
-    }
+    // Score and turn timer text intentionally keep the default bitmap font color.
+    // The floor palette changes the surrounding UI, but these counters should not flash
+    // to the new frame color before their text refreshes back to white.
 
     if (this.playerMenus) {
         for (i = 0; i < this.playerMenus.length; i++) {
@@ -251,7 +247,12 @@ GraveFallGame.scene.Game.prototype.advanceFloorAfterBossDefeat = function () {
     }
 
     this.applyFloorVisualTheme();
-    this.addScorePopup(500, "FLOOR CLEARED");
+
+    if (this.floorClearBonusAwardedForTransition === true) {
+        this.floorClearBonusAwardedForTransition = false;
+    } else {
+        this.addScorePopup(500, "FLOOR CLEARED");
+    }
 };
 
 GraveFallGame.scene.Game.prototype.queueFloorAdvanceAfterBlackout = function () {
@@ -751,6 +752,7 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     var alpha = fadeIn === true ? 0 : 1;
 
     this.encounterAllyDowned = false;
+    this.encounterDamageTaken = false;
 
     this.currentEnemyType = enemyType;
     if (typeof this.registerEnemyEncounter === "function") {
@@ -976,6 +978,13 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     var i;
     var defeatedEnemyConfig;
+    var recoverySummary;
+    var isBoss;
+    var enemyScore = 1000;
+    var floorScore = 0;
+    var flawlessScore = 0;
+    var floorCleared;
+    var scoreGained;
 
     if (this.phase === GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED) {
         return;
@@ -986,21 +995,53 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     }
 
     this.clearActionPreviewState();
-    this.applyEnemyDefeatedRecovery();
+    recoverySummary = this.applyEnemyDefeatedRecovery() || { totalHealed: 0, affectedCount: 0, revivedCount: 0 };
 
     defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
-    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && typeof this.returnToDungeonMusicAfterBoss === "function") {
+    isBoss = !!(defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true);
+    floorCleared = this.floorNumber || 1;
+
+    if (isBoss && typeof this.returnToDungeonMusicAfterBoss === "function") {
         this.returnToDungeonMusicAfterBoss();
     }
 
-    this.addScorePopup(1000, "ENEMY DEFEATED");
-
-    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true) {
-        this.queueFloorAdvanceAfterBlackout();
+    if (this.encounterDamageTaken !== true) {
+        flawlessScore = 500;
     }
 
-    if (this.encounterDamageTaken !== true) {
-        this.addScorePopup(500, "FLAWLESS BATTLE");
+    if (isBoss) {
+        floorScore = 500;
+    }
+
+    scoreGained = enemyScore + floorScore + flawlessScore;
+
+    this.addScorePopup(enemyScore, isBoss ? "BOSS DEFEATED" : "ENEMY DEFEATED");
+
+    if (isBoss) {
+        this.addScorePopup(floorScore, "FLOOR CLEARED");
+        this.floorClearBonusAwardedForTransition = true;
+        this.queueFloorAdvanceAfterBlackout();
+    } else {
+        this.floorClearBonusAwardedForTransition = false;
+    }
+
+    if (flawlessScore > 0) {
+        this.addScorePopup(flawlessScore, "FLAWLESS BATTLE");
+    }
+
+    if (typeof this.showClearRewardPopup === "function") {
+        this.showClearRewardPopup({
+            isBoss: isBoss,
+            enemyName: defeatedEnemyConfig && defeatedEnemyConfig.name ? defeatedEnemyConfig.name : "ENEMY",
+            scoreGained: scoreGained,
+            enemyScore: enemyScore,
+            floorScore: floorScore,
+            flawlessScore: flawlessScore,
+            healingGained: recoverySummary.totalHealed || 0,
+            healedCount: recoverySummary.affectedCount || 0,
+            revivedCount: recoverySummary.revivedCount || 0,
+            floorCleared: floorCleared
+        });
     }
 
     this.encounterDamageTaken = false;
@@ -1032,7 +1073,7 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     this.updateEnemyDamageState();
     this.setEnemyUiAlpha(1);
 
-    if (defeatedEnemyConfig && defeatedEnemyConfig.isBoss === true && this.finalChargeCompleted === true && typeof this.setEnemyHealthBarVisible === "function") {
+    if (isBoss && this.finalChargeCompleted === true && typeof this.setEnemyHealthBarVisible === "function") {
         this.setEnemyHealthBarVisible(false);
     }
 
@@ -1214,6 +1255,10 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     var bossEntranceComplete;
     var bossActionsFadeDurationMs;
     var bossActionsFadeEndMs;
+
+    if (this.clearRewardPopupBlocksTransition === true && this.clearRewardPopupTimerMs > 0) {
+        return;
+    }
 
     this.enemyDefeatedTimerMs -= step;
     this.passageTransitionTimerMs += step;
@@ -1512,14 +1557,60 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function (fadeOut) {
 
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
+    var sprite;
+    var hasCustomSpriteBounds;
+    var rotationHandledBySprite = false;
     
     // SCALE CONSTANTS
     var dmgMulti = this.getDifficultyMultiplier ? this.getDifficultyMultiplier() : 1.0;
     var spdMulti = this.getDifficultySpeedMultiplier ? this.getDifficultySpeedMultiplier() : 1.0;
 
     options = options || {};
+    hasCustomSpriteBounds = options.resource && (
+        typeof options.collisionWidth === "number" ||
+        typeof options.collisionHeight === "number" ||
+        typeof options.spriteWidth === "number" ||
+        typeof options.spriteHeight === "number" ||
+        typeof options.spriteOffsetX === "number" ||
+        typeof options.spriteOffsetY === "number" ||
+        typeof options.spriteRotation === "number"
+    );
 
-    if (options.resource) {
+    if (hasCustomSpriteBounds) {
+        display = new rune.display.DisplayObjectContainer(
+            options.x,
+            options.y,
+            options.collisionWidth || options.width,
+            options.collisionHeight || options.height
+        );
+        sprite = new rune.display.Sprite(
+            typeof options.spriteOffsetX === "number" ? options.spriteOffsetX : 0,
+            typeof options.spriteOffsetY === "number" ? options.spriteOffsetY : 0,
+            options.spriteWidth || options.width,
+            options.spriteHeight || options.height,
+            options.resource
+        );
+        this.applyPaletteSwaps(
+            sprite,
+            this.getProjectilePaletteSwaps(options.projectilePalette)
+        );
+
+        this.applyProjectileAnimation(sprite, options.animation);
+
+        if (typeof options.spriteRotation === "number") {
+            sprite.rotation = options.spriteRotation;
+            rotationHandledBySprite = true;
+        } else if (options.rotation) {
+            sprite.rotation = options.rotation;
+            rotationHandledBySprite = true;
+        }
+
+        if (options.flippedX === true) {
+            sprite.flippedX = true;
+        }
+
+        display.addChild(sprite);
+    } else if (options.resource) {
         display = new rune.display.Sprite(options.x, options.y, options.width, options.height, options.resource);
         this.applyPaletteSwaps(
             display,
@@ -1532,11 +1623,11 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
         display.backgroundColor = options.color || "#FFFFFF";
     }
 
-    if (options.rotation) {
+    if (options.rotation && rotationHandledBySprite !== true) {
         display.rotation = options.rotation;
     }
 
-    if (options.flippedX === true) {
+    if (options.flippedX === true && hasCustomSpriteBounds !== true) {
         display.flippedX = true;
     }
 

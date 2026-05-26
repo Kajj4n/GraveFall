@@ -32,7 +32,8 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
         case "ghoul_bone_shard_spread": this.spawnGhoulBoneShardSpread(); break;
         case "ghoul_skull_drift": this.spawnGhoulSkullDrift(); break;
         case "crypt_spear_corridor": this.spawnCryptSpearCorridor(); break;
-        case "crypt_arrow_crossfire": this.spawnCryptArrowCrossfire(); break;
+        case "crypt_spear_rise_fall": this.spawnCryptSpearRiseFall(); break;
+        case "crypt_arrow_crossfire": this.spawnCryptArrowSpearCrossfire(); break;
         case "bonecaller_shard_arc": this.spawnBoneCallerShardArc(); break;
         case "bonecaller_skull_ring": this.spawnBoneCallerSkullRing(); break;
         case "bonecaller_bone_spiral": this.spawnBoneCallerBoneSpiral(); break;
@@ -1126,79 +1127,239 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonRoarQuake = function () {
     }
 };
 
+GraveFallGame.scene.Game.prototype.spawnCryptSpearProjectile = function (options) {
+    var collisionWidth = options.collisionWidth || 20;
+    var collisionHeight = options.collisionHeight || 80;
+    var spriteWidth = options.spriteWidth || 80;
+    var spriteHeight = options.spriteHeight || 20;
+
+    return this.spawnProjectile({
+        x: options.x,
+        y: options.y,
+        width: collisionWidth,
+        height: collisionHeight,
+        collisionWidth: collisionWidth,
+        collisionHeight: collisionHeight,
+        spriteWidth: spriteWidth,
+        spriteHeight: spriteHeight,
+        spriteOffsetX: (collisionWidth - spriteWidth) / 2,
+        spriteOffsetY: (collisionHeight - spriteHeight) / 2,
+        spriteRotation: options.fromTop === true ? 90 : -90,
+        resource: "Spear_Attack_T",
+        vx: options.vx || 0,
+        vy: options.vy || 0,
+        damage: typeof options.damage === "number" ? options.damage : 8,
+        life: options.life || 190,
+        startDelay: options.startDelay || 0,
+        speedMultiplier: typeof options.speedMultiplier === "number" ? options.speedMultiplier : 1.008,
+        speedMultiplierStart: typeof options.speedMultiplierStart === "number" ? options.speedMultiplierStart : 36,
+        maxSpeed: typeof options.maxSpeed === "number" ? options.maxSpeed : 7.4,
+        fadeOutFrames: typeof options.fadeOutFrames === "number" ? options.fadeOutFrames : 10,
+        type: options.type || "crypt_spear_vertical",
+        hitboxInsetX: typeof options.hitboxInsetX === "number" ? options.hitboxInsetX : 3,
+        hitboxInsetY: typeof options.hitboxInsetY === "number" ? options.hitboxInsetY : 5
+    });
+};
+
 GraveFallGame.scene.Game.prototype.spawnCryptSpearCorridor = function () {
     var inner = this.getArenaInnerBounds();
-    var lanes = [0.18, 0.34, 0.50, 0.66, 0.82];
+    var lanes = [0.14, 0.30, 0.46, 0.62, 0.78, 0.90];
     var i;
-    var fromLeft;
-    var y;
+    var fromTop;
+    var x;
+
+    this.spawnCryptArrowCrossfire({
+        rows: 4,
+        startDelayBase: 4,
+        rowDelay: 10,
+        oppositeSideDelay: 8,
+        yJitter: 9,
+        minSpeed: 4.2,
+        maxSpeed: 5.3,
+        damage: 5,
+        life: 165,
+        speedMultiplier: 1.004,
+        speedMultiplierStart: 44,
+        maxProjectileSpeed: 6.3,
+        type: "crypt_spear_corridor_arrow"
+    });
 
     for (i = 0; i < lanes.length; i++) {
-        fromLeft = i % 2 === 0;
-        y = inner.y + Math.round(inner.height * lanes[i]);
-        this.spawnProjectile({
-            x: fromLeft ? inner.x - 46 - (i * 12) : inner.x + inner.width + 18 + (i * 12),
-            y: y,
-            width: 26,
-            height: 6,
-            resource: "Spear_Attack_T",
-            flippedX: !fromLeft,
-            vx: fromLeft ? this.randomRange(4.0, 5.2) : this.randomRange(-5.2, -4.0),
-            vy: this.randomRange(-0.16, 0.16),
-            damage: 7,
-            life: 180,
-            startDelay: i * 8,
-            speedMultiplier: 1.014,
+        fromTop = i % 2 === 0;
+        x = inner.x + Math.round(inner.width * lanes[i]) - 10;
+        this.spawnCryptSpearProjectile({
+            x: x + this.randomRange(-5, 5),
+            y: fromTop ? inner.y - 92 - (i * 4) : inner.y + inner.height + 12 + (i * 4),
+            fromTop: fromTop,
+            vy: fromTop ? this.randomRange(4.2, 5.6) : this.randomRange(-5.6, -4.2),
+            damage: 8,
+            life: 190,
+            startDelay: 12 + (i * 7),
+            speedMultiplier: 1.010,
             speedMultiplierStart: 30,
             maxSpeed: 7.8,
-            fadeOutFrames: 10,
-            type: "crypt_spear_corridor",
-            hitboxInsetX: 1,
-            hitboxInsetY: 0
+            type: "crypt_spear_corridor"
         });
     }
 };
 
-GraveFallGame.scene.Game.prototype.spawnCryptArrowCrossfire = function () {
+GraveFallGame.scene.Game.prototype.spawnCryptSpearRiseFall = function () {
     var inner = this.getArenaInnerBounds();
-    var rows = 5;
+    var pairs = [0.20, 0.38, 0.56, 0.74];
+    var i;
+    var x;
+    var topFirst;
+
+    this.spawnCryptArrowCrossfire({
+        rows: 5,
+        startDelayBase: 8,
+        rowDelay: 8,
+        oppositeSideDelay: 6,
+        yJitter: 7,
+        minSpeed: 4.0,
+        maxSpeed: 5.1,
+        damage: 5,
+        life: 170,
+        speedMultiplier: 1.004,
+        speedMultiplierStart: 46,
+        maxProjectileSpeed: 6.1,
+        type: "crypt_spear_rise_fall_arrow"
+    });
+
+    for (i = 0; i < pairs.length; i++) {
+        x = inner.x + Math.round(inner.width * pairs[i]) - 10;
+        topFirst = i % 2 === 0;
+
+        this.spawnCryptSpearProjectile({
+            x: x + this.randomRange(-7, 7),
+            y: topFirst ? inner.y - 98 : inner.y + inner.height + 18,
+            fromTop: topFirst,
+            vy: topFirst ? this.randomRange(4.8, 6.1) : this.randomRange(-6.1, -4.8),
+            damage: 8,
+            life: 185,
+            startDelay: i * 10,
+            speedMultiplier: 1.012,
+            speedMultiplierStart: 24,
+            maxSpeed: 8.2,
+            type: "crypt_spear_rise_fall"
+        });
+
+        this.spawnCryptSpearProjectile({
+            x: x + this.randomRange(-7, 7),
+            y: topFirst ? inner.y + inner.height + 18 : inner.y - 98,
+            fromTop: !topFirst,
+            vy: topFirst ? this.randomRange(-5.4, -4.2) : this.randomRange(4.2, 5.4),
+            damage: 8,
+            life: 185,
+            startDelay: 18 + (i * 10),
+            speedMultiplier: 1.006,
+            speedMultiplierStart: 32,
+            maxSpeed: 7.4,
+            type: "crypt_spear_rise_fall"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnCryptArrowSpearCrossfire = function () {
+    var inner = this.getArenaInnerBounds();
+    var lanes = [0.18, 0.36, 0.54, 0.72, 0.88];
+    var i;
+    var fromTop;
+    var x;
+
+    this.spawnCryptArrowCrossfire({
+        rows: 5,
+        startDelayBase: 0,
+        rowDelay: 7,
+        oppositeSideDelay: 9,
+        yJitter: 11,
+        minSpeed: 4.4,
+        maxSpeed: 5.6,
+        damage: 6,
+        life: 170,
+        speedMultiplier: 1.006,
+        speedMultiplierStart: 40,
+        maxProjectileSpeed: 6.8,
+        type: "crypt_arrow_crossfire"
+    });
+
+    for (i = 0; i < lanes.length; i++) {
+        fromTop = i % 2 !== 0;
+        x = inner.x + Math.round(inner.width * lanes[i]) - 10;
+        this.spawnCryptSpearProjectile({
+            x: x + this.randomRange(-6, 6),
+            y: fromTop ? inner.y - 96 - (i * 3) : inner.y + inner.height + 16 + (i * 3),
+            fromTop: fromTop,
+            vy: fromTop ? this.randomRange(4.5, 5.8) : this.randomRange(-5.8, -4.5),
+            damage: 8,
+            life: 185,
+            startDelay: 10 + (i * 9),
+            speedMultiplier: 1.010,
+            speedMultiplierStart: 28,
+            maxSpeed: 7.9,
+            type: "crypt_arrow_crossfire_spear"
+        });
+    }
+};
+
+GraveFallGame.scene.Game.prototype.spawnCryptArrowCrossfire = function (options) {
+    var inner = this.getArenaInnerBounds();
+    var config = options || {};
+    var rows = config.rows || 5;
+    var rowDelay = typeof config.rowDelay === "number" ? config.rowDelay : 7;
+    var startDelayBase = typeof config.startDelayBase === "number" ? config.startDelayBase : 0;
+    var oppositeSideDelay = typeof config.oppositeSideDelay === "number" ? config.oppositeSideDelay : 10;
+    var yJitter = typeof config.yJitter === "number" ? config.yJitter : 12;
+    var topPadding = typeof config.topPadding === "number" ? config.topPadding : 34;
+    var bottomPadding = typeof config.bottomPadding === "number" ? config.bottomPadding : 34;
+    var minSpeed = typeof config.minSpeed === "number" ? config.minSpeed : 4.4;
+    var maxSpeed = typeof config.maxSpeed === "number" ? config.maxSpeed : 5.7;
+    var damage = typeof config.damage === "number" ? config.damage : 6;
+    var life = config.life || 170;
+    var speedMultiplier = typeof config.speedMultiplier === "number" ? config.speedMultiplier : 1.006;
+    var speedMultiplierStart = typeof config.speedMultiplierStart === "number" ? config.speedMultiplierStart : 40;
+    var maxProjectileSpeed = typeof config.maxProjectileSpeed === "number" ? config.maxProjectileSpeed : 6.8;
+    var type = config.type || "crypt_arrow_crossfire";
+    var verticalSpan = inner.height - topPadding - bottomPadding;
     var i;
     var y;
+    var rowProgress;
 
     for (i = 0; i < rows; i++) {
-        y = inner.y + 34 + (i * ((inner.height - 68) / (rows - 1)));
+        rowProgress = rows <= 1 ? 0.5 : i / (rows - 1);
+        y = inner.y + topPadding + (rowProgress * verticalSpan);
         this.spawnProjectile({
             x: inner.x - 36 - (i * 10),
             y: y,
             width: 20,
             height: 6,
             resource: "Arrow_attack_T",
-            vx: this.randomRange(4.4, 5.7),
+            vx: this.randomRange(minSpeed, maxSpeed),
             vy: this.randomRange(-0.16, 0.16),
-            damage: 6,
-            life: 170,
-            startDelay: i * 7,
-            speedMultiplier: 1.006,
-            speedMultiplierStart: 40,
-            maxSpeed: 6.8,
-            type: "crypt_arrow_crossfire"
+            damage: damage,
+            life: life,
+            startDelay: startDelayBase + (i * rowDelay),
+            speedMultiplier: speedMultiplier,
+            speedMultiplierStart: speedMultiplierStart,
+            maxSpeed: maxProjectileSpeed,
+            type: type
         });
         this.spawnProjectile({
             x: inner.x + inner.width + 16 + (i * 10),
-            y: y + this.randomRange(-12, 12),
+            y: y + this.randomRange(-yJitter, yJitter),
             width: 20,
             height: 6,
             resource: "Arrow_attack_T",
             flippedX: true,
-            vx: this.randomRange(-5.7, -4.4),
+            vx: this.randomRange(-maxSpeed, -minSpeed),
             vy: this.randomRange(-0.16, 0.16),
-            damage: 6,
-            life: 170,
-            startDelay: 10 + (i * 7),
-            speedMultiplier: 1.006,
-            speedMultiplierStart: 40,
-            maxSpeed: 6.8,
-            type: "crypt_arrow_crossfire"
+            damage: damage,
+            life: life,
+            startDelay: startDelayBase + oppositeSideDelay + (i * rowDelay),
+            speedMultiplier: speedMultiplier,
+            speedMultiplierStart: speedMultiplierStart,
+            maxSpeed: maxProjectileSpeed,
+            type: type
         });
     }
 };

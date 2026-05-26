@@ -97,6 +97,11 @@ GraveFallGame.scene.Game.prototype.init = function () {
     // --- SCORE SYSTEM ---
     this.score = 0;
     this.scorePopups = [];
+    this.clearRewardPopup = null;
+    this.clearRewardPopupTimerMs = 0;
+    this.clearRewardPopupDurationMs = 0;
+    this.clearRewardPopupBlocksTransition = false;
+    this.floorClearBonusAwardedForTransition = false;
     this.encounterAllyDowned = false;
 
     this.passageTransitionTimerMs = 0;
@@ -366,6 +371,180 @@ GraveFallGame.scene.Game.prototype.updateScorePopups = function(step) {
             if (p.parent) p.parent.removeChild(p, true);
             this.scorePopups.splice(i, 1);
         }
+    }
+};
+
+
+GraveFallGame.scene.Game.prototype.clearClearRewardPopup = function () {
+    if (this.clearRewardPopup && this.clearRewardPopup.parent) {
+        this.clearRewardPopup.parent.removeChild(this.clearRewardPopup, true);
+    }
+
+    this.clearRewardPopup = null;
+    this.clearRewardPopupTimerMs = 0;
+    this.clearRewardPopupDurationMs = 0;
+    this.clearRewardPopupBlocksTransition = false;
+};
+
+GraveFallGame.scene.Game.prototype.createClearRewardText = function (text, x, y, width, scale, color, centered) {
+    var safeText = this.sanitizeBitmapText ? this.sanitizeBitmapText(text) : String(text || "");
+    var field = new rune.text.BitmapField(safeText.length > 0 ? safeText : " ");
+
+    field.width = width;
+    field.scaleX = scale;
+    field.scaleY = scale;
+    field.x = centered === true
+        ? Math.round(x + ((width / 2) - ((field.text.length * 6 * scale) / 2)))
+        : x;
+    field.y = y;
+
+    if (typeof this.tintBitmapFieldText === "function") {
+        this.tintBitmapFieldText(field, color || (this.uiSkin && this.uiSkin.frame ? this.uiSkin.frame.light : "#FFFFFF"), true);
+    }
+
+    return field;
+};
+
+GraveFallGame.scene.Game.prototype.showClearRewardPopup = function (summary) {
+    var screen = this.application.screen;
+    var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
+    var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
+    var isBoss = !!(summary && summary.isBoss === true);
+    var width = isBoss ? 600 : 520;
+    var height = isBoss ? 230 : 166;
+    var x = Math.round((screen.width - width) / 2);
+    var y = isBoss ? 226 : 252;
+    var popup;
+    var bgTop;
+    var bgBottom;
+    var accent;
+    var title;
+    var lines;
+    var i;
+    var lineScale = isBoss ? 1.35 : 1.3;
+    var lineY = isBoss ? 70 : 66;
+    var scoreGained = summary && typeof summary.scoreGained === "number" ? summary.scoreGained : 0;
+    var healingGained = summary && typeof summary.healingGained === "number" ? summary.healingGained : 0;
+    var revivedCount = summary && typeof summary.revivedCount === "number" ? summary.revivedCount : 0;
+    var flawlessScore = summary && typeof summary.flawlessScore === "number" ? summary.flawlessScore : 0;
+    var floorScore = summary && typeof summary.floorScore === "number" ? summary.floorScore : 0;
+    var defeatedName = summary && summary.enemyName ? summary.enemyName : "ENEMY";
+
+    this.clearClearRewardPopup();
+
+    popup = new rune.display.DisplayObjectContainer(x, y, width, height);
+    popup.alpha = 0;
+    popup.rewardPopElapsedMs = 0;
+    popup.rewardPopDurationMs = 5000;
+    popup.rewardBaseScaleX = 1;
+    popup.rewardBaseScaleY = 1;
+    popup.scaleX = 0.92;
+    popup.scaleY = 0.92;
+
+    bgTop = new rune.display.Graphic(0, 0, width, 56);
+    bgTop.backgroundColor = uiSkin.panelTop;
+    bgTop.alpha = 0.98;
+    popup.addChild(bgTop);
+
+    bgBottom = new rune.display.Graphic(0, 56, width, height - 56);
+    bgBottom.backgroundColor = uiSkin.panelBottom;
+    bgBottom.alpha = 0.96;
+    popup.addChild(bgBottom);
+
+    accent = new rune.display.Graphic(0, 54, width, 4);
+    accent.backgroundColor = uiSkin.frame.mid;
+    popup.addChild(accent);
+
+    popup.addChild(this.createBoxFrame(0, 0, width, height, framePaletteSwaps));
+
+    title = this.createClearRewardText(
+        isBoss ? "FLOOR " + String(summary.floorCleared || this.floorNumber || 1) + " CLEARED" : defeatedName + " DEFEATED",
+        0,
+        17,
+        width,
+        isBoss ? 2.3 : 2.05,
+        uiSkin.frame.light,
+        true
+    );
+    popup.addChild(title);
+
+    if (isBoss) {
+        lines = [
+            "BOSS VANQUISHED: " + defeatedName,
+            "SCORE GAINED +" + String(scoreGained),
+            "FLOOR BONUS +" + String(floorScore),
+            "HP RESTORED +" + String(healingGained),
+            revivedCount > 0 ? "REVIVED ALLIES: " + String(revivedCount) : "NEXT FLOOR: " + String((summary.floorCleared || this.floorNumber || 1) + 1)
+        ];
+
+        if (flawlessScore > 0) {
+            lines.push("FLAWLESS BONUS +" + String(flawlessScore));
+        } else if (revivedCount > 0) {
+            lines.push("NEXT FLOOR: " + String((summary.floorCleared || this.floorNumber || 1) + 1));
+        }
+    } else {
+        lines = [
+            "SCORE GAINED +" + String(scoreGained),
+            "HP RESTORED +" + String(healingGained),
+            revivedCount > 0 ? "REVIVED ALLIES: " + String(revivedCount) : "MOVING ON..."
+        ];
+
+        if (flawlessScore > 0) {
+            lines.push("FLAWLESS BONUS +" + String(flawlessScore));
+        }
+    }
+
+    for (i = 0; i < lines.length; i++) {
+        popup.addChild(this.createClearRewardText(lines[i], 30, lineY + (i * 26), width - 60, lineScale, uiSkin.frame.light, true));
+    }
+
+    this.stage.addChild(popup);
+    this.clearRewardPopup = popup;
+    this.clearRewardPopupTimerMs = popup.rewardPopDurationMs;
+    this.clearRewardPopupDurationMs = popup.rewardPopDurationMs;
+    this.clearRewardPopupBlocksTransition = true;
+
+    this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, isBoss ? 0.68 : 0.52);
+};
+
+GraveFallGame.scene.Game.prototype.updateClearRewardPopup = function (step) {
+    var popup = this.clearRewardPopup;
+    var duration;
+    var elapsed;
+    var ratio;
+    var popScale;
+
+    if (!popup) {
+        return;
+    }
+
+    step = typeof step === "number" && isFinite(step) ? step : 16;
+    duration = Math.max(1, this.clearRewardPopupDurationMs || popup.rewardPopDurationMs || 2200);
+
+    this.clearRewardPopupTimerMs -= step;
+    popup.rewardPopElapsedMs = (popup.rewardPopElapsedMs || 0) + step;
+    elapsed = popup.rewardPopElapsedMs;
+    ratio = Math.max(0, Math.min(1, elapsed / duration));
+
+    if (elapsed < 180) {
+        popup.alpha = Math.max(0, Math.min(1, elapsed / 180));
+        popScale = 0.92 + (0.11 * Math.sin((elapsed / 180) * Math.PI));
+        popup.scaleX = popScale;
+        popup.scaleY = popScale;
+    } else if (this.clearRewardPopupTimerMs < 420) {
+        popup.alpha = Math.max(0, this.clearRewardPopupTimerMs / 420);
+        popup.scaleX = 1;
+        popup.scaleY = 1;
+    } else {
+        popup.alpha = 1;
+        popup.scaleX = 1;
+        popup.scaleY = 1;
+    }
+
+    popup.y += Math.sin(ratio * Math.PI) * 0.035 * (step / 16.6667);
+
+    if (this.clearRewardPopupTimerMs <= 0) {
+        this.clearClearRewardPopup();
     }
 };
 
@@ -690,7 +869,8 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     this.updateHealingStandAnimations(step);
     this.updateBuffVisualEffects(step);
-    this.updateScorePopups(step); 
+    this.updateScorePopups(step);
+    this.updateClearRewardPopup(step);
     this.updateActionPreviewEffects(step);
 
     if (this.phase !== GraveFallGame.scene.Game.PHASE_COMMAND) {
@@ -1319,8 +1499,13 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.passageTransitionFocusY = null;
 
     // --- SCORE DISPOSE ---
+    this.clearClearRewardPopup();
     this.scoreText = null;
     this.scorePopups = null;
+    this.clearRewardPopupTimerMs = null;
+    this.clearRewardPopupDurationMs = null;
+    this.clearRewardPopupBlocksTransition = null;
+    this.floorClearBonusAwardedForTransition = null;
     this.finalScoreText = null;
     this.gameOverPartyNameText = null;
     this.gameOverInstruction = null;
