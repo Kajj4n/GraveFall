@@ -149,9 +149,9 @@ GraveFallGame.scene.Game.prototype.init = function () {
         0,
         this.application.screen.width,
         this.application.screen.height,
-        "Outside_Campfire"
+        "Campfire_Background"
     );
-    this.backgroundBackdropResource = "Outside_Campfire";
+    this.backgroundBackdropResource = "Campfire_Background";
     this.applyPaletteSwaps(
         this.backgroundBackdrop,
         this.getBackgroundPaletteSwaps(this.outsideUiSkin)

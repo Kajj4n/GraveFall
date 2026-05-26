@@ -2025,6 +2025,7 @@ GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps = function (uiSkin)
         { from: source.shadow, to: colors[5] },
         { from: source.deep, to: colors[6] },
         { from: source.darkest, to: colors[7] },
+        { from: "#050005", to: colors[7] },
 
         // Compatibility for older 3-color placeholder backgrounds.
         { from: GraveFallGame.scene.Game.FRAME_SOURCE.light, to: colors[1] },

@@ -166,7 +166,7 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     this.backgroundSkin = this.runPalette.outside;
     this.selectionSkin = this.runPalette.inside;
 
-    this.background = new rune.display.Sprite(0, 0, screenWidth, screenHeight, "Outside_Campfire");
+    this.background = new rune.display.Sprite(0, 0, screenWidth, screenHeight, "Campfire_Background");
     this.applyPaletteSwaps(this.background, this.getBackgroundPaletteSwaps(this.backgroundSkin));
     this.stage.addChild(this.background);
 
