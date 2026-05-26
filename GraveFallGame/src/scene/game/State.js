@@ -65,6 +65,7 @@ GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MIN = 1;
 GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MAX = 4;
 GraveFallGame.scene.Game.LEADERBOARD_MAX_ENTRIES = 10;
 GraveFallGame.scene.Game.HIGHSCORES = GraveFallGame.scene.Game.HIGHSCORES || {};
+GraveFallGame.scene.Game.RECENT_RUNS = GraveFallGame.scene.Game.RECENT_RUNS || [];
 GraveFallGame.scene.Game.DEV_START_RANDOM_BOSS = false;
 
 
@@ -95,6 +96,8 @@ GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry = function (entry, 
     var score;
     var name;
     var parsedPartySize;
+    var floorReached;
+    var enemyDefeatedBy;
 
     if (!entry) {
         return null;
@@ -114,10 +117,22 @@ GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry = function (entry, 
         entry.partySize !== undefined && entry.partySize !== null ? entry.partySize : partySize
     );
 
+    floorReached = parseInt(entry.floorReached, 10);
+    if (isNaN(floorReached) || floorReached < 1) {
+        floorReached = 1;
+    }
+
+    enemyDefeatedBy = entry.enemyDefeatedBy !== undefined && entry.enemyDefeatedBy !== null ? String(entry.enemyDefeatedBy).trim() : "UNKNOWN ENEMY";
+    if (enemyDefeatedBy.length <= 0) {
+        enemyDefeatedBy = "UNKNOWN ENEMY";
+    }
+
     return {
         name: name,
         score: score,
         partySize: parsedPartySize,
+        floorReached: floorReached,
+        enemyDefeatedBy: enemyDefeatedBy,
         savedAt: entry.savedAt || new Date().toISOString()
     };
 };
@@ -175,11 +190,12 @@ GraveFallGame.scene.Game.saveHighscore = function (name, score, partySize) {
     var normalizedPartySize = GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize(partySize);
     var key = GraveFallGame.scene.Game.getLeaderboardStorageKey(normalizedPartySize);
     var scores = GraveFallGame.scene.Game.getHighscores(normalizedPartySize);
-    var entry = GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry({
+    var rawEntry = name && typeof name === "object" ? name : {
         name: name,
         score: score,
         partySize: normalizedPartySize
-    }, normalizedPartySize);
+    };
+    var entry = GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry(rawEntry, normalizedPartySize);
     var serialized;
 
     if (!entry) {
@@ -205,6 +221,11 @@ GraveFallGame.scene.Game.saveHighscore = function (name, score, partySize) {
     } catch (e) {
     }
 
+    try {
+        GraveFallGame.scene.Game.saveRecentRun(entry);
+    } catch (e3) {
+    }
+
     return scores;
 };
 
@@ -226,6 +247,112 @@ GraveFallGame.scene.Game.clearHighscores = function (partySize) {
     }
 
     return [];
+};
+
+GraveFallGame.scene.Game.getRecentRunsStorageKey = function () {
+    return "gravefall_recent_runs";
+};
+
+GraveFallGame.scene.Game.prototype.getRecentRunsStorageKey = function () {
+    return GraveFallGame.scene.Game.getRecentRunsStorageKey();
+};
+
+GraveFallGame.scene.Game.prototype.normalizeRecentRunEntry = function (entry) {
+    var normalized;
+
+    normalized = GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry(entry, entry && entry.partySize ? entry.partySize : 1);
+    if (!normalized) {
+        return null;
+    }
+
+    return {
+        name: normalized.name,
+        score: normalized.score,
+        partySize: normalized.partySize,
+        floorReached: normalized.floorReached,
+        enemyDefeatedBy: normalized.enemyDefeatedBy,
+        savedAt: normalized.savedAt
+    };
+};
+
+GraveFallGame.scene.Game.getRecentRuns = function () {
+    var key = GraveFallGame.scene.Game.getRecentRunsStorageKey();
+    var scores = [];
+    var raw = null;
+    var parsed;
+    var i;
+    var entry;
+
+    try {
+        if (typeof window !== "undefined" && window.localStorage) {
+            raw = window.localStorage.getItem(key);
+        }
+    } catch (e) {
+        raw = null;
+    }
+
+    if (raw) {
+        try {
+            parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                for (i = 0; i < parsed.length; i++) {
+                    entry = GraveFallGame.scene.Game.prototype.normalizeRecentRunEntry(parsed[i]);
+                    if (entry) {
+                        scores.push(entry);
+                    }
+                }
+            }
+        } catch (e2) {
+            scores = [];
+        }
+    }
+
+    if (scores.length <= 0 && GraveFallGame.scene.Game.RECENT_RUNS && Array.isArray(GraveFallGame.scene.Game.RECENT_RUNS)) {
+        scores = GraveFallGame.scene.Game.RECENT_RUNS.slice();
+    }
+
+    scores = scores
+        .filter(function (item) {
+            return item && item.savedAt;
+        })
+        .sort(function (a, b) {
+            return String(b.savedAt).localeCompare(String(a.savedAt));
+        })
+        .slice(0, GraveFallGame.scene.Game.LEADERBOARD_MAX_ENTRIES);
+
+    return scores;
+};
+
+GraveFallGame.scene.Game.saveRecentRun = function (entry) {
+    var key = GraveFallGame.scene.Game.getRecentRunsStorageKey();
+    var runs = GraveFallGame.scene.Game.getRecentRuns();
+    var normalized = GraveFallGame.scene.Game.prototype.normalizeRecentRunEntry(entry);
+    var serialized;
+
+    if (!normalized) {
+        return runs;
+    }
+
+    runs.push(normalized);
+    runs.sort(function (a, b) {
+        return String(b.savedAt).localeCompare(String(a.savedAt));
+    });
+    runs = runs.slice(0, GraveFallGame.scene.Game.LEADERBOARD_MAX_ENTRIES);
+
+    if (!GraveFallGame.scene.Game.RECENT_RUNS) {
+        GraveFallGame.scene.Game.RECENT_RUNS = [];
+    }
+    GraveFallGame.scene.Game.RECENT_RUNS = runs.slice();
+
+    try {
+        serialized = JSON.stringify(runs);
+        if (typeof window !== "undefined" && window.localStorage) {
+            window.localStorage.setItem(key, serialized);
+        }
+    } catch (e) {
+    }
+
+    return runs;
 };
 
 

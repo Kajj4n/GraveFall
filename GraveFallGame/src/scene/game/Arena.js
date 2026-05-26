@@ -2231,10 +2231,13 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
 (function () {
     GraveFallGame.scene.Game.prototype.buildGameOverSummary = function () {
+        var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
         var summary = {
             partyName: this.getCurrentPartyName ? this.getCurrentPartyName() : "THE FALLEN",
             score: typeof this.score === "number" ? this.score : 0,
             partySize: this.gameOverPartySize || (this.partyMembers && this.partyMembers.length) || (this.playerMenus && this.playerMenus.length) || 1,
+            floorReached: Math.max(1, this.floorNumber || 1),
+            enemyDefeatedBy: defeatedEnemyConfig && defeatedEnemyConfig.name ? String(defeatedEnemyConfig.name) : (this.currentEnemyType || "UNKNOWN ENEMY"),
             players: []
         };
         var menus = this.playerMenus || [];
@@ -2330,7 +2333,14 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         try {
             if (typeof GraveFallGame.scene.Game.saveHighscore === "function") {
-                GraveFallGame.scene.Game.saveHighscore(partyName, this.score || 0, partySize);
+                GraveFallGame.scene.Game.saveHighscore({
+                    name: partyName,
+                    score: this.score || 0,
+                    partySize: partySize,
+                    floorReached: summary && typeof summary.floorReached === "number" ? summary.floorReached : Math.max(1, this.floorNumber || 1),
+                    enemyDefeatedBy: summary && summary.enemyDefeatedBy ? summary.enemyDefeatedBy : (this.currentEnemyType || "UNKNOWN ENEMY"),
+                    savedAt: new Date().toISOString()
+                }, this.score || 0, partySize);
                 return;
             }
         } catch (e) {
@@ -2441,10 +2451,10 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
             { label: "ITEMS", value: stats.itemsUsed },
             { label: "KOs", value: stats.enemiesDefeated }
         ];
-        var statTextY = 188;
+        var statTextY = 196;
         var statLeftX = 18;
         var statRightX = Math.floor(width / 2) + 4;
-        var statLineGap = 21;
+        var statLineGap = 23;
         var i;
         var statLine;
         var footerText;
@@ -2460,26 +2470,25 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         badgeText.text = this.sanitizeBitmapText ? this.sanitizeBitmapText("BEST: " + (bestStat.label || "")) : ("BEST: " + (bestStat.label || ""));
         badgeText.width = width - 44;
-        badgeText.scaleX = 1.0;
-        badgeText.scaleY = 1.0;
+        badgeText.scaleX = 1.1;
+        badgeText.scaleY = 1.1;
         badgeText.x = 28;
         badgeText.y = 14;
 
         nameText.width = width - 24;
-        nameText.scaleX = 1.5;
-        nameText.scaleY = 1.5;
-        nameText.x = Math.round((width / 2) - ((nameText.text.length * 6 * 1.5) / 2));
-        nameText.y = 150;
-
-        if (portrait) {
-            card.addChild(portrait);
-        }
+        nameText.scaleX = 1.7;
+        nameText.scaleY = 1.7;
+        nameText.x = Math.round((width / 2) - ((nameText.text.length * 6 * 1.7) / 2));
+        nameText.y = 156;
 
         card.addChild(bgTop);
         card.addChild(bgBottom);
         card.addChild(portraitBg);
         card.addChild(badgeBg);
         card.addChild(accent);
+        if (portrait) {
+            card.addChild(portrait);
+        }
         card.addChild(badgeText);
         card.addChild(nameText);
 
@@ -2537,7 +2546,7 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         var cardsY = 122;
         var cardGap = 16;
         var cardWidth;
-        var cardHeight = 330;
+        var cardHeight = 356;
         var totalWidth;
         var startX;
         var i;
@@ -2558,9 +2567,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         titleText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("POST-BATTLE STATS") : "POST-BATTLE STATS");
         titleText.width = 1200;
-        titleText.scaleX = 3;
-        titleText.scaleY = 3;
-        titleText.x = Math.round((panelW / 2) - ((titleText.text.length * 6 * 3) / 2));
+        titleText.scaleX = 3.2;
+        titleText.scaleY = 3.2;
+        titleText.x = Math.round((panelW / 2) - ((titleText.text.length * 6 * 3.2) / 2));
         titleText.y = headerY;
         this.gameOverStatsPanel.addChild(titleText);
         if (typeof this.tintBitmapFieldText === "function") {
@@ -2569,10 +2578,10 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         partyText = new rune.text.BitmapField("PARTY: " + (this.sanitizeBitmapText ? this.sanitizeBitmapText(summary.partyName || "THE FALLEN") : String(summary.partyName || "THE FALLEN")));
         partyText.width = 1200;
-        partyText.scaleX = 2;
-        partyText.scaleY = 2;
-        partyText.x = Math.round((panelW / 2) - ((partyText.text.length * 6 * 2) / 2));
-        partyText.y = 56;
+        partyText.scaleX = 2.2;
+        partyText.scaleY = 2.2;
+        partyText.x = Math.round((panelW / 2) - ((partyText.text.length * 6 * 2.2) / 2));
+        partyText.y = 54;
         this.gameOverStatsPanel.addChild(partyText);
         if (typeof this.tintBitmapFieldText === "function") {
             this.tintBitmapFieldText(partyText, uiSkin.frame.light, true);
@@ -2580,10 +2589,10 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
         scoreText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("FINAL SCORE: " + String(summary.score)) : ("FINAL SCORE: " + String(summary.score)));
         scoreText.width = 800;
-        scoreText.scaleX = 1.8;
-        scoreText.scaleY = 1.8;
-        scoreText.x = Math.round((panelW / 2) - ((scoreText.text.length * 6 * 1.8) / 2));
-        scoreText.y = 86;
+        scoreText.scaleX = 2;
+        scoreText.scaleY = 2;
+        scoreText.x = Math.round((panelW / 2) - ((scoreText.text.length * 6 * 2) / 2));
+        scoreText.y = 88;
         this.gameOverStatsPanel.addChild(scoreText);
         if (typeof this.tintBitmapFieldText === "function") {
             this.tintBitmapFieldText(scoreText, uiSkin.frame.light, true);
