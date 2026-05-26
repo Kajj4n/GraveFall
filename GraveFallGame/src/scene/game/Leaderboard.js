@@ -105,15 +105,11 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
     var shell = new rune.display.DisplayObjectContainer(42, 26, screen.width - 84, screen.height - 94);
     var top = new rune.display.Graphic(0, 0, shell.width, Math.round(shell.height * 0.45));
     var bottom = new rune.display.Graphic(0, Math.round(shell.height * 0.45), shell.width, shell.height - Math.round(shell.height * 0.45));
-    var accent = new rune.display.Graphic(16, 16, shell.width - 32, 4);
-    
     top.backgroundColor = this.menuSkin.panelTop;
     bottom.backgroundColor = this.menuSkin.panelBottom;
-    accent.backgroundColor = this.menuSkin.frame.mid;
     
     shell.addChild(top);
     shell.addChild(bottom);
-    shell.addChild(accent);
     shell.addChild(this.createBoxFrame(0, 0, shell.width, shell.height, framePaletteSwaps));
     this.stage.addChild(shell);
 
@@ -121,7 +117,7 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
     title.width = 1000;
     title.scaleX = 3.3; title.scaleY = 3.3;
     title.x = Math.round(screen.centerX - ((title.text.length * 6 * 3.3) / 2));
-    title.y = 56;
+    title.y = 60;
     this.stage.addChild(title);
 
     this.createPageTabs();
@@ -135,9 +131,10 @@ GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
     var i;
     var tab;
     var text;
-    var x = 186;
-    var y = 142;
-    var w = 214;
+    var screen = this.application.screen;
+    var x = Math.round((screen.width - ((4 * 180) + (3 * 12))) / 2);
+    var y = 106;
+    var w = 180;
     var h = 38;
     var color;
 
@@ -146,7 +143,9 @@ GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
     var labels = ["1 PLAYER", "2 PLAYERS", "3 PLAYERS", "4 PLAYERS"];
 
     for (i = 0; i < 4; i++) {
-        color = GraveFallGame.scene.Game.PLAYER_THEMES[i].accent;
+        color = (GraveFallGame.scene.Game.PLAYER_THEMES && GraveFallGame.scene.Game.PLAYER_THEMES[i] && GraveFallGame.scene.Game.PLAYER_THEMES[i].accent)
+            ? GraveFallGame.scene.Game.PLAYER_THEMES[i].accent
+            : (this.menuSkin && this.menuSkin.frame && this.menuSkin.frame.light ? this.menuSkin.frame.light : "#FFFFFF");
         tab = new rune.display.DisplayObjectContainer(x + (i * (w + 12)), y, w, h);
         tab.backgroundColor = this.menuSkin.panelBottom;
         tab.tabStripe = new rune.display.Graphic(0, 0, w, 4);
@@ -218,17 +217,47 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
     var scores;
     var startY;
     var partySize;
+    var startX;
+    var scoreRightX;
+    var headerRowY;
+    var isRecentRunsTab;
 
     if (this.pageContainer && this.pageContainer.parent) {
         this.pageContainer.parent.removeChild(this.pageContainer, true);
     }
 
-    this.pageContainer = new rune.display.DisplayObjectContainer(74, 198, 1132, 414);
+    this.pageContainer = new rune.display.DisplayObjectContainer(74, 168, 1132, 530);
     this.stage.addChild(this.pageContainer);
 
     partySize = this.pageIndex + 1;
+    isRecentRunsTab = false;
     scores = this.getLeaderboardScores(partySize);
-    startY = 30;
+    startY = 48;
+    startX = 112;
+    scoreRightX = 1000;
+    headerRowY = 14;
+
+    var headerPlacement = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("PLACEMENT") : "PLACEMENT");
+    var headerParty = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("PARTY") : "PARTY");
+    var headerScore = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("SCORE") : "SCORE");
+
+    headerPlacement.width = 220;
+    headerParty.width = 520;
+    headerScore.width = 220;
+    headerPlacement.scaleX = headerParty.scaleX = headerScore.scaleX = 1.2;
+    headerPlacement.scaleY = headerParty.scaleY = headerScore.scaleY = 1.2;
+    headerPlacement.x = startX;
+    headerParty.x = startX + 88;
+    headerScore.x = scoreRightX - Math.round(headerScore.text.length * 6 * 1.2);
+    headerPlacement.y = headerRowY;
+    headerParty.y = headerRowY;
+    headerScore.y = headerRowY;
+    this.pageContainer.addChild(headerPlacement);
+    this.pageContainer.addChild(headerParty);
+    this.pageContainer.addChild(headerScore);
+    this.tintBitmapFieldText(headerPlacement, this.menuSkin.frame.light, true);
+    this.tintBitmapFieldText(headerParty, this.menuSkin.frame.light, true);
+    this.tintBitmapFieldText(headerScore, this.menuSkin.frame.light, true);
 
     if (scores.length === 0) {
         var emptyText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("NO RECORDS YET") : "NO RECORDS YET");
@@ -246,12 +275,16 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
             var rankText = new rune.text.BitmapField(rankStr);
             var nameText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText(entry.name || "UNKNOWN PARTY") : String(entry.name || "UNKNOWN PARTY"));
             var scoreText = new rune.text.BitmapField(String(entry.score));
+            var detailString = isRecentRunsTab ? ("DIED TO: " + String(entry.enemyDefeatedBy || "UNKNOWN ENEMY") + "   FLOOR: " + String(entry.floorReached || 1) + "   AT: " + String(entry.savedAt || "")) : ("DIED TO: " + String(entry.enemyDefeatedBy || "UNKNOWN ENEMY") + "   FLOOR: " + String(entry.floorReached || 1));
+            var detailText = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText(detailString) : detailString);
 
             var scale = 1.8;
+            var detailScale = 1.0;
 
             rankText.width = 100;
-            nameText.width = 800;
-            scoreText.width = 400;
+            nameText.width = 700;
+            scoreText.width = 280;
+            detailText.width = 900;
 
             rankText.scaleX = scale;
             rankText.scaleY = scale;
@@ -259,31 +292,39 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
             nameText.scaleY = scale;
             scoreText.scaleX = scale;
             scoreText.scaleY = scale;
+            detailText.scaleX = detailScale;
+            detailText.scaleY = detailScale;
 
-            rankText.x = 240;
-            nameText.x = 320;
-            scoreText.x = 900 - (String(entry.score).length * 6 * scale);
+            rankText.x = startX;
+            nameText.x = startX + 88;
+            scoreText.x = scoreRightX - (String(entry.score).length * 6 * scale);
+            detailText.x = startX + 88;
 
-            rankText.y = startY + (i * 35);
-            nameText.y = startY + (i * 35);
-            scoreText.y = startY + (i * 35);
+            rankText.y = startY + (i * 42);
+            nameText.y = startY + (i * 42);
+            scoreText.y = startY + (i * 42);
+            detailText.y = startY + 18 + (i * 42);
 
             this.pageContainer.addChild(rankText);
             this.pageContainer.addChild(nameText);
             this.pageContainer.addChild(scoreText);
+            this.pageContainer.addChild(detailText);
 
             if (i === 0) {
                 this.tintBitmapFieldText(rankText, GraveFallGame.scene.Game.PLAYER_THEMES[2].accent, true);
                 this.tintBitmapFieldText(nameText, GraveFallGame.scene.Game.PLAYER_THEMES[2].accent, true);
                 this.tintBitmapFieldText(scoreText, GraveFallGame.scene.Game.PLAYER_THEMES[2].accent, true);
+                this.tintBitmapFieldText(detailText, GraveFallGame.scene.Game.PLAYER_THEMES[2].accent, true);
             } else if (i === 1) {
                 this.tintBitmapFieldText(rankText, GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.light, true);
                 this.tintBitmapFieldText(nameText, GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.light, true);
                 this.tintBitmapFieldText(scoreText, GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.light, true);
+                this.tintBitmapFieldText(detailText, GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.light, true);
             } else if (i === 2) {
                 this.tintBitmapFieldText(rankText, GraveFallGame.scene.Game.UI_SKINS.dullBrown.frame.light, true);
                 this.tintBitmapFieldText(nameText, GraveFallGame.scene.Game.UI_SKINS.dullBrown.frame.light, true);
                 this.tintBitmapFieldText(scoreText, GraveFallGame.scene.Game.UI_SKINS.dullBrown.frame.light, true);
+                this.tintBitmapFieldText(detailText, GraveFallGame.scene.Game.UI_SKINS.dullBrown.frame.light, true);
             }
         }
     }
