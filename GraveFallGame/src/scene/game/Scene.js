@@ -3,7 +3,7 @@
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.Game.prototype.init = function () {
-    GraveFallGame.useTestBitmapFont();
+    GraveFallGame.useBitmapFont();
 
     rune.scene.Scene.prototype.init.call(this);
 

@@ -89,7 +89,7 @@ GraveFallGame.scene.Leaderboard.prototype.createScreenFooter = function (text, f
 };
 
 GraveFallGame.scene.Leaderboard.prototype.init = function () {
-    GraveFallGame.useTestBitmapFont();
+    GraveFallGame.useBitmapFont();
 
     rune.scene.Scene.prototype.init.call(this);
     var screen = this.application.screen;

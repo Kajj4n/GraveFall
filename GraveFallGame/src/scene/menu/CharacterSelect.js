@@ -146,7 +146,7 @@ GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = func
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.CharacterSelect.prototype.init = function () {
-    GraveFallGame.useTestBitmapFont();
+    GraveFallGame.useBitmapFont();
 
     rune.scene.Scene.prototype.init.call(this);
 
