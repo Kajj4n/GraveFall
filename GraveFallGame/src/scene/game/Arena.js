@@ -2365,27 +2365,57 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         }
     };
 
+    GraveFallGame.scene.Game.prototype.getPlayerTombstoneResource = function (standResource) {
+        var baseResource = standResource ? String(standResource) : "";
+        var prefix;
+        var candidates = [];
+
+        if (baseResource.length <= 0) {
+            return null;
+        }
+
+        prefix = baseResource
+            .replace("_Idle_Stance", "")
+            .replace("_Bruised_Stance", "")
+            .replace("_Hurt_Stance", "")
+            .replace("_Dying_Stance", "")
+            .replace("_Downed_Stance", "")
+            .replace("_Buff_Stance", "");
+
+        if (prefix.length > 0) {
+            candidates.push(prefix + "_Tombstone");
+            candidates.push(prefix + "_Tobstone");
+        }
+
+        candidates.push(baseResource.replace("_Idle_Stance", "_Tombstone"));
+        candidates.push(baseResource.replace("_Idle_Stance", "_Tobstone"));
+        candidates.push(baseResource);
+
+        return this.resolveExistingResource(candidates, baseResource);
+    };
+
     GraveFallGame.scene.Game.prototype.createGameOverPortrait = function (playerEntry, theme, cardWidth) {
         var sprite;
         var standResource = playerEntry && playerEntry.standResource ? playerEntry.standResource : null;
+        var tombstoneResource = this.getPlayerTombstoneResource ? this.getPlayerTombstoneResource(standResource) : standResource;
         var portraitScale = 1.0;
         var portraitWidth = 100;
         var portraitHeight = 100;
         var portraitX = Math.round((cardWidth / 2) - ((portraitWidth * portraitScale) / 2));
         var portraitY = 44;
 
-        if (!standResource || !this.resourceExists(standResource)) {
+        if (!tombstoneResource || !this.resourceExists(tombstoneResource)) {
             sprite = new rune.display.Graphic(Math.round((cardWidth / 2) - 42), portraitY + 8, 84, 84);
             sprite.backgroundColor = theme.accentDark;
             sprite.alpha = 0.92;
             return sprite;
         }
 
-        sprite = new rune.display.Sprite(portraitX, portraitY, portraitWidth, portraitHeight, standResource);
+        sprite = new rune.display.Sprite(portraitX, portraitY, portraitWidth, portraitHeight, tombstoneResource);
         sprite.scaleX = portraitScale;
         sprite.scaleY = portraitScale;
         sprite.alpha = 1;
-        sprite.flippedX = playerEntry.flipStandX === true;
+        sprite.flippedX = false;
         this.applyPaletteSwaps(sprite, this.getClothingPaletteSwaps(theme));
 
         return sprite;
