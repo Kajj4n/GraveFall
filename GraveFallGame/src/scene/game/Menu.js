@@ -178,7 +178,7 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var menuHeight = 128;
     var topPanelHeight = 64;
     var bottomPanelHeight = 64;
-    var actionPositions = [10, 95, 180, 255];
+    var actionPositions = [0, 80, 160, 240];
     var standScale = 2.3;
     var standWidth = 100 * standScale;
     var battleAvatarScale = 0.7;
@@ -221,10 +221,10 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var characterIcon = this.createDamageStateGroup(10, 5, 80, 80, this.getPortraitDamageStates(options.portrait));
     var characterClassIcon = new rune.display.Sprite(55, 30, 100, 100, options.classIcon);
 
-    var fightIcon = new rune.display.Sprite(10, 10, 100, 100, "Fight_Icon_T");
-    var defendIcon = new rune.display.Sprite(95, 10, 100, 100, "Defend_Icon_T");
-    var buffIcon = new rune.display.Sprite(180, 10, 100, 100, "Buff_Icon_T");
-    var itemIcon = new rune.display.Sprite(255, 10, 100, 100, "Item_Icon_T");
+    var fightIcon = new rune.display.Sprite(actionPositions[0], 10, 100, 100, "Fight_Icon_T");
+    var defendIcon = new rune.display.Sprite(actionPositions[1], 10, 100, 100, "Defend_Icon_T");
+    var buffIcon = new rune.display.Sprite(actionPositions[2], 10, 100, 100, "Buff_Icon_T");
+    var itemIcon = new rune.display.Sprite(actionPositions[3], 10, 100, 100, "Item_Icon_T");
 
     var itemActionPositions = [6, 70, 134, 198, 262];
     var healthItemIcon = new rune.display.Sprite(itemActionPositions[0], 10, 100, 100, "Health_Up_Buff_Icon_T");
@@ -326,12 +326,20 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
 
     fightIcon.scaleX = 0.6;
     fightIcon.scaleY = 0.6;
+    fightIcon.x = 15;
+
     defendIcon.scaleX = 0.6;
     defendIcon.scaleY = 0.6;
+    defendIcon.x = 95;
+
     buffIcon.scaleX = 0.6;
     buffIcon.scaleY = 0.6;
+    buffIcon.x = 175;
+
     itemIcon.scaleX = 0.6;
     itemIcon.scaleY = 0.6;
+    itemIcon.x = 255;
+
 
     characterClassIcon.scaleX = 0.35;
     characterClassIcon.scaleY = 0.35;
@@ -1412,7 +1420,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
     }
 
     if (typeof playerMenu.selectionBar.width === "number") {
-        playerMenu.selectionBar.width = isItemMenu ? 50 : 60;
+        playerMenu.selectionBar.width = 80;
     }
 
     if (positions && typeof positions[playerMenu.selectedIndex] === "number") {

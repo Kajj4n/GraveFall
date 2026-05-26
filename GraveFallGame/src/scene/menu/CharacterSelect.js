@@ -593,7 +593,6 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     var textScale = 1.55;
     var nameY = 12;
     var hpY = 36;
-    var numberYAdjust = -2;
 
     panel = new rune.display.DisplayObjectContainer(x, y, width, height);
     panel.backgroundColor = this.selectionSkin.panelTop;
@@ -624,7 +623,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     hpValueText.scaleX = textScale;
     hpValueText.scaleY = textScale;
     hpValueText.x = 132;
-    hpValueText.y = hpY + numberYAdjust;
+    hpValueText.y = hpY;
     panel.addChild(hpValueText);
 
     buffText = new rune.text.BitmapField(this.getCharacterSelectBuffDescription(template));
@@ -649,7 +648,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     statusNumberText.scaleX = textScale;
     statusNumberText.scaleY = textScale;
     statusNumberText.x = 267;
-    statusNumberText.y = nameY + numberYAdjust;
+    statusNumberText.y = nameY;
     statusNumberText.visible = false;
     panel.addChild(statusNumberText);
 
@@ -687,7 +686,7 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
         statusBaseX: 202,
         statusNumberBaseX: 267,
         statusY: nameY,
-        statusNumberY: nameY + numberYAdjust,
+        statusNumberY: nameY,
         statusScale: textScale,
         portrait: null,
         sprite: null,
