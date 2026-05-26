@@ -223,10 +223,10 @@ GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
 
     if (this.floorText) {
         this.floorText.text = "FLOOR: " + this.floorNumber;
-        this.tintBitmapFieldText(this.floorText, this.uiSkin.frame.light, true);
+        this.tintBitmapFieldText(this.floorText, "#FFFFFF", true);
     }
 
-    // Score and turn timer text intentionally keep the default bitmap font color.
+    // Score, floor, and turn timer text intentionally keep the default white bitmap font color.
     // The floor palette changes the surrounding UI, but these counters should not flash
     // to the new frame color before their text refreshes back to white.
 

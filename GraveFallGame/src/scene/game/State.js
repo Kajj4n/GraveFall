@@ -554,95 +554,95 @@ GraveFallGame.scene.Game.UI_SKINS = {
         panelTop: "#141312",
         panelBottom: "#100F0E",
         frame: {
-            light: "#8F8B85",
-            mid: "#5D5953",
-            dark: "#2F2C29"
+            light: "#7D766B",
+            mid: "#4F4940",
+            dark: "#29251F"
         },
         background: [
-            "#D7D2C8",
-            "#AAA59B",
-            "#827D74",
-            "#5D5953",
-            "#3F3B36",
-            "#25231F",
-            "#141312",
-            "#060605"
+            "#3B3933",
+            "#33302A",
+            "#2A261F",
+            "#211D18",
+            "#191511",
+            "#110E0B",
+            "#0A0806",
+            "#030302"
         ]
     },
     dullBrown: {
         panelTop: "#211A14",
         panelBottom: "#18120D",
         frame: {
-            light: "#B08C68",
-            mid: "#7A5B3B",
-            dark: "#463322"
+            light: "#8B684A",
+            mid: "#5F422C",
+            dark: "#352317"
         },
         background: [
-            "#F1C982",
-            "#C49358",
-            "#9B6E42",
-            "#704B2D",
-            "#463322",
-            "#2A1D13",
-            "#18120D",
-            "#070503"
+            "#442F22",
+            "#382519",
+            "#2C1B12",
+            "#23150D",
+            "#1A0F09",
+            "#120A06",
+            "#0A0503",
+            "#030201"
         ]
     },
     outsideCampfireBrown: {
         panelTop: "#15110D",
         panelBottom: "#0E0A07",
         frame: {
-            light: "#765D45",
-            mid: "#4E3926",
-            dark: "#23180F"
+            light: "#725038",
+            mid: "#49311F",
+            dark: "#21150D"
         },
         background: [
-            "#FFD284",
-            "#D8893A",
-            "#A95C2F",
-            "#773A25",
-            "#4E261B",
-            "#2F1710",
-            "#140A07",
-            "#040201"
+            "#3C2518",
+            "#311D12",
+            "#26150D",
+            "#1D0F09",
+            "#150A06",
+            "#0E0604",
+            "#070302",
+            "#020101"
         ]
     },
     outsideCampfireGrey: {
         panelTop: "#111111",
         panelBottom: "#0A0A0A",
         frame: {
-            light: "#66635F",
-            mid: "#3F3C39",
-            dark: "#1C1A18"
+            light: "#686157",
+            mid: "#403A33",
+            dark: "#1D1A16"
         },
         background: [
-            "#C8C1B8",
-            "#918B83",
-            "#6C6761",
-            "#4A4641",
-            "#302D29",
-            "#1C1A18",
-            "#0A0A0A",
-            "#030303"
+            "#332F29",
+            "#2B2721",
+            "#231F1A",
+            "#1B1713",
+            "#14110E",
+            "#0E0B09",
+            "#070605",
+            "#020202"
         ]
     },
     outsideCampfireDark: {
         panelTop: "#15110D",
         panelBottom: "#0E0A07",
         frame: {
-            light: "#765D45",
-            mid: "#4E3926",
-            dark: "#23180F"
+            light: "#725038",
+            mid: "#49311F",
+            dark: "#21150D"
         },
         background: [
-            "#B8874C",
-            "#895C33",
-            "#614026",
-            "#42291A",
-            "#2B1A12",
-            "#1B100B",
-            "#0E0A07",
-            "#030201"
+            "#342014",
+            "#2A180F",
+            "#21110A",
+            "#190C07",
+            "#110704",
+            "#0B0403",
+            "#060201",
+            "#020101"
         ]
     }
 };
@@ -664,42 +664,34 @@ GraveFallGame.scene.Game.RUN_PALETTES = [
 ];
 
 (function () {
-    var themeNames = [
-        "Midnight Rose",
-        "Ash Violet",
-        "Charcoal Teal",
-        "Faded Indigo",
-        "Obsidian Amber",
-        "Slate Moss",
-        "Smoky Sapphire",
-        "Dust Plum",
-        "Night Orchid",
-        "Pale Ember",
-        "Storm Brass",
-        "Dusk Fern",
-        "Moonstone Blue",
-        "Tarnished Coral",
-        "Hollow Jade",
-        "Cinder Lilac",
-        "Fog Citrine",
-        "Worn Garnet",
-        "Silver Thistle",
-        "Quiet Umber",
-        "Bleak Cyan",
-        "Muted Honey",
-        "Dark Quartz",
-        "Soft Rust",
-        "Winter Pine",
-        "Pale Onyx",
-        "Deep Mauve",
-        "Drift Sand"
+    // Grimy floor palettes keep the swapped dungeon backdrop dark enough for
+    // white UI text while still giving each floor a different brick/mortar tone.
+    var themeSeeds = [
+        { name: "Soot Brick", hue: 8, saturation: 24 },
+        { name: "Blood Mortar", hue: 356, saturation: 22 },
+        { name: "Wet Clay", hue: 16, saturation: 26 },
+        { name: "Burnt Umber", hue: 24, saturation: 23 },
+        { name: "Old Rust", hue: 31, saturation: 24 },
+        { name: "Ash Brown", hue: 38, saturation: 14 },
+        { name: "Coal Stone", hue: 48, saturation: 8 },
+        { name: "Moldy Mortar", hue: 72, saturation: 12 },
+        { name: "Moss Brick", hue: 92, saturation: 13 },
+        { name: "Black Copper", hue: 154, saturation: 10 },
+        { name: "Dungeon Slate", hue: 210, saturation: 9 },
+        { name: "Bruised Mortar", hue: 318, saturation: 12 },
+        { name: "Tarred Brick", hue: 348, saturation: 18 },
+        { name: "Rotten Timber", hue: 28, saturation: 18 },
+        { name: "Smoke Moss", hue: 104, saturation: 10 },
+        { name: "Cold Cinder", hue: 220, saturation: 7 }
     ];
     var i;
     var baseHue;
+    var baseSaturation;
     var insideKey;
     var outsideKey;
     var paletteKey;
     var paletteName;
+    var seed;
 
     function clamp(value, min, max) {
         return Math.max(min, Math.min(max, value));
@@ -745,50 +737,52 @@ GraveFallGame.scene.Game.RUN_PALETTES = [
         ).toUpperCase();
     }
 
-    for (i = 0; i < themeNames.length; i++) {
-        baseHue = (18 + (i * 12)) % 360;
+    for (i = 0; i < themeSeeds.length; i++) {
+        seed = themeSeeds[i];
+        baseHue = seed.hue;
+        baseSaturation = seed.saturation;
         paletteKey = "nocturne" + String(i + 1);
-        paletteName = themeNames[i];
+        paletteName = seed.name;
         insideKey = paletteKey + "Inside";
         outsideKey = paletteKey + "Outside";
 
         GraveFallGame.scene.Game.UI_SKINS[insideKey] = {
-            panelTop: hslToHex(baseHue, 16, 13),
-            panelBottom: hslToHex(baseHue, 14, 9),
+            panelTop: hslToHex(baseHue, clamp(baseSaturation - 8, 6, 18), 11),
+            panelBottom: hslToHex(baseHue - 2, clamp(baseSaturation - 10, 5, 16), 7),
             frame: {
-                light: hslToHex(baseHue, 14, 58),
-                mid: hslToHex(baseHue, 16, 34),
-                dark: hslToHex(baseHue, 18, 18)
+                light: hslToHex(baseHue, clamp(baseSaturation - 2, 8, 22), 42),
+                mid: hslToHex(baseHue - 2, clamp(baseSaturation, 10, 26), 24),
+                dark: hslToHex(baseHue - 4, clamp(baseSaturation + 2, 10, 28), 13)
             },
             background: [
-                hslToHex(baseHue + 4, 34, 70),
-                hslToHex(baseHue + 2, 30, 55),
-                hslToHex(baseHue, 28, 43),
-                hslToHex(baseHue - 2, 26, 32),
-                hslToHex(baseHue - 4, 24, 23),
-                hslToHex(baseHue - 6, 22, 15),
-                hslToHex(baseHue - 8, 18, 9),
-                hslToHex(baseHue - 10, 16, 4)
+                hslToHex(baseHue + 4, clamp(baseSaturation, 10, 28), 24),
+                hslToHex(baseHue + 2, clamp(baseSaturation + 1, 10, 30), 21),
+                hslToHex(baseHue, clamp(baseSaturation + 2, 10, 30), 18),
+                hslToHex(baseHue - 2, clamp(baseSaturation + 1, 9, 28), 15),
+                hslToHex(baseHue - 4, clamp(baseSaturation, 8, 26), 12),
+                hslToHex(baseHue - 6, clamp(baseSaturation - 2, 7, 22), 9),
+                hslToHex(baseHue - 8, clamp(baseSaturation - 4, 6, 18), 6),
+                hslToHex(baseHue - 10, clamp(baseSaturation - 6, 5, 14), 3)
             ]
         };
 
         GraveFallGame.scene.Game.UI_SKINS[outsideKey] = {
-            panelTop: hslToHex(baseHue, 10, 10),
-            panelBottom: hslToHex(baseHue, 9, 7),
+            panelTop: hslToHex(baseHue, clamp(baseSaturation - 10, 5, 14), 9),
+            panelBottom: hslToHex(baseHue - 2, clamp(baseSaturation - 12, 4, 12), 6),
             frame: {
-                light: hslToHex(baseHue, 10, 52),
-                mid: hslToHex(baseHue, 12, 28),
-                dark: hslToHex(baseHue, 14, 14)
+                light: hslToHex(baseHue, clamp(baseSaturation - 4, 6, 18), 34),
+                mid: hslToHex(baseHue - 2, clamp(baseSaturation - 2, 7, 20), 19),
+                dark: hslToHex(baseHue - 4, clamp(baseSaturation, 8, 22), 10)
             },
             background: [
-                hslToHex(baseHue + 4, 24, 58),
-                hslToHex(baseHue + 2, 22, 45),
-                hslToHex(baseHue, 20, 34),
-                hslToHex(baseHue - 2, 18, 25),
-                hslToHex(baseHue - 4, 16, 18),
-                hslToHex(baseHue - 6, 14, 12),
-                hslToHex(baseHue - 8, 12, 7),
-                hslToHex(baseHue - 10, 10, 3)
+                hslToHex(baseHue + 4, clamp(baseSaturation - 4, 8, 22), 20),
+                hslToHex(baseHue + 2, clamp(baseSaturation - 3, 8, 22), 17),
+                hslToHex(baseHue, clamp(baseSaturation - 2, 8, 22), 14),
+                hslToHex(baseHue - 2, clamp(baseSaturation - 3, 7, 20), 11),
+                hslToHex(baseHue - 4, clamp(baseSaturation - 4, 6, 18), 9),
+                hslToHex(baseHue - 6, clamp(baseSaturation - 5, 5, 16), 7),
+                hslToHex(baseHue - 8, clamp(baseSaturation - 6, 4, 14), 4),
+                hslToHex(baseHue - 10, clamp(baseSaturation - 7, 3, 12), 2)
             ]
         };
 
