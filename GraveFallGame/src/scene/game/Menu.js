@@ -226,14 +226,14 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var buffIcon = new rune.display.Sprite(actionPositions[2], 10, 100, 100, "Buff_Icon_T");
     var itemIcon = new rune.display.Sprite(actionPositions[3], 10, 100, 100, "Item_Icon_T");
 
-    var itemActionPositions = [6, 70, 134, 198, 262];
-    var healthItemIcon = new rune.display.Sprite(itemActionPositions[0], 10, 100, 100, "Health_Up_Buff_Icon_T");
-    var sharpItemIcon = new rune.display.Sprite(itemActionPositions[1], 10, 100, 100, "Attack_Up_Buff_Icon_T");
-    var shieldItemIcon = new rune.display.Sprite(itemActionPositions[2], 10, 100, 100, "Defence_Up_Buff_Icon_T");
-    var speedItemIcon = new rune.display.Sprite(itemActionPositions[3], 10, 100, 100, "Speed_Up_Buff_Icon_T");
-    var returnItemIcon = new rune.display.Sprite(itemActionPositions[4], 10, 100, 100, "Back_Arrow_Icon_T");
+    var itemActionPositions = [0, 64, 128, 192, 256];
+    var healthItemIcon = new rune.display.Sprite(itemActionPositions[0] + 12, 16, 100, 100, "Health_Up_Buff_Icon_T");
+    var sharpItemIcon = new rune.display.Sprite(itemActionPositions[1] + 12, 16, 100, 100, "Attack_Up_Buff_Icon_T");
+    var shieldItemIcon = new rune.display.Sprite(itemActionPositions[2] + 12, 16, 100, 100, "Defence_Up_Buff_Icon_T");
+    var speedItemIcon = new rune.display.Sprite(itemActionPositions[3] + 12, 16, 100, 100, "Speed_Up_Buff_Icon_T");
+    var returnItemIcon = new rune.display.Sprite(itemActionPositions[4] + 12, 16, 100, 100, "Back_Arrow_Icon_T");
 
-    var defendActionSlots = [0, 66, 132, 198, 260];
+    var defendActionSlots = [0, 64, 128, 192, 256];
     var defendActionPositions = [];
     var defendTargetIconsArray = [];
     var defendTargetPartyIndexes = [];
@@ -268,8 +268,8 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         targetTheme = this.getPlayerTheme(targetMember.themeIndex || 0);
         targetPosition = defendActionSlots[defendTargetIconsArray.length];
         targetIcon = this.createDamageStateGroup(
-            targetPosition,
-            0,
+            targetPosition + 9,
+            8,
             80,
             80,
             this.getPortraitDamageStates(targetMember.portrait)
@@ -339,7 +339,6 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     itemIcon.scaleX = 0.6;
     itemIcon.scaleY = 0.6;
     itemIcon.x = 255;
-
 
     characterClassIcon.scaleX = 0.35;
     characterClassIcon.scaleY = 0.35;
@@ -1420,7 +1419,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
     }
 
     if (typeof playerMenu.selectionBar.width === "number") {
-        playerMenu.selectionBar.width = 80;
+        playerMenu.selectionBar.width = (isItemMenu || isDefendMenu) ? 62 : 80;
     }
 
     if (positions && typeof positions[playerMenu.selectedIndex] === "number") {
