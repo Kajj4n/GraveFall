@@ -18,7 +18,7 @@
  * Leaderboard scene.
  */
 GraveFallGame.scene.Leaderboard = function (initialTab) {
-    this.pageIndex = initialTab ? Math.max(0, Math.min(3, initialTab - 1)) : 0;
+    this.pageIndex = initialTab ? Math.max(0, Math.min(4, initialTab - 1)) : 0;
     this.pageContainer = null;
     this.tabs = null;
     this.backgroundSkin = null;
@@ -135,7 +135,7 @@ GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
     var tab;
     var text;
     var screen = this.application.screen;
-    var x = Math.round((screen.width - ((4 * 180) + (3 * 12))) / 2);
+    var x = Math.round((screen.width - ((5 * 180) + (4 * 12))) / 2);
     var y = 106;
     var w = 180;
     var h = 38;
@@ -143,9 +143,9 @@ GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
 
     this.tabs = [];
 
-    var labels = ["1 PLAYER", "2 PLAYERS", "3 PLAYERS", "4 PLAYERS"];
+    var labels = ["1 PLAYER", "2 PLAYERS", "3 PLAYERS", "4 PLAYERS", "RECENT RUNS"];
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 5; i++) {
         color = (GraveFallGame.scene.Game.PLAYER_THEMES && GraveFallGame.scene.Game.PLAYER_THEMES[i] && GraveFallGame.scene.Game.PLAYER_THEMES[i].accent)
             ? GraveFallGame.scene.Game.PLAYER_THEMES[i].accent
             : (this.menuSkin && this.menuSkin.frame && this.menuSkin.frame.light ? this.menuSkin.frame.light : "#FFFFFF");
@@ -233,8 +233,8 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
     this.stage.addChild(this.pageContainer);
 
     partySize = this.pageIndex + 1;
-    isRecentRunsTab = false;
-    scores = this.getLeaderboardScores(partySize);
+    isRecentRunsTab = this.pageIndex === 4;
+    scores = isRecentRunsTab ? GraveFallGame.scene.Game.getRecentRuns() : this.getLeaderboardScores(partySize);
     startY = 48;
     startX = 112;
     scoreRightX = 1000;
@@ -375,7 +375,7 @@ GraveFallGame.scene.Leaderboard.prototype.update = function (step) {
 
     if (pressRight) {
         this.pageIndex++;
-        if (this.pageIndex > 3) this.pageIndex = 0;
+        if (this.pageIndex > 4) this.pageIndex = 0;
         GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_MOVE, 0.45);
         this.renderPage();
         return;
@@ -383,7 +383,7 @@ GraveFallGame.scene.Leaderboard.prototype.update = function (step) {
 
     if (pressLeft) {
         this.pageIndex--;
-        if (this.pageIndex < 0) this.pageIndex = 3;
+        if (this.pageIndex < 0) this.pageIndex = 4;
         GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_MOVE, 0.45);
         this.renderPage();
         return;

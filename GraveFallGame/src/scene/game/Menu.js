@@ -231,13 +231,18 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var sharpItemIcon = new rune.display.Sprite(itemActionPositions[1] + 12, 16, 100, 100, "Attack_Up_Buff_Icon_T");
     var shieldItemIcon = new rune.display.Sprite(itemActionPositions[2] + 12, 16, 100, 100, "Defence_Up_Buff_Icon_T");
     var speedItemIcon = new rune.display.Sprite(itemActionPositions[3] + 12, 16, 100, 100, "Speed_Up_Buff_Icon_T");
-    var returnItemIcon = new rune.display.Sprite(itemActionPositions[4] + 12, 16, 100, 100, "Back_Arrow_Icon_T");
+    var returnIconX = itemActionPositions[4] + 12;
+    var returnIconY = 16;
+    var returnIconScale = 0.5;
+    var returnItemIcon = new rune.display.Sprite(returnIconX, returnIconY, 100, 100, "Back_Arrow_Icon_T");
+    var returnDefendIcon = new rune.display.Sprite(returnIconX, returnIconY, 100, 100, "Back_Arrow_Icon_T");
+    returnItemIcon.menuScale = returnIconScale;
+    returnDefendIcon.menuScale = returnIconScale;
 
     var defendActionSlots = [0, 64, 128, 192, 256];
     var defendActionPositions = [];
     var defendTargetIconsArray = [];
     var defendTargetPartyIndexes = [];
-    var returnDefendIcon = new rune.display.Sprite(defendActionSlots[defendActionSlots.length - 1], 10, 100, 100, "Back_Arrow_Icon_T");
     var partyMembersForTargets = this.partyMembers || GraveFallGame.scene.Game.PARTY_MEMBERS || [];
     var targetPartyIndex;
     var targetMember;
