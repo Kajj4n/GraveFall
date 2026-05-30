@@ -135,6 +135,72 @@ GraveFallGame.scene.Game.prototype.getGamepadForInput = function (inputOwner) {
     return gp && gp.connected ? gp : null;
 };
 
+GraveFallGame.scene.Game.prototype.vibratePlayerController = function (playerMenu, durationMs) {
+    var gp = this.getGamepadForInput(playerMenu);
+    var duration = typeof durationMs === "number" ? durationMs : 180;
+    var intensity = 1;
+    var gamepad = null;
+
+    if (!gp) {
+        return;
+    }
+
+    gamepad = gp.gamepad || gp.rawGamepad || gp._gamepad || gp._rawGamepad || null;
+
+    if (!gamepad && typeof gp.getGamepad === "function") {
+        try {
+            gamepad = gp.getGamepad();
+        } catch (error) {
+            gamepad = null;
+        }
+    }
+
+    if (gamepad && gamepad.vibrationActuator && typeof gamepad.vibrationActuator.playEffect === "function") {
+        try {
+            gamepad.vibrationActuator.playEffect("dual-rumble", {
+                startDelay: 0,
+                duration: duration,
+                weakMagnitude: intensity,
+                strongMagnitude: intensity
+            });
+            return;
+        } catch (error) {
+            // Fall through to other vibration paths.
+        }
+    }
+
+    if (gamepad && gamepad.hapticActuators && gamepad.hapticActuators.length > 0 && typeof gamepad.hapticActuators[0].pulse === "function") {
+        try {
+            gamepad.hapticActuators[0].pulse(intensity, duration);
+            return;
+        } catch (error) {
+            // Fall through to other vibration paths.
+        }
+    }
+
+    if (typeof gp.vibrate === "function") {
+        try {
+            gp.vibrate(duration, intensity);
+            return;
+        } catch (error) {
+            // Fall through to other vibration paths.
+        }
+    }
+
+    if (gamepad && typeof gamepad.vibrate === "function") {
+        try {
+            gamepad.vibrate(duration, intensity);
+            return;
+        } catch (error) {
+            // Fall through to browser vibration fallback.
+        }
+    }
+
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+        navigator.vibrate(duration);
+    }
+};
+
 // Battle avatars all render into an 80x80 transparent class icon, but each
 // class has different transparent padding around the visible character. These
 // corrections keep every class aligned to the ASSASSIN avatar, whose arena
@@ -2702,6 +2768,7 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
             this.ensurePlayerStats(playerMenu);
             if (actual > 0) {
                 playerMenu.stats.damageTaken += actual;
+                this.vibratePlayerController(playerMenu, 180);
             }
             if (before > 0 && after <= 0) {
                 playerMenu.stats.timesDowned += 1;

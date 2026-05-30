@@ -1145,6 +1145,9 @@ GraveFallGame.scene.Game.prototype.executePauseMenuSelection = function () {
     }
 
     if (selection === "RETURN TO MENU") {
+        if (typeof this.saveCurrentRunToLeaderboard === "function") {
+            this.saveCurrentRunToLeaderboard({ abandoned: true, enemyDefeatedBy: this.getRunAwayMessage ? this.getRunAwayMessage((this.playerMenus && this.playerMenus.length) || 1) : "RAN AWAY AS A COWARD" });
+        }
         this.application.scenes.load([
             new GraveFallGame.scene.Menu()
         ]);
@@ -1152,6 +1155,9 @@ GraveFallGame.scene.Game.prototype.executePauseMenuSelection = function () {
     }
 
     if (selection === "QUIT GAME") {
+        if (typeof this.saveCurrentRunToLeaderboard === "function") {
+            this.saveCurrentRunToLeaderboard({ abandoned: true, enemyDefeatedBy: this.getRunAwayMessage ? this.getRunAwayMessage((this.playerMenus && this.playerMenus.length) || 1) : "RAN AWAY AS A COWARD" });
+        }
         if (typeof window !== "undefined" && window.close) {
             window.close();
         }

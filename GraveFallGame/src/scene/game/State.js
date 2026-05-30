@@ -133,7 +133,7 @@ GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry = function (entry, 
         partySize: parsedPartySize,
         floorReached: floorReached,
         enemyDefeatedBy: enemyDefeatedBy,
-        savedAt: entry.savedAt || new Date().toISOString()
+        savedAt: entry.savedAt || GraveFallGame.scene.Game.getCurrentRunSaveTimestamp()
     };
 };
 
@@ -251,6 +251,36 @@ GraveFallGame.scene.Game.clearHighscores = function (partySize) {
 
 GraveFallGame.scene.Game.getRecentRunsStorageKey = function () {
     return "gravefall_recent_runs";
+};
+
+GraveFallGame.scene.Game.getSwedishDateTimeString = function (date) {
+    var resolvedDate = date instanceof Date ? date : new Date();
+    var formatted = null;
+
+    try {
+        formatted = new Intl.DateTimeFormat("sv-SE", {
+            timeZone: "Europe/Stockholm",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false
+        }).format(resolvedDate);
+    } catch (e) {
+        formatted = null;
+    }
+
+    if (!formatted) {
+        formatted = resolvedDate.toISOString().replace("T", " ").replace("Z", " UTC");
+    }
+
+    return formatted;
+};
+
+GraveFallGame.scene.Game.getCurrentRunSaveTimestamp = function () {
+    return GraveFallGame.scene.Game.getSwedishDateTimeString(new Date());
 };
 
 GraveFallGame.scene.Game.prototype.getRecentRunsStorageKey = function () {

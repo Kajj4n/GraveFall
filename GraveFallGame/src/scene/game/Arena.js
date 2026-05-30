@@ -404,6 +404,10 @@ GraveFallGame.scene.Game.prototype.getCurrentPartyName = function () {
 };
 
 // --- DYNAMIC LOCALSTORAGE SAVING DIRECTLY IN ARENA.JS ---
+GraveFallGame.scene.Game.prototype.getRunAwayMessage = function (partySize) {
+    return partySize > 1 ? "RAN AWAY AS COWARDS" : "RAN AWAY AS A COWARD";
+};
+
 GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
     var partyName;
     var finalScoreStr;
@@ -2313,10 +2317,15 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         return best;
     };
 
-    GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function () {
+    GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function (options) {
         var partyName;
         var partySize;
         var summary;
+        var saveOptions;
+        var enemyDefeatedBy;
+        var savedAt;
+
+        saveOptions = options || {};
 
         if (this.gameOverLeaderboardSaved === true) {
             return;
@@ -2328,8 +2337,14 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         summary = this.buildGameOverSummary();
 
         if (summary) {
+            if (saveOptions.abandoned === true) {
+                summary.enemyDefeatedBy = saveOptions.enemyDefeatedBy || this.getRunAwayMessage(partySize);
+            }
             this.gameOverSummary = summary;
         }
+
+        enemyDefeatedBy = saveOptions.enemyDefeatedBy || (summary && summary.enemyDefeatedBy ? summary.enemyDefeatedBy : (this.currentEnemyType || "UNKNOWN ENEMY"));
+        savedAt = GraveFallGame.scene.Game.getCurrentRunSaveTimestamp();
 
         try {
             if (typeof GraveFallGame.scene.Game.saveHighscore === "function") {
@@ -2338,8 +2353,8 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
                     score: this.score || 0,
                     partySize: partySize,
                     floorReached: summary && typeof summary.floorReached === "number" ? summary.floorReached : Math.max(1, this.floorNumber || 1),
-                    enemyDefeatedBy: summary && summary.enemyDefeatedBy ? summary.enemyDefeatedBy : (this.currentEnemyType || "UNKNOWN ENEMY"),
-                    savedAt: new Date().toISOString()
+                    enemyDefeatedBy: enemyDefeatedBy,
+                    savedAt: savedAt
                 }, this.score || 0, partySize);
                 return;
             }
@@ -2356,12 +2371,24 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
                     scores = JSON.parse(raw) || [];
                 }
 
-                scores.push({ name: partyName, score: this.score || 0, partySize: partySize, savedAt: new Date().toISOString() });
+                scores.push({ name: partyName, score: this.score || 0, partySize: partySize, savedAt: savedAt });
                 scores.sort(function (a, b) { return b.score - a.score; });
                 scores = scores.slice(0, 10);
                 window.localStorage.setItem(key, JSON.stringify(scores));
             }
         } catch (e2) {
+        }
+
+        try {
+            GraveFallGame.scene.Game.saveRecentRun({
+                name: partyName,
+                score: this.score || 0,
+                partySize: partySize,
+                floorReached: summary && typeof summary.floorReached === "number" ? summary.floorReached : Math.max(1, this.floorNumber || 1),
+                enemyDefeatedBy: enemyDefeatedBy,
+                savedAt: savedAt
+            });
+        } catch (e3) {
         }
     };
 
