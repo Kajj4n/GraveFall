@@ -47,8 +47,6 @@ else
     echo -en "\033[1B";
 fi
 
-STEPS_BEGUN=$((STEPS_BEGUN+1));
-
 ELAPSED_TIME=$(($SECONDS - $START_TIME));
 NUMBER_OF_FILES=$(grep -c '\--js ' "./build.sh");
 
