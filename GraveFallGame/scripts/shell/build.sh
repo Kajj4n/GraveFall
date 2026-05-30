@@ -18,7 +18,6 @@ npx google-closure-compiler \
 --js "./../../src/scene/game/Leaderboard.js" \
 --js "./../../src/scene/menu/Menu.js" \
 --js "./../../src/scene/menu/CharacterSelect.js" \
---js "./../../src/scene/game/DevCommands.js" \
 --js "./../../src/scene/rule/Rule.js" \
 --js "./../../src/system/Main.js" \
 --js "./../../src/scope/Alias.js" \

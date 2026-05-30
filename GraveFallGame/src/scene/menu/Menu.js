@@ -140,7 +140,7 @@ GraveFallGame.scene.Menu.prototype.init = function () {
 
     this.createQuickControls();
 
-    this.createScreenFooter("CONTROLLER PREFERRED GAME METHOD    BETA BUILD", framePaletteSwaps);
+    this.createScreenFooter("CONTROLLER PREFERRED GAME METHOD    VERSION 1.0", framePaletteSwaps);
 
     this.updateVisuals();
 };
