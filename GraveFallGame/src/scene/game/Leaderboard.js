@@ -42,7 +42,13 @@ GraveFallGame.scene.Leaderboard.prototype.createSeparator = GraveFallGame.scene.
 GraveFallGame.scene.Leaderboard.prototype.createFramePiece = GraveFallGame.scene.Game.prototype.createFramePiece;
 
 /**
- * ...
+ * Tints a bitmap field and optionally strips its backdrop pixels.
+ *
+ * @param {Object} field Bitmap field to update.
+ * @param {string} targetColor Palette color to apply.
+ * @param {boolean} stripBackdrop Strip backdrop.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Leaderboard.prototype.tintBitmapFieldText = function (field, targetColor, stripBackdrop) {
     if (GraveFallGame.scene.Game.prototype.tintBitmapFieldText) {
@@ -56,7 +62,11 @@ GraveFallGame.scene.Leaderboard.prototype.isDevConsoleInputActive = GraveFallGam
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Sanitizes text so it can be rendered by the bitmap font.
+ *
+ * @param {string} text Text to render or sanitize.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Leaderboard.prototype.sanitizeBitmapText = function (text) {
     var safeText;
@@ -70,7 +80,12 @@ GraveFallGame.scene.Leaderboard.prototype.sanitizeBitmapText = function (text) {
 };
 
 /**
- * ...
+ * Creates the shared screen footer.
+ *
+ * @param {string} text Text to render or sanitize.
+ * @param {Array} framePaletteSwaps Frame palette swap list.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Leaderboard.prototype.createScreenFooter = function (text, framePaletteSwaps) {
     var screen = this.application.screen;
@@ -95,7 +110,9 @@ GraveFallGame.scene.Leaderboard.prototype.createScreenFooter = function (text, f
 };
 
 /**
- * @inheritDoc
+ * Initializes the scene and creates its display objects.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Leaderboard.prototype.init = function () {
     GraveFallGame.useBitmapFont();
@@ -139,7 +156,9 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
 };
 
 /**
- * ...
+ * Creates page tab buttons.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
     var i;
@@ -179,7 +198,11 @@ GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
 };
 
 /**
- * ...
+ * Returns the leaderboard scores.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Leaderboard.prototype.getLeaderboardScores = function (partySize) {
     var scores = [];
@@ -230,7 +253,9 @@ GraveFallGame.scene.Leaderboard.prototype.getLeaderboardScores = function (party
 };
 
 /**
- * ...
+ * Renders the currently selected page.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
     var i;
@@ -357,7 +382,11 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
 };
 
 /**
- * @inheritDoc
+ * Updates the scene once per engine tick.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Leaderboard.prototype.update = function (step) {
     var pressLeft;
@@ -411,7 +440,9 @@ GraveFallGame.scene.Leaderboard.prototype.update = function (step) {
 };
 
 /**
- * @inheritDoc
+ * Disposes scene resources before the scene is removed.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Leaderboard.prototype.dispose = function () {
     this.pageContainer = null;

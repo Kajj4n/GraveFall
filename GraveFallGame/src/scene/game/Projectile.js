@@ -3,7 +3,9 @@
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Spawns the active enemy projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnEnemyPattern = function () {
     var enemy = this.getCurrentEnemyConfig();
@@ -12,7 +14,11 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPattern = function () {
 };
 
 /**
- * ...
+ * Spawns an enemy projectile pattern by identifier.
+ *
+ * @param {string} patternId Projectile pattern identifier.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) {
     this.playEnemyPatternSfx(patternId);
@@ -67,7 +73,9 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
 };
 
 /**
- * ...
+ * Spawns the boss sword rain projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBossSwordRain = function () {
     var inner = this.getArenaInnerBounds();
@@ -101,7 +109,9 @@ GraveFallGame.scene.Game.prototype.spawnBossSwordRain = function () {
 };
 
 /**
- * ...
+ * Spawns the boss vertical sweep projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBossVerticalSweep = function () {
     var inner = this.getArenaInnerBounds();
@@ -131,7 +141,9 @@ GraveFallGame.scene.Game.prototype.spawnBossVerticalSweep = function () {
 };
 
 /**
- * ...
+ * Spawns the boss orb burst projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBossOrbBurst = function () {
     var inner = this.getArenaInnerBounds();
@@ -171,7 +183,9 @@ GraveFallGame.scene.Game.prototype.spawnBossOrbBurst = function () {
 };
 
 /**
- * ...
+ * Spawns the boss diagonal drop projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBossDiagonalDrop = function () {
     var inner = this.getArenaInnerBounds();
@@ -207,7 +221,9 @@ GraveFallGame.scene.Game.prototype.spawnBossDiagonalDrop = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin pebble rain projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinPebbleRain = function () {
     var inner = this.getArenaInnerBounds();
@@ -240,7 +256,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinPebbleRain = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin dart fan projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinDartFan = function () {
     var inner = this.getArenaInnerBounds();
@@ -278,7 +296,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinDartFan = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin stomp wave projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinStompWave = function () {
     var inner = this.getArenaInnerBounds();
@@ -307,7 +327,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinStompWave = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin boss mace quake projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossMaceQuake = function () {
     var inner = this.getArenaInnerBounds();
@@ -369,7 +391,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossMaceQuake = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin boss sword pincer projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossSwordPincer = function () {
     var inner = this.getArenaInnerBounds();
@@ -443,7 +467,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossSwordPincer = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin boss head toss projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossHeadToss = function () {
     var inner = this.getArenaInnerBounds();
@@ -479,7 +505,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossHeadToss = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin boss mob charge projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossMobCharge = function () {
     var inner = this.getArenaInnerBounds();
@@ -527,7 +555,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossMobCharge = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin boss blade trap projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossBladeTrap = function () {
     var inner = this.getArenaInnerBounds();
@@ -582,7 +612,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossBladeTrap = function () {
 };
 
 /**
- * ...
+ * Spawns the ghoul orb crawl projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGhoulOrbCrawl = function () {
     var inner = this.getArenaInnerBounds();
@@ -599,9 +631,7 @@ GraveFallGame.scene.Game.prototype.spawnGhoulOrbCrawl = function () {
     var distance;
     var speed;
 
-    // Slow soul lights now creep in from outside the arena, briefly pull toward
-    // the party, then drift onward with a pulsing speed so the ghoul feels eerie
-    // instead of just firing a straight line.
+    /* Ghoul soul lights creep in, pull toward the party, then drift onward. */
     for (i = 0; i < count; i++) {
         side = i % 4;
 
@@ -654,7 +684,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulOrbCrawl = function () {
 };
 
 /**
- * ...
+ * Spawns the ghoul dart ambush projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGhoulDartAmbush = function () {
     var inner = this.getArenaInnerBounds();
@@ -664,8 +696,7 @@ GraveFallGame.scene.Game.prototype.spawnGhoulDartAmbush = function () {
     var i;
     var y;
 
-    // Staggered, accelerating ambush knives: the first gaps are readable, then
-    // the pattern tightens and asks players to move lanes rather than stand still.
+    /* Staggered knives accelerate so players must keep changing lanes. */
     for (i = 0; i < rows; i++) {
         y = inner.y + 34 + (i * ((inner.height - 68) / (rows - 1)));
         this.spawnProjectile({
@@ -715,7 +746,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulDartAmbush = function () {
 };
 
 /**
- * ...
+ * Spawns the ghoul stomp pulse projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGhoulStompPulse = function () {
     var inner = this.getArenaInnerBounds();
@@ -746,7 +779,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulStompPulse = function () {
 };
 
 /**
- * ...
+ * Spawns the ghoul impaled sword drop projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGhoulImpaledSwordDrop = function () {
     var inner = this.getArenaInnerBounds();
@@ -777,7 +812,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulImpaledSwordDrop = function () {
 };
 
 /**
- * ...
+ * Spawns the ghoul bone shard spread projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGhoulBoneShardSpread = function () {
     var inner = this.getArenaInnerBounds();
@@ -837,7 +874,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulBoneShardSpread = function () {
 };
 
 /**
- * ...
+ * Spawns the ghoul skull drift projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGhoulSkullDrift = function () {
     var inner = this.getArenaInnerBounds();
@@ -873,7 +912,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulSkullDrift = function () {
 };
 
 /**
- * ...
+ * Spawns the HyDragon fireball breath projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnHyDragonFireballBreath = function () {
     var inner = this.getArenaInnerBounds();
@@ -887,8 +928,7 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireballBreath = function () {
     var angle;
     var speed;
 
-    // Real HyDragon breath now uses the successful FireSpray pattern:
-    // many small fireballs, delayed into a spray, with no oversized wave sprites.
+    /* HyDragon breath uses delayed small fireballs rather than large wave sprites. */
     for (i = 0; i < count; i++) {
         sweep = ((i / (count - 1)) - 0.5) * 1.25 * sweepDirection;
         angle = fromLeft ? sweep : Math.PI - sweep;
@@ -920,7 +960,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireballBreath = function () {
 };
 
 /**
- * ...
+ * Spawns the HyDragon fire wave projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnHyDragonFireWave = function () {
     var inner = this.getArenaInnerBounds();
@@ -931,9 +973,7 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireWave = function () {
     var x;
     var speed;
 
-    // The larger wave sprite is no longer a left/right sweep. HyDragon now drops
-    // a central vertical fire curtain: waves move up/down through the middle so
-    // they pair better with side flame breath.
+    /* HyDragon fire waves form a vertical curtain through the arena center. */
     for (i = 0; i < count; i++) {
         fromTop = i % 2 === 0;
         x = centerX - 16 + ((i - Math.floor(count / 2)) * 30);
@@ -968,7 +1008,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireWave = function () {
 };
 
 /**
- * ...
+ * Spawns the HyDragon sword hunt projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnHyDragonSwordHunt = function () {
     var inner = this.getArenaInnerBounds();
@@ -984,9 +1026,7 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonSwordHunt = function () {
     var distance;
     var speed;
 
-    // Replaces the homing orb breath with sword-oriented pressure. These blades
-    // enter from outside, actively chase for longer than the old orbs, then keep
-    // their committed path so the attack remains readable.
+    /* Swords chase briefly, then commit to their path to keep the attack readable. */
     for (i = 0; i < count; i++) {
         side = i % 4;
         if (side === 0) {
@@ -1039,7 +1079,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonSwordHunt = function () {
 };
 
 /**
- * ...
+ * Spawns the HyDragon sword storm projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnHyDragonSwordStorm = function () {
     var inner = this.getArenaInnerBounds();
@@ -1073,7 +1115,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonSwordStorm = function () {
 };
 
 /**
- * ...
+ * Spawns the HyDragon cross sweep projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnHyDragonCrossSweep = function () {
     var inner = this.getArenaInnerBounds();
@@ -1115,7 +1159,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonCrossSweep = function () {
 };
 
 /**
- * ...
+ * Spawns the HyDragon fang fan projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnHyDragonFangFan = function () {
     var inner = this.getArenaInnerBounds();
@@ -1153,7 +1199,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFangFan = function () {
 };
 
 /**
- * ...
+ * Spawns the HyDragon roar quake projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnHyDragonRoarQuake = function () {
     var inner = this.getArenaInnerBounds();
@@ -1163,8 +1211,7 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonRoarQuake = function () {
     var x;
     var slowFirst;
 
-    // A roar pattern: immediate shake, floor shockwaves, then ceiling blades
-    // dropping while the screen is still unsettled.
+    /* Roar pattern: shake, floor shockwaves, then falling ceiling blades. */
     this.playSfx(GraveFallGame.SOUNDS.ATTACK_STOMP, 0.9);
     this.shakeCamera(380, 13, 10, true);
 
@@ -1217,7 +1264,11 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonRoarQuake = function () {
 };
 
 /**
- * ...
+ * Spawns one crypt spear projectile.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.spawnCryptSpearProjectile = function (options) {
     var collisionWidth = options.collisionWidth || 20;
@@ -1254,7 +1305,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptSpearProjectile = function (options
 };
 
 /**
- * ...
+ * Spawns the crypt spear corridor projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnCryptSpearCorridor = function () {
     var inner = this.getArenaInnerBounds();
@@ -1299,7 +1352,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptSpearCorridor = function () {
 };
 
 /**
- * ...
+ * Spawns the crypt spear rise-fall projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnCryptSpearRiseFall = function () {
     var inner = this.getArenaInnerBounds();
@@ -1359,7 +1414,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptSpearRiseFall = function () {
 };
 
 /**
- * ...
+ * Spawns the crypt arrow and spear crossfire projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnCryptArrowSpearCrossfire = function () {
     var inner = this.getArenaInnerBounds();
@@ -1404,7 +1461,11 @@ GraveFallGame.scene.Game.prototype.spawnCryptArrowSpearCrossfire = function () {
 };
 
 /**
- * ...
+ * Spawns the crypt arrow crossfire projectile pattern.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnCryptArrowCrossfire = function (options) {
     var inner = this.getArenaInnerBounds();
@@ -1469,7 +1530,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptArrowCrossfire = function (options)
 };
 
 /**
- * ...
+ * Spawns the Bone Caller shard arc projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBoneCallerShardArc = function () {
     var inner = this.getArenaInnerBounds();
@@ -1506,7 +1569,9 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerShardArc = function () {
 };
 
 /**
- * ...
+ * Spawns the Bone Caller skull ring projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBoneCallerSkullRing = function () {
     var inner = this.getArenaInnerBounds();
@@ -1520,8 +1585,7 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerSkullRing = function () {
     var vx;
     var vy;
 
-    // Fewer skulls overall, but each enters from a less predictable lane so the
-    // Bone Caller still pressures movement without flooding the arena.
+    /* Fewer skulls enter from varied lanes to pressure movement without flooding. */
     for (i = 0; i < count; i++) {
         side = Math.floor(this.randomRange(0, 4));
         speed = this.randomRange(4.0, 5.65);
@@ -1577,7 +1641,9 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerSkullRing = function () {
 };
 
 /**
- * ...
+ * Spawns the Bone Caller bone spiral projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
     var inner = this.getArenaInnerBounds();
@@ -1597,9 +1663,7 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
     var entryRadiusY;
     var shard;
 
-    // Keep this as a readable ring: ten evenly spaced bones now start outside
-    // the arena and ease into the orbit before shrinking inward. That keeps the
-    // pattern readable without spawning a damaging bone directly on a player.
+    /* Bones ease into a readable ring before shrinking inward. */
     for (i = 0; i < count; i++) {
         angle = angleOffset + ((Math.PI * 2) * (i / count));
 
@@ -1648,7 +1712,9 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
 };
 
 /**
- * ...
+ * Spawns the crystal rain projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnCrystalRain = function () {
     var inner = this.getArenaInnerBounds();
@@ -1695,7 +1761,9 @@ GraveFallGame.scene.Game.prototype.spawnCrystalRain = function () {
 };
 
 /**
- * ...
+ * Spawns the crystal wall projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnCrystalWall = function () {
     var inner = this.getArenaInnerBounds();
@@ -1705,9 +1773,7 @@ GraveFallGame.scene.Game.prototype.spawnCrystalWall = function () {
     var y;
     var speed;
 
-    // The Crystal Husk wall is now its signature pressure pattern: faster lanes
-    // that swing hard up/down, making the party weave instead of standing in one
-    // safe lane.
+    /* Crystal wall lanes swing vertically so the party must weave. */
     for (i = 0; i < count; i++) {
         y = inner.y + 24 + (i * ((inner.height - 48) / (count - 1)));
         speed = this.randomRange(5.4, 6.9);
@@ -1742,7 +1808,9 @@ GraveFallGame.scene.Game.prototype.spawnCrystalWall = function () {
 };
 
 /**
- * ...
+ * Spawns the crystal orb split projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnCrystalOrbSplit = function () {
     var inner = this.getArenaInnerBounds();
@@ -1784,7 +1852,9 @@ GraveFallGame.scene.Game.prototype.spawnCrystalOrbSplit = function () {
 };
 
 /**
- * ...
+ * Spawns animated goblin walker projectiles.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinAnimatedWalkers = function () {
     var inner = this.getArenaInnerBounds();
@@ -1793,8 +1863,7 @@ GraveFallGame.scene.Game.prototype.spawnGoblinAnimatedWalkers = function () {
     var speed;
     var x;
 
-    // Goblin walk frames face downward, so these animated walkers
-    // enter from above and walk down through the arena instead of sliding sideways.
+    /* Goblin walk frames face downward, so walkers enter from above. */
     for (i = 0; i < lanes.length; i++) {
         speed = this.randomRange(2.2, 3.1);
         x = inner.x + Math.round(inner.width * lanes[i]) - 12;
@@ -1823,7 +1892,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinAnimatedWalkers = function () {
 };
 
 /**
- * ...
+ * Spawns an orb split chain projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnOrbSplitChain = function () {
     var inner = this.getArenaInnerBounds();
@@ -1860,7 +1931,9 @@ GraveFallGame.scene.Game.prototype.spawnOrbSplitChain = function () {
 };
 
 /**
- * ...
+ * Spawns bouncing skull projectiles.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBouncingSkulls = function () {
     var inner = this.getArenaInnerBounds();
@@ -1920,7 +1993,9 @@ GraveFallGame.scene.Game.prototype.spawnBouncingSkulls = function () {
 };
 
 /**
- * ...
+ * Spawns a bomb cluster projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBombCluster = function () {
     var inner = this.getArenaInnerBounds();
@@ -1978,7 +2053,9 @@ GraveFallGame.scene.Game.prototype.spawnBombCluster = function () {
 };
 
 /**
- * ...
+ * Spawns a fire spray projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnAttackFireSpray = function () {
     var inner = this.getArenaInnerBounds();
@@ -2026,7 +2103,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackFireSpray = function () {
 };
 
 /**
- * ...
+ * Spawns homing wisp projectiles.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnAttackHomingWisps = function () {
     var inner = this.getArenaInnerBounds();
@@ -2093,7 +2172,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackHomingWisps = function () {
 };
 
 /**
- * ...
+ * Spawns pulse orb projectiles.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnAttackPulseOrbs = function () {
     var inner = this.getArenaInnerBounds();
@@ -2137,7 +2218,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackPulseOrbs = function () {
 };
 
 /**
- * ...
+ * Spawns hunter pack projectiles.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnAttackHunterPack = function () {
     var inner = this.getArenaInnerBounds();
@@ -2185,7 +2268,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackHunterPack = function () {
 };
 
 /**
- * ...
+ * Spawns a fuse minefield projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnAttackFuseMinefield = function () {
     var inner = this.getArenaInnerBounds();
@@ -2252,7 +2337,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackFuseMinefield = function () {
 };
 
 /**
- * ...
+ * Spawns the goblin boss fuse bomb projectile pattern.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossFuseBombs = function () {
     var inner = this.getArenaInnerBounds();
@@ -2325,7 +2412,11 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossFuseBombs = function () {
 };
 
 /**
- * ...
+ * Spawns projectiles in a radial pattern.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnRadialProjectiles = function (options) {
     var count = options.count || 8;
@@ -2365,7 +2456,11 @@ GraveFallGame.scene.Game.prototype.spawnRadialProjectiles = function (options) {
 };
 
 /**
- * ...
+ * Splits a projectile into child projectiles.
+ *
+ * @param {Object} projectile Projectile display object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.splitProjectile = function (projectile) {
     var centerX = projectile.x + (projectile.width / 2);
@@ -2394,7 +2489,11 @@ GraveFallGame.scene.Game.prototype.splitProjectile = function (projectile) {
 };
 
 /**
- * ...
+ * Explodes a projectile and spawns explosion effects.
+ *
+ * @param {Object} projectile Projectile display object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
     var centerX;
@@ -2459,7 +2558,12 @@ GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
 };
 
 /**
- * ...
+ * Updates bounce behavior for a projectile inside bounds.
+ *
+ * @param {Object} projectile Projectile display object.
+ * @param {Object} inner Inner.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateProjectileBounce = function (projectile, inner) {
     var bounds;
@@ -2515,7 +2619,12 @@ GraveFallGame.scene.Game.prototype.updateProjectileBounce = function (projectile
 };
 
 /**
- * ...
+ * Returns the center point of the nearest battle avatar.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getNearestBattleAvatarCenter = function (x, y) {
     var best = null;
@@ -2557,7 +2666,11 @@ GraveFallGame.scene.Game.prototype.getNearestBattleAvatarCenter = function (x, y
 };
 
 /**
- * ...
+ * Activates a projectile that was waiting for a delay.
+ *
+ * @param {Object} projectile Projectile display object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.activateDelayedProjectile = function (projectile) {
     if (!projectile) {
@@ -2574,7 +2687,11 @@ GraveFallGame.scene.Game.prototype.activateDelayedProjectile = function (project
 };
 
 /**
- * ...
+ * Clamps projectile velocity to configured speed limits.
+ *
+ * @param {Object} projectile Projectile display object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clampProjectileSpeed = function (projectile) {
     var speed;
@@ -2607,7 +2724,12 @@ GraveFallGame.scene.Game.prototype.clampProjectileSpeed = function (projectile) 
 };
 
 /**
- * ...
+ * Sets projectile speed without changing its movement direction.
+ *
+ * @param {Object} projectile Projectile display object.
+ * @param {Object} targetSpeed Target speed.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setProjectileSpeedKeepingDirection = function (projectile, targetSpeed) {
     var speed;
@@ -2629,7 +2751,11 @@ GraveFallGame.scene.Game.prototype.setProjectileSpeedKeepingDirection = function
 };
 
 /**
- * ...
+ * Updates projectile rotation or facing from its velocity.
+ *
+ * @param {Object} projectile Projectile display object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateProjectileFacing = function (projectile) {
     var angle;
@@ -2647,7 +2773,11 @@ GraveFallGame.scene.Game.prototype.updateProjectileFacing = function (projectile
 };
 
 /**
- * ...
+ * Updates homing, acceleration, orbit, and other dynamic projectile motion.
+ *
+ * @param {Object} projectile Projectile display object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (projectile) {
     var centerX;
@@ -2783,7 +2913,13 @@ GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (pro
 };
 
 /**
- * ...
+ * Starts projectile fade-out removal.
+ *
+ * @param {Object} projectile Projectile display object.
+ * @param {number} frames Duration or count measured in frames.
+ * @param {boolean} keepMotion Keep motion.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.beginProjectileFadeOut = function (projectile, frames, keepMotion) {
     var duration;
@@ -2814,7 +2950,12 @@ GraveFallGame.scene.Game.prototype.beginProjectileFadeOut = function (projectile
 };
 
 /**
- * ...
+ * Removes one projectile from the active projectile list.
+ *
+ * @param {number} index Index to resolve.
+ * @param {boolean} immediate Immediate.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index, immediate) {
     var projectile = this.projectiles[index];
@@ -2836,7 +2977,11 @@ GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index, immedia
 };
 
 /**
- * ...
+ * Returns collision leeway for projectile hitboxes.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getProjectileHitboxLeeway = function (options) {
     var width = options && options.collisionWidth ? options.collisionWidth : (options && options.width ? options.width : 0);
@@ -2866,7 +3011,13 @@ GraveFallGame.scene.Game.prototype.getProjectileHitboxLeeway = function (options
 };
 
 /**
- * ...
+ * Returns collision bounds for an object at a proposed position.
+ *
+ * @param {Object} object Display object to measure or clamp.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getCollisionBoundsAt = function (object, x, y) {
     var objectX = object ? object.x || 0 : 0;
@@ -2905,14 +3056,23 @@ GraveFallGame.scene.Game.prototype.getCollisionBoundsAt = function (object, x, y
 };
 
 /**
- * ...
+ * Returns current collision bounds for an object.
+ *
+ * @param {Object} object Display object to measure or clamp.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getCollisionBounds = function (object) {
     return this.getCollisionBoundsAt(object);
 };
 
 /**
- * ...
+ * Checks whether two bounds objects overlap.
+ *
+ * @param {Object} aBounds A bounds.
+ * @param {Object} bBounds B bounds.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.rectBoundsOverlap = function (aBounds, bBounds) {
     return rune.geom.Rectangle.intersects(
@@ -2928,14 +3088,25 @@ GraveFallGame.scene.Game.prototype.rectBoundsOverlap = function (aBounds, bBound
 };
 
 /**
- * ...
+ * Checks whether two rectangle-like objects overlap.
+ *
+ * @param {Object} a A.
+ * @param {Object} b B.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.rectsOverlap = function (a, b) {
     return this.rectBoundsOverlap(this.getCollisionBounds(a), this.getCollisionBounds(b));
 };
 
 /**
- * ...
+ * Checks whether a battle avatar would collide at a proposed position.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {number} testX Test x.
+ * @param {number} testY Test y.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMenu, testX, testY) {
     var i;
@@ -2952,7 +3123,11 @@ GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMen
 };
 
 /**
- * ...
+ * Updates player hit flicker timers and visibility.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu) {
     var flashAlpha = 1;
@@ -2974,7 +3149,9 @@ GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu
 };
 
 /**
- * ...
+ * Checks projectile collisions against player battle avatars.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
     var i;
@@ -3022,7 +3199,9 @@ GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
 };
 
 /**
- * ...
+ * Updates all active projectiles and removes expired ones.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
     var inner = this.getArenaInnerBounds();
@@ -3135,7 +3314,13 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
 };
 
 /**
- * ...
+ * Returns clamp bounds for an object at a proposed position.
+ *
+ * @param {Object} object Display object to measure or clamp.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getClampBoundsAt = function (object, x, y) {
     var objectX = object ? object.x || 0 : 0;
@@ -3178,7 +3363,14 @@ GraveFallGame.scene.Game.prototype.getClampBoundsAt = function (object, x, y) {
 };
 
 /**
- * ...
+ * Clamps an object position so its hitbox remains inside bounds.
+ *
+ * @param {Object} object Display object to measure or clamp.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {Object} bounds Bounds.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.clampObjectHitboxToBounds = function (object, x, y, bounds) {
     var clampedX = x;

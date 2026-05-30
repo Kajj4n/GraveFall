@@ -3,7 +3,9 @@
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Creates the arena frame, background, player avatars, enemy UI, and action prompt.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -52,7 +54,13 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
 
 
 /**
- * ...
+ * Sets the passage backdrop resource and applies the requested UI palette.
+ *
+ * @param {string} resource Resource name to use.
+ * @param {Object} uiSkin UI skin object.
+ * @param {boolean} keepTransform Whether the current background transform should be preserved.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, uiSkin, keepTransform) {
     var oldBackground = this.backgroundBackdrop;
@@ -104,7 +112,11 @@ GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, ui
 };
 
 /**
- * ...
+ * Returns the correct battle background resource for an enemy type.
+ *
+ * @param {string} enemyType Enemy type identifier.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getBattleBackgroundResourceForEnemy = function (enemyType) {
     var enemyConfig = GraveFallGame.scene.Game.ENEMIES[enemyType] || null;
@@ -117,7 +129,12 @@ GraveFallGame.scene.Game.prototype.getBattleBackgroundResourceForEnemy = functio
 };
 
 /**
- * ...
+ * Sets the battle background that matches the current enemy encounter.
+ *
+ * @param {string} enemyType Enemy type identifier.
+ * @param {boolean} keepTransform Whether the current background transform should be preserved.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setBattleBackgroundForEnemy = function (enemyType, keepTransform) {
     this.setPassageBackground(
@@ -128,7 +145,11 @@ GraveFallGame.scene.Game.prototype.setBattleBackgroundForEnemy = function (enemy
 };
 
 /**
- * ...
+ * Sets the standard dungeon passage background.
+ *
+ * @param {boolean} keepTransform Whether the current background transform should be preserved.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setDungeonPassageBackground = function (keepTransform) {
     this.setPassageBackground(
@@ -139,7 +160,11 @@ GraveFallGame.scene.Game.prototype.setDungeonPassageBackground = function (keepT
 };
 
 /**
- * ...
+ * Returns the UI palette key associated with a dungeon floor.
+ *
+ * @param {number} floorNumber Floor number.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getFloorPaletteKey = function (floorNumber) {
     var palettes = GraveFallGame.scene.Game.RUN_PALETTES || [];
@@ -154,7 +179,12 @@ GraveFallGame.scene.Game.prototype.getFloorPaletteKey = function (floorNumber) {
 };
 
 /**
- * ...
+ * Replaces an existing UI frame while preserving its stage order.
+ *
+ * @param {Object} oldFrame Frame object currently on the stage.
+ * @param {Object} newFrame Replacement frame object.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.replaceUiFrame = function (oldFrame, newFrame) {
     var parent;
@@ -182,7 +212,12 @@ GraveFallGame.scene.Game.prototype.replaceUiFrame = function (oldFrame, newFrame
 };
 
 /**
- * ...
+ * Rebuilds a player command menu frame using a new UI skin.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {Object} uiSkin UI skin object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.rebuildPlayerMenuFramesForSkin = function (playerMenu, uiSkin) {
     var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
@@ -230,7 +265,11 @@ GraveFallGame.scene.Game.prototype.rebuildPlayerMenuFramesForSkin = function (pl
 };
 
 /**
- * ...
+ * Refreshes the passage background palette for the active UI skin.
+ *
+ * @param {boolean} keepTransform Whether the current background transform should be preserved.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.refreshPassageBackgroundPalette = function (keepTransform) {
     var resource = this.backgroundBackdropResource || GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE || "Dungeon_Background";
@@ -240,7 +279,9 @@ GraveFallGame.scene.Game.prototype.refreshPassageBackgroundPalette = function (k
 };
 
 /**
- * ...
+ * Applies the floor palette to the arena, background, and player menus.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
     var paletteKey = this.getFloorPaletteKey(this.floorNumber || 1);
@@ -282,9 +323,11 @@ GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
         this.tintBitmapFieldText(this.floorText, "#FFFFFF", true);
     }
 
-    // Score, floor, and turn timer text intentionally keep the default white bitmap font color.
-    // The floor palette changes the surrounding UI, but these counters should not flash
-    // to the new frame color before their text refreshes back to white.
+    /*
+     * Score, floor, and turn timer text intentionally keep the default white
+     * bitmap font color. The floor palette changes the surrounding UI, but
+     * these counters should not flash before their text refreshes back to white.
+     */
 
     if (this.playerMenus) {
         for (i = 0; i < this.playerMenus.length; i++) {
@@ -296,7 +339,9 @@ GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
 };
 
 /**
- * ...
+ * Advances the run to the next floor after a boss is defeated.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.advanceFloorAfterBossDefeat = function () {
     this.floorNumber++;
@@ -315,14 +360,21 @@ GraveFallGame.scene.Game.prototype.advanceFloorAfterBossDefeat = function () {
 };
 
 /**
- * ...
+ * Queues a floor advance to occur during the next transition blackout.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.queueFloorAdvanceAfterBlackout = function () {
     this.passageTransitionPendingFloorAdvance = true;
 };
 
 /**
- * ...
+ * Applies a queued floor advance after the screen has reached blackout.
+ *
+ * @param {number} elapsedMs Elapsed time for the current transition, in milliseconds.
+ * @param {number} blackStartMs Transition timestamp at which the blackout begins, in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyPendingFloorAdvanceAfterBlackout = function (elapsedMs, blackStartMs) {
     if (this.passageTransitionPendingFloorAdvance !== true) {
@@ -338,7 +390,11 @@ GraveFallGame.scene.Game.prototype.applyPendingFloorAdvanceAfterBlackout = funct
 };
 
 /**
- * ...
+ * Shows or hides the arena and its related UI.
+ *
+ * @param {boolean} visible Whether the target should be visible.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
     this.arenaBackground.visible = visible;
@@ -354,7 +410,9 @@ GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
 };
 
 /**
- * ...
+ * Shows the tutorial prompt for the first enemy action phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.showActionPromptForFirstEnemy = function () {
     if (this.encounterIndex === 0 && this.actionPromptText) {
@@ -370,7 +428,9 @@ GraveFallGame.scene.Game.prototype.showActionPromptForFirstEnemy = function () {
 };
 
 /**
- * ...
+ * Updates and hides the first-action prompt when its timer expires.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateActionPromptTimer = function () {
     if (!this.actionPromptText) {
@@ -393,7 +453,9 @@ GraveFallGame.scene.Game.prototype.updateActionPromptTimer = function () {
 };
 
 /**
- * ...
+ * Hides the action prompt immediately.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.hideActionPrompt = function () {
     this.actionPromptTimerFrames = 0;
@@ -405,7 +467,9 @@ GraveFallGame.scene.Game.prototype.hideActionPrompt = function () {
 };
 
 /**
- * ...
+ * Positions player battle avatars inside the arena.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
     var inner = this.getArenaInnerBounds();
@@ -453,7 +517,11 @@ GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
 };
 
 /**
- * ...
+ * Makes a player battle avatar active for the action phase.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.activateBattleAvatar = function (playerMenu) {
     playerMenu.stand.visible = false;
@@ -462,7 +530,11 @@ GraveFallGame.scene.Game.prototype.activateBattleAvatar = function (playerMenu) 
 };
 
 /**
- * ...
+ * Returns a player battle avatar to its inactive state.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.deactivateBattleAvatar = function (playerMenu) {
     playerMenu.stand.visible = true;
@@ -472,7 +544,9 @@ GraveFallGame.scene.Game.prototype.deactivateBattleAvatar = function (playerMenu
 };
 
 /**
- * ...
+ * Returns the current party name with a fallback value.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getCurrentPartyName = function () {
     var partyName = "THE FALLEN";
@@ -493,18 +567,24 @@ GraveFallGame.scene.Game.prototype.getCurrentPartyName = function () {
 };
 
 //------------------------------------------------------------------------------
-// DYNAMIC LOCALSTORAGE SAVING DIRECTLY IN ARENA.JS
+// Game over persistence
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Returns the game-over message used when the party runs away.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getRunAwayMessage = function (partySize) {
     return partySize > 1 ? "RAN AWAY AS COWARDS" : "RAN AWAY AS A COWARD";
 };
 
 /**
- * ...
+ * Builds and shows the game-over screen before returning to the menu.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
     var partyName;
@@ -586,7 +666,11 @@ GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
 };
 
 /**
- * ...
+ * Sets the alpha of all enemy health UI elements.
+ *
+ * @param {number} alpha Alpha value to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setEnemyUiAlpha = function (alpha) {
     alpha = Math.max(0, Math.min(1, alpha));
@@ -618,7 +702,12 @@ GraveFallGame.scene.Game.prototype.setEnemyUiAlpha = function (alpha) {
 };
 
 /**
- * ...
+ * Sets player and action menu visibility during transitions.
+ *
+ * @param {boolean} visible Whether the target should be visible.
+ * @param {boolean} actionsVisible Whether player action menus should be visible.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (visible, actionsVisible) {
     var i;
@@ -698,7 +787,12 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (vis
 };
 
 /**
- * ...
+ * Sets player and action menu alpha during transitions.
+ *
+ * @param {number} playerAlpha Alpha value to apply to player sprites.
+ * @param {number} actionsAlpha Alpha value to apply to action menus.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAlpha, actionsAlpha) {
     var i;
@@ -779,7 +873,11 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAl
 };
 
 /**
- * ...
+ * Shows or hides every player action menu.
+ *
+ * @param {boolean} visible Whether the target should be visible.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setPlayerActionMenusVisible = function (visible) {
     var i;
@@ -813,7 +911,9 @@ GraveFallGame.scene.Game.prototype.setPlayerActionMenusVisible = function (visib
 };
 
 /**
- * ...
+ * Updates enemy health bar size, text, and frame visibility.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateEnemyHealthBarUi = function () {
     var eBarWidth = this.enemyHealthBarWidth || 300;
@@ -830,7 +930,11 @@ GraveFallGame.scene.Game.prototype.updateEnemyHealthBarUi = function () {
 };
 
 /**
- * ...
+ * Recreates the active enemy sprite and its damage states.
+ *
+ * @param {boolean} fadeIn Whether the created or rebuilt display should fade in.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     var enemyConfig = this.getCurrentEnemyConfig();
@@ -868,7 +972,12 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
 };
 
 /**
- * ...
+ * Loads enemy configuration, visuals, timers, and music for an encounter.
+ *
+ * @param {string} enemyType Enemy type identifier.
+ * @param {boolean} fadeIn Whether the created or rebuilt display should fade in.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fadeIn) {
     var enemyConfig;
@@ -907,7 +1016,9 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
 };
 
 /**
- * ...
+ * Resets player command state for a new encounter.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
     var i;
@@ -937,7 +1048,9 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
 };
 
 /**
- * ...
+ * Returns the primary Rune camera when available.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getPrimaryCamera = function () {
     if (!this.cameras || typeof this.cameras.getCameraAt !== "function") {
@@ -948,7 +1061,11 @@ GraveFallGame.scene.Game.prototype.getPrimaryCamera = function () {
 };
 
 /**
- * ...
+ * Eases a passage transition progress value.
+ *
+ * @param {*} value Value to parse, clamp, or sanitize.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.easePassageTransition = function (value) {
     value = Math.max(0, Math.min(1, value));
@@ -958,7 +1075,9 @@ GraveFallGame.scene.Game.prototype.easePassageTransition = function (value) {
 };
 
 /**
- * ...
+ * Resets camera state used by the passage transition.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetPassageCameraTransition = function () {
     var camera = this.getPrimaryCamera();
@@ -990,7 +1109,11 @@ GraveFallGame.scene.Game.prototype.resetPassageCameraTransition = function () {
 };
 
 /**
- * ...
+ * Applies zoom, fade, and camera motion for the passage transition.
+ *
+ * @param {number} elapsedMs Elapsed time for the current transition, in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elapsedMs) {
     var camera = this.getPrimaryCamera();
@@ -1047,7 +1170,9 @@ GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elap
 };
 
 /**
- * ...
+ * Loads the next encounter at the correct transition point.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = function () {
     var nextEnemyType;
@@ -1078,7 +1203,9 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
 };
 
 /**
- * ...
+ * Ends the transition and returns control to the command phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = function () {
     var enemyConfig;
@@ -1109,7 +1236,9 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
 };
 
 /**
- * ...
+ * Starts reward and transition handling after an enemy is defeated.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
     var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
@@ -1123,7 +1252,9 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
 };
 
 /**
- * ...
+ * Starts the full enemy defeated transition sequence.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     var i;
@@ -1231,7 +1362,9 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
 };
 
 /**
- * ...
+ * Starts a new non-boss encounter.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startNextEnemyEncounter = function () {
     this.passageTransitionEncounterLoaded = false;
@@ -1240,7 +1373,9 @@ GraveFallGame.scene.Game.prototype.startNextEnemyEncounter = function () {
 };
 
 /**
- * ...
+ * Clears boss entrance animation state.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetBossEntranceState = function () {
     this.bossEntranceState = null;
@@ -1256,7 +1391,9 @@ GraveFallGame.scene.Game.prototype.resetBossEntranceState = function () {
 };
 
 /**
- * ...
+ * Checks whether the current encounter needs a boss entrance.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isBossEntranceRequiredForCurrentEncounter = function () {
     var enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
@@ -1265,7 +1402,12 @@ GraveFallGame.scene.Game.prototype.isBossEntranceRequiredForCurrentEncounter = f
 };
 
 /**
- * ...
+ * Updates the boss entrance animation while the transition runs.
+ *
+ * @param {number} elapsedMs Elapsed time for the current transition, in milliseconds.
+ * @param {number} entranceStartMs Transition timestamp at which the entrance starts, in milliseconds.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function (elapsedMs, entranceStartMs) {
     var localMs = elapsedMs - entranceStartMs;
@@ -1400,7 +1542,11 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
 };
 
 /**
- * ...
+ * Updates the enemy defeated transition sequence.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step) {
     var elapsedMs;
@@ -1602,7 +1748,9 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
 };
 
 /**
- * ...
+ * Starts the enemy action phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
@@ -1649,7 +1797,9 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
 };
 
 /**
- * ...
+ * Ends the enemy action phase and returns to command flow.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     var i;
@@ -1700,7 +1850,11 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
 };
 
 /**
- * ...
+ * Removes or fades out active projectiles.
+ *
+ * @param {boolean} fadeOut Whether existing projectiles should fade out before removal.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearProjectiles = function (fadeOut) {
     var i;
@@ -1730,7 +1884,11 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function (fadeOut) {
 };
 
 /**
- * ...
+ * Creates a projectile display object with movement and damage metadata.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
@@ -1738,7 +1896,7 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     var hasCustomSpriteBounds;
     var rotationHandledBySprite = false;
     
-    // SCALE CONSTANTS
+    /* Difficulty scaling is applied once when the projectile is created. */
     var dmgMulti = this.getDifficultyMultiplier ? this.getDifficultyMultiplier() : 1.0;
     var spdMulti = this.getDifficultySpeedMultiplier ? this.getDifficultySpeedMultiplier() : 1.0;
 
@@ -1923,7 +2081,12 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
 };
 
 /**
- * ...
+ * Applies animation settings to a projectile display object.
+ *
+ * @param {Object} display Projectile display object.
+ * @param {Object} animation Animation options to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyProjectileAnimation = function (display, animation) {
     var animationName;
@@ -1943,7 +2106,11 @@ GraveFallGame.scene.Game.prototype.applyProjectileAnimation = function (display,
 };
 
 /**
- * ...
+ * Spawns a projectile and adds it to the active projectile list.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.spawnProjectile = function (options) {
     var projectile = this.createProjectileDisplay(options);
@@ -1953,7 +2120,11 @@ GraveFallGame.scene.Game.prototype.spawnProjectile = function (options) {
 };
 
 /**
- * ...
+ * Spawns a vertically sweeping projectile.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (options) {
     var dmgMulti = this.getDifficultyMultiplier ? this.getDifficultyMultiplier() : 1.0;
@@ -2003,7 +2174,12 @@ GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (opti
 };
 
 /**
- * ...
+ * Applies damage to a player and updates player state.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {number} amount Amount to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
     var wasAlive = playerMenu.healthCurrent > 0;
@@ -2056,7 +2232,11 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
 };
 
 /**
- * ...
+ * Updates one player avatar movement and arena clamping.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (playerMenu) {
     var speed = playerMenu.moveSpeed || 3;
@@ -2092,10 +2272,10 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
     playerBounds = {
         x: inner.x,
         y: inner.y,
-        // The UI frame sprites are 16x16, but their solid visible border is 4px.
-        // Top, left, and bottom already line up with that visible wall. Keep
-        // those as-is and only pull the right limit in a little further so the
-        // battle avatar cannot overlap the right wall during the action phase.
+        /*
+         * The frame sprite contains transparent padding. Clamp against the
+         * visible wall so battle avatars cannot overlap the right-side frame.
+         */
         width: Math.max(0, inner.width - 5),
         height: Math.max(0, inner.height - 3)
     };
@@ -2115,7 +2295,9 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
 };
 
 /**
- * ...
+ * Removes the active arena item pickup.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
     if (this.arenaItem && this.arenaItem.parent) {
@@ -2126,14 +2308,20 @@ GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
 };
 
 /**
- * ...
+ * Returns the color cycle used by arena item pickup effects.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getArenaItemPickupColors = function () {
     return ["#1E88E5", "#FDD835", "#E53935", "#43A047"];
 };
 
 /**
- * ...
+ * Converts a color component to a two-character hexadecimal pair.
+ *
+ * @param {*} value Value to parse, clamp, or sanitize.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.hexPair = function (value) {
     var out = Math.max(0, Math.min(255, Math.round(value))).toString(16).toUpperCase();
@@ -2141,7 +2329,13 @@ GraveFallGame.scene.Game.prototype.hexPair = function (value) {
 };
 
 /**
- * ...
+ * Interpolates between two hexadecimal colors.
+ *
+ * @param {string} fromColor Starting hexadecimal color.
+ * @param {string} toColor Ending hexadecimal color.
+ * @param {number} ratio Interpolation ratio.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.lerpHexColor = function (fromColor, toColor, ratio) {
     var fromHex = (fromColor || "#FFFFFF").replace("#", "");
@@ -2169,7 +2363,12 @@ GraveFallGame.scene.Game.prototype.lerpHexColor = function (fromColor, toColor, 
 };
 
 /**
- * ...
+ * Applies an item pickup color to its sprite and glow.
+ *
+ * @param {Object} item Arena item display object.
+ * @param {string} targetColor Palette color to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyArenaItemPickupColor = function (item, targetColor) {
     var swaps;
@@ -2208,7 +2407,11 @@ GraveFallGame.scene.Game.prototype.applyArenaItemPickupColor = function (item, t
 };
 
 /**
- * ...
+ * Spawns ambient sparkle effects around an arena item.
+ *
+ * @param {Object} item Arena item display object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnArenaItemAmbientSparkles = function (item) {
     var anchor;
@@ -2240,7 +2443,12 @@ GraveFallGame.scene.Game.prototype.spawnArenaItemAmbientSparkles = function (ite
 };
 
 /**
- * ...
+ * Updates bob, glow, and color-cycle effects for an arena item.
+ *
+ * @param {Object} item Arena item display object.
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateArenaItemPickupVisuals = function (item, step) {
     var colors;
@@ -2290,7 +2498,9 @@ GraveFallGame.scene.Game.prototype.updateArenaItemPickupVisuals = function (item
 };
 
 /**
- * ...
+ * Spawns a random arena item pickup.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
     var inner = this.getArenaInnerBounds();
@@ -2323,7 +2533,11 @@ GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
 };
 
 /**
- * ...
+ * Updates active arena item visuals and lifetime.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateArenaItem = function (step) {
     if (this.arenaItem) {
@@ -2340,7 +2554,9 @@ GraveFallGame.scene.Game.prototype.updateArenaItem = function (step) {
 };
 
 /**
- * ...
+ * Checks whether any player collected the active arena item.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
     var i;
@@ -2367,7 +2583,11 @@ GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
 };
 
 /**
- * ...
+ * Updates projectiles, player movement, items, and timers during the action phase.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateActionPhase = function (step) {
     var enemy = this.getCurrentEnemyConfig();
@@ -2417,12 +2637,15 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function (step) {
 
 //------------------------------------------------------------------------------
 
-// Game over stats and leaderboard transition
 //------------------------------------------------------------------------------
 
 
 /**
- * ...
+ * Returns the screen position for the enemy sprite at a scale.
+ *
+ * @param {number} scale Display scale.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     var screenWidth;
@@ -2456,11 +2679,12 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 };
 
 
-
 (function () {
 
     /**
-     * ...
+     * Builds the game-over summary data for the current run.
+     *
+     * @return {Object} Resolved value.
      */
     GraveFallGame.scene.Game.prototype.buildGameOverSummary = function () {
         var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
@@ -2514,7 +2738,11 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Returns the strongest game-over statistic for a player.
+     *
+     * @param {Object} stats Statistics object to evaluate.
+     *
+     * @return {Object} Resolved value.
      */
     GraveFallGame.scene.Game.prototype.getGameOverBestStat = function (stats) {
         var candidates = [
@@ -2549,7 +2777,11 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Saves the current run summary to highscore and recent-run storage.
+     *
+     * @param {Object} options Options object.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function (options) {
         var partyName;
@@ -2627,7 +2859,11 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Returns the tombstone portrait resource for a player stand sprite.
+     *
+     * @param {string} standResource Stand resource.
+     *
+     * @return {string} Resolved string value.
      */
     GraveFallGame.scene.Game.prototype.getPlayerTombstoneResource = function (standResource) {
         var baseResource = standResource ? String(standResource) : "";
@@ -2659,7 +2895,13 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Creates the game-over portrait for a player entry.
+     *
+     * @param {Object} playerEntry Player entry.
+     * @param {Object} theme Player or UI theme object.
+     * @param {number} cardWidth Card width.
+     *
+     * @return {Object} Created display object or data object.
      */
     GraveFallGame.scene.Game.prototype.createGameOverPortrait = function (playerEntry, theme, cardWidth) {
         var sprite;
@@ -2690,17 +2932,18 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
 
     /**
-     * ...
+     * Sanitizes text so it can be rendered by the bitmap font.
+     *
+     * @param {string} text Text to render or sanitize.
+     *
+     * @return {string} Resolved string value.
      */
     GraveFallGame.scene.Game.prototype.sanitizeBitmapText = function (text) {
         var safeText;
     
         safeText = text === undefined || text === null ? "" : String(text);
         safeText = safeText.toUpperCase();
-    
-        // Rune's bitmap font in this project is safest with plain ASCII letters,
-        // numbers and common punctuation. Replace anything else so stat screens
-        // and leaderboard names never crash when they are rendered.
+        /* Keep the rendered text within the supported bitmap font glyph set. */
         safeText = safeText.replace(/[^A-Z0-9 \-.:,!?\/\[\]\(\)\+]/g, " ");
         safeText = safeText.replace(/\s{2,}/g, " ").trim();
     
@@ -2708,7 +2951,15 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Creates one game-over stat text line.
+     *
+     * @param {string} text Text to render or sanitize.
+     * @param {number} x Horizontal position.
+     * @param {number} y Vertical position.
+     * @param {number} width Width in pixels.
+     * @param {string} color Color to apply.
+     *
+     * @return {Object} Created display object or data object.
      */
     GraveFallGame.scene.Game.prototype.createGameOverStatLine = function (text, x, y, width, color) {
         var safeText = this.sanitizeBitmapText ? this.sanitizeBitmapText(text) : String(text || "");
@@ -2728,7 +2979,16 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Creates a game-over statistics card for one player.
+     *
+     * @param {number} x Horizontal position.
+     * @param {number} y Vertical position.
+     * @param {number} width Width in pixels.
+     * @param {number} height Height in pixels.
+     * @param {Object} playerEntry Player entry.
+     * @param {Object} uiSkin UI skin object.
+     *
+     * @return {Object} Created display object or data object.
      */
     GraveFallGame.scene.Game.prototype.createGameOverStatsCard = function (x, y, width, height, playerEntry, uiSkin) {
         var card = new rune.display.DisplayObjectContainer(x, y, width, height);
@@ -2840,7 +3100,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Renders the full game-over statistics layout.
+     *
+     * @return {undefined}
      */
     GraveFallGame.scene.Game.prototype.renderGameOverStats = function () {
         var screen = this.application.screen;
@@ -2974,7 +3236,11 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
     /**
-     * ...
+     * Updates game-over input, timers, and menu return logic.
+     *
+     * @param {number} step Fixed time step supplied by the Rune engine.
+     *
+     * @return {undefined}
      */
     GraveFallGame.scene.Game.prototype.updateGameOver = function (step) {
         var continuePressed = false;

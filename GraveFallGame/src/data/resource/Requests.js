@@ -39,7 +39,9 @@ GraveFallGame.data.Requests.prototype.constructor = GraveFallGame.data.Requests;
 //------------------------------------------------------------------------------
 
 /**
- * @inheritDoc
+ * Registers the baked resource data with the Rune resource request system.
+ *
+ * @return {undefined}
  */
 GraveFallGame.data.Requests.prototype.m_construct = function() {
     rune.resource.Requests.prototype.m_construct.call(this);

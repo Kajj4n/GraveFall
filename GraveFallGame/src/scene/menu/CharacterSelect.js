@@ -31,7 +31,11 @@ GraveFallGame.scene.CharacterSelect = function () {
     this.backgroundSkin = GraveFallGame.scene.Game.UI_SKINS.outsideCampfireBrown || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     this.selectionSkin = GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     
-    // Default Phase
+    /**
+     * Current character selection phase.
+     *
+     * @type {string}
+     */
     this.phase = "select"; 
 };
 
@@ -69,7 +73,11 @@ GraveFallGame.scene.CharacterSelect.prototype.isDevConsoleInputActive = GraveFal
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Returns the connected gamepad assigned to an input owner.
+ *
+ * @param {Object} inputOwner Input owner that contains keyboard and gamepad metadata.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.getGamepadForInput = function (inputOwner) {
     var index = inputOwner && inputOwner.gamepadIndex !== undefined ? inputOwner.gamepadIndex : 0;
@@ -89,7 +97,11 @@ GraveFallGame.scene.CharacterSelect.prototype.getGamepadForInput = function (inp
 };
 
 /**
- * ...
+ * Checks whether confirm input was pressed on this frame.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -99,7 +111,11 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctr
 };
 
 /**
- * ...
+ * Checks whether back input was pressed on this frame.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedBack = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -109,7 +125,11 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedBack = function (ctrl) 
 };
 
 /**
- * ...
+ * Checks whether left input was pressed on this frame.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -119,7 +139,11 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) 
 };
 
 /**
- * ...
+ * Checks whether right input was pressed on this frame.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -129,7 +153,11 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl)
 };
 
 /**
- * ...
+ * Checks whether up input was pressed on this frame.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedUp = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -139,7 +167,11 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedUp = function (ctrl) {
 };
 
 /**
- * ...
+ * Checks whether down input was pressed on this frame.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedDown = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -149,7 +181,11 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedDown = function (ctrl) 
 };
 
 /**
- * ...
+ * Returns the canonical input state for a controller.
+ *
+ * @param {Object} controller Controller mapping object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = function (controller) {
     var controls = controller && controller.controls ? controller.controls : {};
@@ -174,7 +210,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = func
 //------------------------------------------------------------------------------
 
 /**
- * @inheritDoc
+ * Initializes the scene and creates its display objects.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     GraveFallGame.useBitmapFont();
@@ -236,7 +274,11 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
 };
 
 /**
- * @inheritDoc
+ * Updates the scene once per engine tick.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
@@ -245,7 +287,6 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
         return;
     }
 
-    // PHASE ROUTING
     if (this.phase === "name") {
         this.updateNamePhase(step);
         return;
@@ -256,7 +297,6 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
         return;
     }
 
-    // PHASE: SELECT
     var allJoinedConfirmed = true;
     var anyJoined = this.players.length > 0;
     var c;
@@ -367,7 +407,9 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
 };
 
 /**
- * @inheritDoc
+ * Disposes scene resources before the scene is removed.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.dispose = function () {
     if (typeof this.unregisterCharacterSelectDevConsoleCommands === "function") {
@@ -382,7 +424,9 @@ GraveFallGame.scene.CharacterSelect.prototype.dispose = function () {
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Starts the party name input phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.startNameInputPhase = function () {
     this.phase = "name";
@@ -430,7 +474,7 @@ GraveFallGame.scene.CharacterSelect.prototype.startNameInputPhase = function () 
         var isLastRow = (r === this.kbRows.length - 1);
         var spacingX = isLastRow ? 180 : 56;
         
-        // Exact centering math prevents invisible right-side ghost keys
+        /* Exact centering math prevents invisible right-side ghost keys. */
         var rowContentWidth = (this.kbRows[r].length - 1) * spacingX;
         var startX = (this.application.screen.width / 2) - (rowContentWidth / 2);
 
@@ -474,7 +518,11 @@ GraveFallGame.scene.CharacterSelect.prototype.startNameInputPhase = function () 
 };
 
 /**
- * ...
+ * Updates party name input controls and transition timing.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.updateNamePhase = function (step) {
     var allReady = true;
@@ -541,14 +589,19 @@ GraveFallGame.scene.CharacterSelect.prototype.updateNamePhase = function (step) 
         this.kbContainer.visible = false;
         this.instructionText.visible = false;
         
-        // Update the phase state so the transition begins in the update loop.
+        /* Update the phase state so the transition begins in the update loop. */
         this.phase = "transition"; 
         this.beginEnterTransition();
     }
 };
 
 /**
- * ...
+ * Updates one player cursor on the party name keyboard.
+ *
+ * @param {Object} player Player.
+ * @param {number} playerIndex Player index.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.updatePlayerKbdCursor = function (player, playerIndex) {
     var vis = this.kbVisuals[player.kbdY][player.kbdX];
@@ -567,13 +620,15 @@ GraveFallGame.scene.CharacterSelect.prototype.updatePlayerKbdCursor = function (
 };
 
 /**
- * ...
+ * Refreshes the party name display text.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.refreshPartyNameDisplay = function () {
     var str = this.partyName + (this.partyName.length < 12 ? "_" : "");
     this.partyNameText.text = str;
     
-    // Keep the string manually centered to avoid auto-size layout drift.
+    /* Keep the string manually centered to avoid auto-size layout drift. */
     this.partyNameText.x = Math.floor((this.application.screen.width / 2) - ((str.length * 6 * 4) / 2));
 };
 
@@ -582,7 +637,13 @@ GraveFallGame.scene.CharacterSelect.prototype.refreshPartyNameDisplay = function
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Centers a bitmap text field around an x coordinate.
+ *
+ * @param {Object} field Bitmap field to update.
+ * @param {number} centerX Horizontal center position.
+ * @param {number} scale Display scale.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.centerText = function (field, centerX, scale) {
     if (!field) {
@@ -593,7 +654,9 @@ GraveFallGame.scene.CharacterSelect.prototype.centerText = function (field, cent
 };
 
 /**
- * ...
+ * Returns the dimmed theme used by unavailable character cards.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.getDownedCharacterTheme = function () {
     return {
@@ -609,7 +672,11 @@ GraveFallGame.scene.CharacterSelect.prototype.getDownedCharacterTheme = function
 };
 
 /**
- * ...
+ * Returns the buff description shown for a character template.
+ *
+ * @param {Object} template Template.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription = function (template) {
     var id = template && template.id ? String(template.id).toLowerCase() : "";
@@ -635,7 +702,16 @@ GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription 
 };
 
 /**
- * ...
+ * Creates one class selection card.
+ *
+ * @param {Object} template Template.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {number} index Index to resolve.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height, index) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.selectionSkin);
@@ -760,7 +836,13 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
 };
 
 /**
- * ...
+ * Creates the portrait display for a class selection node.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} theme Player or UI theme object.
+ * @param {boolean} downed Downed.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodePortrait = function (node, theme, downed) {
     var portrait;
@@ -779,7 +861,12 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodePortrait = function
 };
 
 /**
- * ...
+ * Creates the icon display for a class selection node.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} theme Player or UI theme object.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodeIcon = function (node, theme) {
     var icon;
@@ -800,7 +887,13 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodeIcon = function (no
 };
 
 /**
- * ...
+ * Creates the stand sprite display for a class selection node.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} theme Player or UI theme object.
+ * @param {boolean} downed Downed.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (node, theme, downed) {
     var sprite;
@@ -831,7 +924,11 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (
 };
 
 /**
- * ...
+ * Removes dynamic visuals from a class selection node.
+ *
+ * @param {Object} node Character select class node.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.removeNodeDynamicVisuals = function (node) {
     if (!node) {
@@ -856,7 +953,12 @@ GraveFallGame.scene.CharacterSelect.prototype.removeNodeDynamicVisuals = functio
 };
 
 /**
- * ...
+ * Applies themed chrome colors to a class selection node.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} theme Player or UI theme object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.applyClassNodeChrome = function (node, theme) {
     var tintTheme = theme || this.getDownedCharacterTheme();
@@ -882,7 +984,13 @@ GraveFallGame.scene.CharacterSelect.prototype.applyClassNodeChrome = function (n
 };
 
 /**
- * ...
+ * Sets a class node visual state based on selection and lock ownership.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} theme Player or UI theme object.
+ * @param {*} lockedBy Locked by.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (node, theme, lockedBy) {
     var icon;
@@ -928,7 +1036,11 @@ GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (nod
 };
 
 /**
- * ...
+ * Restores a class node to its default visual state.
+ *
+ * @param {Object} node Character select class node.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.restoreClassNodeVisual = function (node) {
     if (!node) {
@@ -943,7 +1055,11 @@ GraveFallGame.scene.CharacterSelect.prototype.restoreClassNodeVisual = function 
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Returns the display order index for a controller.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.getControllerOrderIndex = function (ctrl) {
     var i;
@@ -962,7 +1078,12 @@ GraveFallGame.scene.CharacterSelect.prototype.getControllerOrderIndex = function
 };
 
 /**
- * ...
+ * Returns the sprite x position for a class card x position.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} cardX Card x.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.getSpriteXForCardX = function (node, cardX) {
     if (!node) {
@@ -973,7 +1094,12 @@ GraveFallGame.scene.CharacterSelect.prototype.getSpriteXForCardX = function (nod
 };
 
 /**
- * ...
+ * Applies a visual x position to every display part in a class node.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} visualX Visual x.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.applyNodeVisualX = function (node, visualX) {
     if (!node) {
@@ -992,7 +1118,13 @@ GraveFallGame.scene.CharacterSelect.prototype.applyNodeVisualX = function (node,
 };
 
 /**
- * ...
+ * Sets the target layout slot for a class node.
+ *
+ * @param {Object} node Character select class node.
+ * @param {number} slotIndex Layout slot index.
+ * @param {boolean} animate Animate.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.setNodeTargetSlot = function (node, slotIndex, animate) {
     var targetX;
@@ -1026,7 +1158,11 @@ GraveFallGame.scene.CharacterSelect.prototype.setNodeTargetSlot = function (node
 };
 
 /**
- * ...
+ * Updates animated class card layout movement.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.updateClassLayoutAnimations = function (step) {
     var i;
@@ -1066,7 +1202,11 @@ GraveFallGame.scene.CharacterSelect.prototype.updateClassLayoutAnimations = func
 };
 
 /**
- * ...
+ * Rebuilds class card layout positions.
+ *
+ * @param {boolean} animate Animate.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.rebuildClassLayout = function (animate) {
     var slotByClassIndex = {};
@@ -1128,7 +1268,11 @@ GraveFallGame.scene.CharacterSelect.prototype.rebuildClassLayout = function (ani
 
 
 /**
- * ...
+ * Eases character select transition progress.
+ *
+ * @param {number} progress Progress value in the range 0 to 1.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.easeTransition = function (progress) {
     progress = Math.max(0, Math.min(1, progress || 0));
@@ -1141,7 +1285,9 @@ GraveFallGame.scene.CharacterSelect.prototype.easeTransition = function (progres
 };
 
 /**
- * ...
+ * Returns selected players in their render order.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.CharacterSelect.prototype.getSelectedPlayersInRenderOrder = function () {
     var selectedPlayers = [];
@@ -1171,7 +1317,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getSelectedPlayersInRenderOrder = 
 };
 
 /**
- * ...
+ * Starts the transition from character select into gameplay.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.beginEnterTransition = function () {
     var selectedPlayers;
@@ -1266,7 +1414,11 @@ GraveFallGame.scene.CharacterSelect.prototype.beginEnterTransition = function ()
 };
 
 /**
- * ...
+ * Updates the character select enter transition.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.updateEnterTransition = function (step) {
     var transition = this.enterTransition;
@@ -1389,7 +1541,13 @@ GraveFallGame.scene.CharacterSelect.prototype.updateEnterTransition = function (
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Finds an available class index for a player.
+ *
+ * @param {number} startIndex Index to begin searching from.
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ * @param {Object} player Player.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.CharacterSelect.prototype.findAvailableClassIndex = function (startIndex, step, player) {
     var total;
@@ -1423,7 +1581,11 @@ GraveFallGame.scene.CharacterSelect.prototype.findAvailableClassIndex = function
 };
 
 /**
- * ...
+ * Releases a player class selection.
+ *
+ * @param {Object} player Player.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.releasePlayerSelection = function (player) {
     var node;
@@ -1442,7 +1604,12 @@ GraveFallGame.scene.CharacterSelect.prototype.releasePlayerSelection = function 
 };
 
 /**
- * ...
+ * Claims a class selection for a player.
+ *
+ * @param {Object} player Player.
+ * @param {number} classIndex Class index.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.CharacterSelect.prototype.claimPlayerSelection = function (player, classIndex) {
     var node;
@@ -1472,7 +1639,11 @@ GraveFallGame.scene.CharacterSelect.prototype.claimPlayerSelection = function (p
 };
 
 /**
- * ...
+ * Adds a controller as an active player.
+ *
+ * @param {Object} ctrl Controller mapping object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
     var player;
@@ -1501,7 +1672,11 @@ GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
 };
 
 /**
- * ...
+ * Updates class selection cursor and confirmation input for one player.
+ *
+ * @param {Object} player Player.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.updatePlayerCursor = function (player) {
     var node = this.classNodes[player.classIndex];
@@ -1548,7 +1723,12 @@ GraveFallGame.scene.CharacterSelect.prototype.updatePlayerCursor = function (pla
 };
 
 /**
- * ...
+ * Updates character select instruction text.
+ *
+ * @param {boolean} anyJoined Any joined.
+ * @param {boolean} allJoinedConfirmed All joined confirmed.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (anyJoined, allJoinedConfirmed) {
     if (anyJoined && allJoinedConfirmed) {
@@ -1565,7 +1745,9 @@ GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (
 };
 
 /**
- * ...
+ * Stores party data and starts the game scene.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
     var activeParty = [];

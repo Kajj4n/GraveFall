@@ -54,9 +54,9 @@ GraveFallGame.scene.Rule.prototype.resourceExists = GraveFallGame.scene.Game.pro
 //------------------------------------------------------------------------------
 
 /**
- * This method is automatically executed once after the scene is instantiated.
+ * Initializes the scene and creates its display objects.
  *
- * @returns {undefined}
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.init = function () {
     GraveFallGame.useBitmapFont();
@@ -114,11 +114,11 @@ GraveFallGame.scene.Rule.prototype.init = function () {
 };
 
 /**
- * This method is automatically executed once per tick.
+ * Updates the scene once per engine tick.
  *
- * @param {number} step Fixed time step.
+ * @param {number} step Fixed time step supplied by the Rune engine.
  *
- * @returns {undefined}
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.update = function (step) {
     var pressLeft;
@@ -171,9 +171,9 @@ GraveFallGame.scene.Rule.prototype.update = function (step) {
 };
 
 /**
- * This method is automatically called once just before the scene ends.
+ * Disposes scene resources before the scene is removed.
  *
- * @returns {undefined}
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.dispose = function () {
     this.pageContainer = null;
@@ -188,7 +188,15 @@ GraveFallGame.scene.Rule.prototype.dispose = function () {
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Creates a bitmap text field using the GraveFall font rules.
+ *
+ * @param {string} text Text to render or sanitize.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} scale Display scale.
+ * @param {number} width Width in pixels.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Rule.prototype.createText = function (text, x, y, scale, width) {
     var field = new rune.text.BitmapField(text);
@@ -210,7 +218,13 @@ GraveFallGame.scene.Rule.prototype.createText = function (text, x, y, scale, wid
 };
 
 /**
- * ...
+ * Centers a bitmap text field around an x coordinate.
+ *
+ * @param {Object} field Bitmap field to update.
+ * @param {number} centerX Horizontal center position.
+ * @param {number} scale Display scale.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.centerText = function (field, centerX, scale) {
     if (!field) {
@@ -222,7 +236,16 @@ GraveFallGame.scene.Rule.prototype.centerText = function (field, centerX, scale)
 };
 
 /**
- * ...
+ * Creates a framed UI panel.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {Object} skin Skin.
+ * @param {Array} framePaletteSwaps Frame palette swap list.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createPanel = function (x, y, width, height, skin, framePaletteSwaps) {
     var panel = new rune.display.DisplayObjectContainer(x, y, width, height);
@@ -240,7 +263,12 @@ GraveFallGame.scene.Rule.prototype.createPanel = function (x, y, width, height, 
 };
 
 /**
- * ...
+ * Creates the shared screen footer.
+ *
+ * @param {string} text Text to render or sanitize.
+ * @param {Array} framePaletteSwaps Frame palette swap list.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createScreenFooter = function (text, framePaletteSwaps) {
     var screen = this.application.screen;
@@ -262,7 +290,17 @@ GraveFallGame.scene.Rule.prototype.createScreenFooter = function (text, framePal
 };
 
 /**
- * ...
+ * Creates a framed rule page card.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} title Title text to render.
+ * @param {Object} accentColor Accent color.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createRuleCard = function (parent, x, y, width, height, title, accentColor) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
@@ -290,7 +328,16 @@ GraveFallGame.scene.Rule.prototype.createRuleCard = function (parent, x, y, widt
 };
 
 /**
- * ...
+ * Adds one bitmap text line to a card.
+ *
+ * @param {Object} card Card container that receives the created objects.
+ * @param {string} text Text to render or sanitize.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} scale Display scale.
+ * @param {string} color Color to apply.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Rule.prototype.addCardLine = function (card, text, x, y, scale, color) {
     var field = this.createText(text, x, y, scale || 1, 1000);
@@ -304,7 +351,16 @@ GraveFallGame.scene.Rule.prototype.addCardLine = function (card, text, x, y, sca
 };
 
 /**
- * ...
+ * Creates a small icon inside a parent container.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} resource Resource name to use.
+ * @param {number} scale Display scale.
+ * @param {string} color Color to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createSmallIcon = function (parent, x, y, resource, scale, color) {
     var icon = new rune.display.Sprite(x, y, 100, 100, resource);
@@ -321,7 +377,9 @@ GraveFallGame.scene.Rule.prototype.createSmallIcon = function (parent, x, y, res
 };
 
 /**
- * ...
+ * Creates page tab buttons.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.createPageTabs = function () {
     var i;
@@ -351,7 +409,9 @@ GraveFallGame.scene.Rule.prototype.createPageTabs = function () {
 };
 
 /**
- * ...
+ * Creates page indicator dots.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.createPageDots = function () {
     var i;
@@ -370,7 +430,11 @@ GraveFallGame.scene.Rule.prototype.createPageDots = function () {
 };
 
 /**
- * ...
+ * Changes the active rule page.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.changePage = function (direction) {
     this.pageIndex += direction;
@@ -388,7 +452,9 @@ GraveFallGame.scene.Rule.prototype.changePage = function (direction) {
 };
 
 /**
- * ...
+ * Renders the currently selected page.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.renderPage = function () {
     var renderer;
@@ -422,7 +488,11 @@ GraveFallGame.scene.Rule.prototype.renderPage = function () {
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Renders the how-to-play overview page.
+ *
+ * @param {Object} root Root container for the rendered page.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.renderOverviewPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
@@ -448,7 +518,11 @@ GraveFallGame.scene.Rule.prototype.renderOverviewPage = function (root) {
 };
 
 /**
- * ...
+ * Renders the controls page.
+ *
+ * @param {Object} root Root container for the rendered page.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.renderControlsPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
@@ -488,7 +562,11 @@ GraveFallGame.scene.Rule.prototype.renderControlsPage = function (root) {
 };
 
 /**
- * ...
+ * Renders the commands page.
+ *
+ * @param {Object} root Root container for the rendered page.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
@@ -533,7 +611,11 @@ GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
 };
 
 /**
- * ...
+ * Renders the minigames page.
+ *
+ * @param {Object} root Root container for the rendered page.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.renderMinigamesPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
@@ -550,7 +632,16 @@ GraveFallGame.scene.Rule.prototype.renderMinigamesPage = function (root) {
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Creates a numbered flow node for the overview page.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {Object} number Number.
+ * @param {string} label Label text to render.
+ * @param {string} color Color to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createFlowNode = function (parent, x, y, number, label, color) {
     var node = new rune.display.DisplayObjectContainer(x, y, 156, 64);
@@ -576,7 +667,13 @@ GraveFallGame.scene.Rule.prototype.createFlowNode = function (parent, x, y, numb
 };
 
 /**
- * ...
+ * Creates a flow arrow between overview nodes.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.createFlowArrow = function (parent, x, y) {
     var arrow = this.createText(">", x, y, 2, 30);
@@ -585,7 +682,16 @@ GraveFallGame.scene.Rule.prototype.createFlowArrow = function (parent, x, y) {
 };
 
 /**
- * ...
+ * Creates one enemy step card for the overview page.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} label Label text to render.
+ * @param {string} resource Resource name to use.
+ * @param {string} color Color to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createEnemyStep = function (parent, x, y, label, resource, color) {
     var step = new rune.display.DisplayObjectContainer(x, y, 126, 82);
@@ -609,7 +715,14 @@ GraveFallGame.scene.Rule.prototype.createEnemyStep = function (parent, x, y, lab
 };
 
 /**
- * ...
+ * Creates the player control table header.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createPlayerHeaderRow = function (parent, x, y, width) {
     var row = new rune.display.DisplayObjectContainer(x, y, width, 28);
@@ -632,7 +745,18 @@ GraveFallGame.scene.Rule.prototype.createPlayerHeaderRow = function (parent, x, 
 };
 
 /**
- * ...
+ * Creates one player control table row.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {Object} player Player.
+ * @param {Object} move Move.
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {Object} ok Ok.
+ * @param {string} color Color to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createPlayerControlRow = function (parent, x, y, player, move, menu, ok, color) {
     var row = new rune.display.DisplayObjectContainer(x, y, 482, 52);
@@ -660,7 +784,17 @@ GraveFallGame.scene.Rule.prototype.createPlayerControlRow = function (parent, x,
 };
 
 /**
- * ...
+ * Creates a command icon explanation card.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} title Title text to render.
+ * @param {string} resource Resource name to use.
+ * @param {string} color Color to apply.
+ * @param {string} description Description text to render.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createCommandIconCard = function (parent, x, y, title, resource, color, description) {
     var mini = new rune.display.DisplayObjectContainer(x, y, 218, 102);
@@ -689,7 +823,16 @@ GraveFallGame.scene.Rule.prototype.createCommandIconCard = function (parent, x, 
 };
 
 /**
- * ...
+ * Creates a decorative arena hazard preview.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {number} alpha Alpha value to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createArenaHazard = function (parent, x, y, width, height, alpha) {
     var hazard = new rune.display.Graphic(x, y, width, height);
@@ -700,7 +843,17 @@ GraveFallGame.scene.Rule.prototype.createArenaHazard = function (parent, x, y, w
 };
 
 /**
- * ...
+ * Creates one player color legend entry.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} label Label text to render.
+ * @param {string} resource Resource name to use.
+ * @param {string} color Color to apply.
+ * @param {string} colorName Human-readable color name.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.createPlayerColorLegend = function (parent, x, y, label, resource, color, colorName) {
     var chip = new rune.display.DisplayObjectContainer(x, y, 102, 44);
@@ -724,7 +877,19 @@ GraveFallGame.scene.Rule.prototype.createPlayerColorLegend = function (parent, x
 };
 
 /**
- * ...
+ * Creates a minigame preview card.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} title Title text to render.
+ * @param {Object} classIcon Class icon.
+ * @param {string} color Color to apply.
+ * @param {Object} type Type.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createMinigamePreviewCard = function (parent, x, y, width, height, title, classIcon, color, type) {
     var card = this.createRuleCard(parent, x, y, width, height, title, color);
@@ -747,7 +912,17 @@ GraveFallGame.scene.Rule.prototype.createMinigamePreviewCard = function (parent,
 };
 
 /**
- * ...
+ * Creates a static minigame preview panel.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} color Color to apply.
+ * @param {Object} type Type.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent, x, y, width, height, color, type) {
     var group = new rune.display.DisplayObjectContainer(x, y, width, height);
@@ -914,7 +1089,16 @@ GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent,
 };
 
 /**
- * ...
+ * Creates an optional sprite or fallback display object.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} resourceName Resource name to use.
+ * @param {string} fallbackColor Fallback color used when the sprite resource is missing.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createOptionalSprite = function (x, y, width, height, resourceName, fallbackColor) {
     var display;
@@ -930,7 +1114,15 @@ GraveFallGame.scene.Rule.prototype.createOptionalSprite = function (x, y, width,
 };
 
 /**
- * ...
+ * Creates an item pickup preview token.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} resourceName Resource name to use.
+ * @param {string} color Color to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createPickupToken = function (parent, x, y, resourceName, color) {
     var token = this.createOptionalSprite(x, y, 16, 16, resourceName, "#6E6E6E");
@@ -942,7 +1134,19 @@ GraveFallGame.scene.Rule.prototype.createPickupToken = function (parent, x, y, r
 };
 
 /**
- * ...
+ * Creates a projectile preview for the rules screen.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} resourceName Resource name to use.
+ * @param {number} rotation Rotation.
+ * @param {boolean} flippedX Flipped x.
+ * @param {Object} palette Palette.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createArenaProjectile = function (parent, x, y, width, height, resourceName, rotation, flippedX, palette) {
     var shot = this.createOptionalSprite(x, y, width, height, resourceName, "#FFFFFF");
@@ -964,7 +1168,17 @@ GraveFallGame.scene.Rule.prototype.createArenaProjectile = function (parent, x, 
 };
 
 /**
- * ...
+ * Creates a color chip legend entry.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} label Label text to render.
+ * @param {string} resource Resource name to use.
+ * @param {string} color Color to apply.
+ * @param {string} description Description text to render.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Rule.prototype.createColorChip = function (parent, x, y, label, resource, color, description) {
     var chip = new rune.display.DisplayObjectContainer(x, y, 248, 42);
@@ -988,7 +1202,14 @@ GraveFallGame.scene.Rule.prototype.createColorChip = function (parent, x, y, lab
 };
 
 /**
- * ...
+ * Creates an icon centered around a point.
+ *
+ * @param {string} resource Resource name to use.
+ * @param {number} centerX Horizontal center position.
+ * @param {number} centerY Vertical center position.
+ * @param {number} scale Display scale.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Rule.prototype.createCenteredIcon = function (resource, centerX, centerY, scale) {
     var size = Math.round(100 * (scale || 0.42));
@@ -1001,7 +1222,11 @@ GraveFallGame.scene.Rule.prototype.createCenteredIcon = function (resource, cent
 };
 
 /**
- * ...
+ * Returns the face-button icon for a minigame direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Rule.prototype.getButtonIconForDirection = function (direction) {
     if (direction === "up") {
@@ -1020,7 +1245,11 @@ GraveFallGame.scene.Rule.prototype.getButtonIconForDirection = function (directi
 };
 
 /**
- * ...
+ * Returns the movement icon resource for a direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Rule.prototype.getMovementIconForDirection = function (direction) {
     if (direction === "up") {

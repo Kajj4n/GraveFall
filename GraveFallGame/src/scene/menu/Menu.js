@@ -49,7 +49,9 @@ GraveFallGame.scene.Menu.prototype.isDevConsoleInputActive = GraveFallGame.scene
 //------------------------------------------------------------------------------
 
 /**
- * @inheritDoc
+ * Initializes the scene and creates its display objects.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Menu.prototype.init = function () {
     GraveFallGame.useBitmapFont();
@@ -146,7 +148,11 @@ GraveFallGame.scene.Menu.prototype.init = function () {
 };
 
 /**
- * @inheritDoc
+ * Updates the scene once per engine tick.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Menu.prototype.update = function (step) {
     var pressDown;
@@ -222,7 +228,15 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Creates a bitmap text field using the GraveFall font rules.
+ *
+ * @param {string} text Text to render or sanitize.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} scale Display scale.
+ * @param {number} width Width in pixels.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Menu.prototype.createText = function (text, x, y, scale, width) {
     var field = new rune.text.BitmapField(text);
@@ -244,7 +258,13 @@ GraveFallGame.scene.Menu.prototype.createText = function (text, x, y, scale, wid
 };
 
 /**
- * ...
+ * Centers a bitmap text field around an x coordinate.
+ *
+ * @param {Object} field Bitmap field to update.
+ * @param {number} centerX Horizontal center position.
+ * @param {number} scale Display scale.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Menu.prototype.centerText = function (field, centerX, scale) {
     if (!field) {
@@ -256,7 +276,16 @@ GraveFallGame.scene.Menu.prototype.centerText = function (field, centerX, scale)
 };
 
 /**
- * ...
+ * Creates a framed menu panel.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {Object} skin Skin.
+ * @param {Array} framePaletteSwaps Frame palette swap list.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Menu.prototype.createMenuPanel = function (x, y, width, height, skin, framePaletteSwaps) {
     var panel = new rune.display.DisplayObjectContainer(x, y, width, height);
@@ -277,7 +306,12 @@ GraveFallGame.scene.Menu.prototype.createMenuPanel = function (x, y, width, heig
 };
 
 /**
- * ...
+ * Creates the shared screen footer.
+ *
+ * @param {string} text Text to render or sanitize.
+ * @param {Array} framePaletteSwaps Frame palette swap list.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Menu.prototype.createScreenFooter = function (text, framePaletteSwaps) {
     var screen = this.application.screen;
@@ -299,7 +333,11 @@ GraveFallGame.scene.Menu.prototype.createScreenFooter = function (text, framePal
 };
 
 /**
- * ...
+ * Creates a main menu option card.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
@@ -354,7 +392,17 @@ GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
 };
 
 /**
- * ...
+ * Creates one control hint block.
+ *
+ * @param {Object} parent Display container that receives the created objects.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} iconResource Icon resource name to render.
+ * @param {string} title Title text to render.
+ * @param {string} detail Detail text to render.
+ * @param {string} color Color to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Menu.prototype.createControlHint = function (parent, x, y, iconResource, title, detail, color) {
     var group = new rune.display.DisplayObjectContainer(x, y, 210, 54);
@@ -387,7 +435,9 @@ GraveFallGame.scene.Menu.prototype.createControlHint = function (parent, x, y, i
 };
 
 /**
- * ...
+ * Creates the quick controls section of the main menu.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
     var panel;
@@ -416,7 +466,9 @@ GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
 };
 
 /**
- * ...
+ * Updates main menu selection visuals.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Menu.prototype.updateVisuals = function () {
     var i;
@@ -440,7 +492,9 @@ GraveFallGame.scene.Menu.prototype.updateVisuals = function () {
 };
 
 /**
- * ...
+ * Updates animated main menu visual effects.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Menu.prototype.updateAnimatedVisuals = function () {
     var card;

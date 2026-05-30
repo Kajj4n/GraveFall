@@ -3,7 +3,9 @@
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Starts the minigame phase for all confirmed player actions.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startMinigamePhase = function () {
     var i;
@@ -37,7 +39,11 @@ GraveFallGame.scene.Game.prototype.startMinigamePhase = function () {
 };
 
 /**
- * ...
+ * Returns the minigame definition for an identifier.
+ *
+ * @param {string} minigameId Minigame identifier.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getMinigameDefinition = function (minigameId) {
     var definitions = GraveFallGame.scene.Game.MINIGAME_DEFINITIONS || {};
@@ -51,7 +57,14 @@ GraveFallGame.scene.Game.prototype.getMinigameDefinition = function (minigameId)
 };
 
 /**
- * ...
+ * Creates the shared framed panel used by a player minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {string} title Title text to render.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createMinigamePanel = function (menu, title, width, height) {
     var theme = menu.theme || this.getPlayerTheme(0);
@@ -94,7 +107,12 @@ GraveFallGame.scene.Game.prototype.createMinigamePanel = function (menu, title, 
 };
 
 /**
- * ...
+ * Sets feedback text for a player minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {string} text Text to render or sanitize.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setMinigameFeedback = function (menu, text) {
     if (!menu || !menu.minigame || !menu.minigame.feedbackText) {
@@ -106,15 +124,18 @@ GraveFallGame.scene.Game.prototype.setMinigameFeedback = function (menu, text) {
         return;
     }
 
-    // Rune BitmapField should not be rendered while it contains an empty string;
-    // an empty BitmapField can produce a 0x0 internal canvas and crash drawImage.
+    /* Empty BitmapFields can create a 0x0 canvas, so keep this field hidden. */
     menu.minigame.feedbackText.text = String(text);
     menu.minigame.feedbackText.visible = true;
     this.centerMinigameText(menu.minigame.feedbackText, menu.minigame.group.width, menu.minigame.feedbackText.y);
 };
 
 /**
- * ...
+ * Creates hidden feedback text for minigame panels.
+ *
+ * @param {number} y Vertical position.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.createHiddenMinigameFeedbackText = function (y) {
     var feedback = new rune.text.BitmapField("READY");
@@ -129,16 +150,19 @@ GraveFallGame.scene.Game.prototype.createHiddenMinigameFeedbackText = function (
 };
 
 /**
- * ...
+ * Resizes a bitmap field so its current text is safe to render.
+ *
+ * @param {Object} textField Bitmap field to update.
+ * @param {string} text Text to render or sanitize.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.fitBitmapFieldToText = function (textField, text) {
     if (!textField) {
         return;
     }
 
-    // Rune's BitmapField autoSize refits through the scaled width/height setters.
-    // Resizing the raw canvas dimensions keeps scaled, frequently-updated text
-    // from getting clipped when the label changes from e.g. PARTY POWER: 0 to 18.
+    /* Resize raw bitmap dimensions so scaled dynamic labels do not clip. */
     textField.autoSize = false;
 
     if (typeof text !== "undefined") {
@@ -154,7 +178,14 @@ GraveFallGame.scene.Game.prototype.fitBitmapFieldToText = function (textField, t
 };
 
 /**
- * ...
+ * Centers minigame text inside a panel.
+ *
+ * @param {Object} textField Bitmap field to update.
+ * @param {number} width Width in pixels.
+ * @param {number} y Vertical position.
+ * @param {string} text Text to render or sanitize.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.centerMinigameText = function (textField, width, y, text) {
     if (!textField) {
@@ -167,7 +198,11 @@ GraveFallGame.scene.Game.prototype.centerMinigameText = function (textField, wid
 };
 
 /**
- * ...
+ * Positions the minigame score text inside its panel.
+ *
+ * @param {Object} group Group.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.positionMinigameScoreText = function (group) {
     var scoreText;
@@ -183,14 +218,23 @@ GraveFallGame.scene.Game.prototype.positionMinigameScoreText = function (group) 
 };
 
 /**
- * ...
+ * Returns the item damage bonus for a minigame attack.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getMinigameAttackItemBonus = function (menu) {
     return Math.max(0, Math.floor(menu ? (menu.permanentAttackBonus || 0) : 0));
 };
 
 /**
- * ...
+ * Applies attack item bonus damage to a minigame result.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {number} baseBonus Base bonus.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.applyAttackItemBonusToMinigameDamage = function (menu, baseBonus) {
     var bonus = Math.max(0, Math.floor(baseBonus || 0));
@@ -203,14 +247,22 @@ GraveFallGame.scene.Game.prototype.applyAttackItemBonusToMinigameDamage = functi
 };
 
 /**
- * ...
+ * Checks whether boss power-up rules are active for a minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isBossPowerUpMinigameActive = function (menu) {
     return !!(menu && menu.minigame && menu.minigame.isFinalCharge === true);
 };
 
 /**
- * ...
+ * Starts the power-up shake effect for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startPlayerPowerUpShake = function (playerMenu) {
     if (!playerMenu || !playerMenu.stand) {
@@ -235,7 +287,11 @@ GraveFallGame.scene.Game.prototype.startPlayerPowerUpShake = function (playerMen
 };
 
 /**
- * ...
+ * Spawns the minigame power-up visual effect.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnMinigamePowerUpEffect = function (menu) {
     var anchor;
@@ -268,7 +324,11 @@ GraveFallGame.scene.Game.prototype.spawnMinigamePowerUpEffect = function (menu) 
 };
 
 /**
- * ...
+ * Updates minigame score, timer, and feedback labels.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateMinigameHud = function (menu) {
     var damage;
@@ -292,7 +352,16 @@ GraveFallGame.scene.Game.prototype.updateMinigameHud = function (menu) {
 };
 
 /**
- * ...
+ * Creates a minigame sprite or a fallback graphic when missing.
+ *
+ * @param {string} resourceName Resource name to use.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} fallbackColor Fallback color used when the sprite resource is missing.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createOptionalMinigameSprite = function (resourceName, x, y, width, height, fallbackColor) {
     var display;
@@ -308,7 +377,17 @@ GraveFallGame.scene.Game.prototype.createOptionalMinigameSprite = function (reso
 };
 
 /**
- * ...
+ * Creates a minigame sprite and applies a theme color when available.
+ *
+ * @param {Array} resourceNames Candidate resource name list.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} fallbackColor Fallback color used when the sprite resource is missing.
+ * @param {string} targetColor Palette color to apply.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createThemedMinigameSprite = function (resourceNames, x, y, width, height, fallbackColor, targetColor) {
     var i;
@@ -336,7 +415,11 @@ GraveFallGame.scene.Game.prototype.createThemedMinigameSprite = function (resour
 };
 
 /**
- * ...
+ * Returns the face-button icon for a minigame direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getButtonIconForDirection = function (direction) {
     if (direction === "up") {
@@ -355,7 +438,11 @@ GraveFallGame.scene.Game.prototype.getButtonIconForDirection = function (directi
 };
 
 /**
- * ...
+ * Returns the face-button label for a minigame direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getButtonLabelForDirection = function (direction) {
     if (direction === "up") {
@@ -374,7 +461,11 @@ GraveFallGame.scene.Game.prototype.getButtonLabelForDirection = function (direct
 };
 
 /**
- * ...
+ * Returns the positional face-button label for a direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getButtonPositionLabelForDirection = function (direction) {
     if (direction === "up") {
@@ -393,7 +484,11 @@ GraveFallGame.scene.Game.prototype.getButtonPositionLabelForDirection = function
 };
 
 /**
- * ...
+ * Returns the gamepad movement icon for a direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getGamepadMovementIconForDirection = function (direction) {
     if (direction === "up") {
@@ -412,7 +507,11 @@ GraveFallGame.scene.Game.prototype.getGamepadMovementIconForDirection = function
 };
 
 /**
- * ...
+ * Returns the keyboard movement label for a direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getMovementLabelForDirection = function (direction) {
     if (direction === "up") {
@@ -431,7 +530,11 @@ GraveFallGame.scene.Game.prototype.getMovementLabelForDirection = function (dire
 };
 
 /**
- * ...
+ * Returns the correct icon resource for a sequence direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getSequenceIconForDirection = function (direction) {
     var resource = this.getGamepadMovementIconForDirection(direction);
@@ -444,7 +547,14 @@ GraveFallGame.scene.Game.prototype.getSequenceIconForDirection = function (direc
 };
 
 /**
- * ...
+ * Creates a minigame icon sprite.
+ *
+ * @param {string} resource Resource name to use.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} scale Display scale.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createMinigameIcon = function (resource, x, y, scale) {
     var icon = new rune.display.Sprite(x, y, 100, 100, resource);
@@ -456,7 +566,11 @@ GraveFallGame.scene.Game.prototype.createMinigameIcon = function (resource, x, y
 };
 
 /**
- * ...
+ * Positions a player minigame panel based on party layout.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.layoutPlayerMinigame = function (menu) {
     var group;
@@ -477,7 +591,11 @@ GraveFallGame.scene.Game.prototype.layoutPlayerMinigame = function (menu) {
 };
 
 /**
- * ...
+ * Creates and configures a player minigame panel.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setupPlayerMinigame = function (menu) {
     var definition;
@@ -500,7 +618,15 @@ GraveFallGame.scene.Game.prototype.setupPlayerMinigame = function (menu) {
 };
 
 /**
- * ...
+ * Sets a button mash prompt icon.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {string} resource Resource name to use.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} scale Display scale.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.setButtonMashPromptIcon = function (menu, resource, x, y, scale) {
     var minigame = menu.minigame;
@@ -523,14 +649,22 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptIcon = function (menu, res
 };
 
 /**
- * ...
+ * Returns the icon resource for a button mash direction.
+ *
+ * @param {number} direction Navigation direction.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (direction) {
     return this.getButtonIconForDirection(direction);
 };
 
 /**
- * ...
+ * Removes button mash prompt icons from a minigame panel.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearButtonMashPromptIcons = function (menu) {
     var i;
@@ -552,7 +686,14 @@ GraveFallGame.scene.Game.prototype.clearButtonMashPromptIcons = function (menu) 
 };
 
 /**
- * ...
+ * Creates a minigame icon centered around a point.
+ *
+ * @param {string} resource Resource name to use.
+ * @param {number} centerX Horizontal center position.
+ * @param {number} centerY Vertical center position.
+ * @param {number} scale Display scale.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createCenteredMinigameIcon = function (resource, centerX, centerY, scale) {
     var size = Math.round(100 * (scale || 0.42));
@@ -561,7 +702,12 @@ GraveFallGame.scene.Game.prototype.createCenteredMinigameIcon = function (resour
 };
 
 /**
- * ...
+ * Updates the button mash prompt matrix for the active direction.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {Object} activeDirection Active direction.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, activeDirection) {
     var minigame = menu.minigame;
@@ -610,11 +756,13 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, a
         minigame.buttonIcons.push(icon);
     }
 };
-
-// Minigame button prompts are face-button prompts, not D-pad/left-stick prompts.
-// Keyboard fallback stays on each player's existing movement keys for debug/keyboard play.
+    /* Face-button prompts use keyboard movement keys as the keyboard fallback. */
 /**
- * ...
+ * Returns the pressed direction for any minigame input.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
@@ -657,7 +805,11 @@ GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu)
 };
 
 /**
- * ...
+ * Returns the pressed movement direction for movement minigames.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getPressedMovementMinigameDirection = function (menu) {
     var gp;
@@ -722,7 +874,11 @@ GraveFallGame.scene.Game.prototype.getPressedMovementMinigameDirection = functio
 };
 
 /**
- * ...
+ * Returns the pressed face-button direction for button mash minigames.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (menu) {
     if (!menu || !menu.minigame) {
@@ -733,7 +889,12 @@ GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (men
 };
 
 /**
- * ...
+ * Updates button mash prompt text for a direction.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {number} direction Navigation direction.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateButtonMashPromptText = function (menu, direction) {
     var minigame;
@@ -761,7 +922,11 @@ GraveFallGame.scene.Game.prototype.updateButtonMashPromptText = function (menu, 
 };
 
 /**
- * ...
+ * Chooses the next button mash prompt direction.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
     var minigame = menu.minigame;
@@ -786,7 +951,11 @@ GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
 };
 
 /**
- * ...
+ * Completes one successful button mash cycle.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
     var minigame = menu.minigame;
@@ -812,7 +981,12 @@ GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
 };
 
 /**
- * ...
+ * Sets up a button mash minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {Object} definition Definition.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
@@ -862,7 +1036,11 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
 };
 
 /**
- * ...
+ * Updates a button mash minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
     var minigame;
@@ -891,11 +1069,15 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
 
 
 //------------------------------------------------------------------------------
-// Boss final charge / final strike logic
+// Boss final charge and final strike logic
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Shows or hides enemy health bar UI.
+ *
+ * @param {boolean} visible Whether the target should be visible.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setEnemyHealthBarVisible = function (visible) {
     var alpha = visible === true ? 1 : 0;
@@ -922,7 +1104,14 @@ GraveFallGame.scene.Game.prototype.setEnemyHealthBarVisible = function (visible)
 };
 
 /**
- * ...
+ * Centers text inside the final charge banner.
+ *
+ * @param {Object} textField Bitmap field to update.
+ * @param {number} containerWidth Container width.
+ * @param {number} y Vertical position.
+ * @param {string} text Text to render or sanitize.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.centerFinalChargeText = function (textField, containerWidth, y, text) {
     if (!textField) {
@@ -935,7 +1124,9 @@ GraveFallGame.scene.Game.prototype.centerFinalChargeText = function (textField, 
 };
 
 /**
- * ...
+ * Creates the shared final charge UI banner.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
     var screenW = this.application.screen.width;
@@ -993,7 +1184,9 @@ GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
 };
 
 /**
- * ...
+ * Prepares player menus for the boss final charge phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.preparePlayerMenusForFinalCharge = function () {
     var i;
@@ -1049,7 +1242,11 @@ GraveFallGame.scene.Game.prototype.preparePlayerMenusForFinalCharge = function (
 };
 
 /**
- * ...
+ * Sets up a player panel for final charge.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
     var definition = {
@@ -1117,7 +1314,11 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
 };
 
 /**
- * ...
+ * Returns one player menu power score for final charge.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getFinalChargeMenuPowerScore = function (menu) {
     if (!menu || !menu.minigame) {
@@ -1128,7 +1329,11 @@ GraveFallGame.scene.Game.prototype.getFinalChargeMenuPowerScore = function (menu
 };
 
 /**
- * ...
+ * Updates one final charge player HUD.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu) {
     var minigame;
@@ -1155,7 +1360,9 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu
 };
 
 /**
- * ...
+ * Returns the party total power score for final charge.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerScore = function () {
     var total = 0;
@@ -1175,7 +1382,9 @@ GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerScore = function () {
 };
 
 /**
- * ...
+ * Returns the party power goal for final charge.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerGoal = function () {
     var activePlayers = 0;
@@ -1201,7 +1410,9 @@ GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerGoal = function () {
 };
 
 /**
- * ...
+ * Updates the final charge banner text and bar.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
     var total = this.getFinalChargePartyPowerScore();
@@ -1226,7 +1437,9 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
 };
 
 /**
- * ...
+ * Removes final charge UI from the stage.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearFinalChargeUi = function () {
     var i;
@@ -1261,7 +1474,9 @@ GraveFallGame.scene.Game.prototype.clearFinalChargeUi = function () {
 };
 
 /**
- * ...
+ * Starts the boss final charge phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startFinalChargePhase = function () {
     var i;
@@ -1322,7 +1537,11 @@ GraveFallGame.scene.Game.prototype.startFinalChargePhase = function () {
 };
 
 /**
- * ...
+ * Updates the boss final charge phase.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateFinalChargePhase = function (step) {
     var i;
@@ -1374,7 +1593,9 @@ GraveFallGame.scene.Game.prototype.updateFinalChargePhase = function (step) {
 };
 
 /**
- * ...
+ * Finishes final charge and starts the final strike sequence.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.finishFinalChargePhase = function () {
     var totalPower = this.getFinalChargePartyPowerScore();
@@ -1391,7 +1612,11 @@ GraveFallGame.scene.Game.prototype.finishFinalChargePhase = function () {
 };
 
 /**
- * ...
+ * Returns the number of final strike repeats for a party size.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getFinalStrikeRepetitionCount = function (partySize) {
     if (partySize <= 1) {
@@ -1410,7 +1635,9 @@ GraveFallGame.scene.Game.prototype.getFinalStrikeRepetitionCount = function (par
 };
 
 /**
- * ...
+ * Builds the queued final strike attacks.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.buildFinalStrikeQueue = function () {
     var living = [];
@@ -1441,7 +1668,11 @@ GraveFallGame.scene.Game.prototype.buildFinalStrikeQueue = function () {
 };
 
 /**
- * ...
+ * Returns final strike damage for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getFinalStrikeDamageForPlayer = function (playerMenu) {
     var i;
@@ -1462,7 +1693,9 @@ GraveFallGame.scene.Game.prototype.getFinalStrikeDamageForPlayer = function (pla
 };
 
 /**
- * ...
+ * Starts the final strike sequence.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
     this.phase = GraveFallGame.scene.Game.PHASE_FINAL_STRIKE;
@@ -1494,7 +1727,9 @@ GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
 };
 
 /**
- * ...
+ * Begins one step of the final strike sequence.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.beginFinalStrikeStep = function () {
     var menu;
@@ -1530,7 +1765,11 @@ GraveFallGame.scene.Game.prototype.beginFinalStrikeStep = function () {
 };
 
 /**
- * ...
+ * Updates final strike timing and effects.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateFinalStrikePhase = function (step) {
     if (!this.finalStrikeQueue || this.finalStrikeQueue.length <= 0) {
@@ -1561,7 +1800,9 @@ GraveFallGame.scene.Game.prototype.updateFinalStrikePhase = function (step) {
 };
 
 /**
- * ...
+ * Clears final strike state and effects.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearFinalStrikeState = function () {
     var i;
@@ -1582,7 +1823,9 @@ GraveFallGame.scene.Game.prototype.clearFinalStrikeState = function () {
 };
 
 /**
- * ...
+ * Finishes final strike and applies its outcome.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.finishFinalStrikeSequence = function () {
     this.clearFinalStrikeState();
@@ -1597,7 +1840,11 @@ GraveFallGame.scene.Game.prototype.finishFinalStrikeSequence = function () {
 };
 
 /**
- * ...
+ * Builds icons for a button sequence minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
     var i;
@@ -1680,7 +1927,9 @@ GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
 };
 
 /**
- * ...
+ * Returns a random minigame direction identifier.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.randomMinigameDirection = function () {
     var directions = ["up", "left", "right", "down"];
@@ -1688,7 +1937,11 @@ GraveFallGame.scene.Game.prototype.randomMinigameDirection = function () {
 };
 
 /**
- * ...
+ * Builds a new button sequence for a player minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.rollButtonSequence = function (menu) {
     var i;
@@ -1704,7 +1957,12 @@ GraveFallGame.scene.Game.prototype.rollButtonSequence = function (menu) {
 };
 
 /**
- * ...
+ * Sets up a button sequence minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {Object} definition Definition.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
@@ -1743,7 +2001,11 @@ GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu,
 };
 
 /**
- * ...
+ * Updates a button sequence minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu) {
     var pressed;
@@ -1782,7 +2044,12 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
 };
 
 /**
- * ...
+ * Sets up a target reticle minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {Object} definition Definition.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
@@ -1852,7 +2119,9 @@ GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, 
 };
 
 /**
- * ...
+ * Returns the starting angle for target reticle aim.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getTargetReticleResetAngle = function () {
     var side = Math.random() < 0.5 ? 0 : Math.PI;
@@ -1860,7 +2129,11 @@ GraveFallGame.scene.Game.prototype.getTargetReticleResetAngle = function () {
 };
 
 /**
- * ...
+ * Resets target reticle aim state.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
     var minigame = menu.minigame;
@@ -1881,7 +2154,11 @@ GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
 };
 
 /**
- * ...
+ * Returns normalized aim input for a target reticle minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getTargetReticleAimInput = function (menu) {
     var input = { x: 0, y: 0 };
@@ -1931,7 +2208,12 @@ GraveFallGame.scene.Game.prototype.getTargetReticleAimInput = function (menu) {
 };
 
 /**
- * ...
+ * Updates a target reticle minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu, step) {
     var minigame;
@@ -2049,7 +2331,11 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
 };
 
 /**
- * ...
+ * Resets timing bar block state.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetTimingBlock = function (menu) {
     var minigame = menu.minigame;
@@ -2060,7 +2346,12 @@ GraveFallGame.scene.Game.prototype.resetTimingBlock = function (menu) {
 };
 
 /**
- * ...
+ * Sets up a timing bar minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {Object} definition Definition.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
@@ -2111,10 +2402,13 @@ GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, defi
     this.stage.addChild(group);
     this.resetTimingBlock(menu);
 };
-
-// Universal input helpers are used for player controls.
 /**
- * ...
+ * Updates a timing bar minigame.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, step) {
     var minigame;
@@ -2168,7 +2462,12 @@ GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, ste
 };
 
 /**
- * ...
+ * Updates the active minigame for one player.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updatePlayerMinigame = function (menu, step) {
     var definition;
@@ -2196,7 +2495,11 @@ GraveFallGame.scene.Game.prototype.updatePlayerMinigame = function (menu, step) 
 };
 
 /**
- * ...
+ * Updates all active minigames and minigame phase timers.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateMinigamePhase = function (step) {
     var i;
@@ -2222,7 +2525,11 @@ GraveFallGame.scene.Game.prototype.updateMinigamePhase = function (step) {
 };
 
 /**
- * ...
+ * Removes one player minigame panel and related state.
+ *
+ * @param {Object} menu Player minigame or command menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.cleanupPlayerMinigame = function (menu) {
     if (!menu || !menu.minigame) {
@@ -2243,7 +2550,9 @@ GraveFallGame.scene.Game.prototype.cleanupPlayerMinigame = function (menu) {
 };
 
 /**
- * ...
+ * Ends the minigame phase and advances combat flow.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.endMinigamePhase = function () {
     var i;

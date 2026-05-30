@@ -3,7 +3,9 @@
 //------------------------------------------------------------------------------
 
 /**
- * @inheritDoc
+ * Initializes the scene and creates its display objects.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.init = function () {
     GraveFallGame.useBitmapFont();
@@ -99,7 +101,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyEntranceBaseScaleX = 3.2;
     this.enemyEntranceBaseScaleY = 3.2;
 
-    // SCORE SYSTEM
+    /* Score, reward, and clear-popup state. */
     this.score = 0;
     this.scorePopups = [];
     this.clearRewardPopup = null;
@@ -135,8 +137,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.passageTransitionBackdropMaxScale = 1.95;
     this.passageTransitionFocusX = this.application.screen.width / 2;
     this.passageTransitionFocusY = this.application.screen.height * 0.48;
-
-    // Dungeon music starts after the campfire-to-dungeon passage finishes.
 
     this.turnTimer = 600;
     this.turnTimerMs = this.getTurnTimerDurationMs();
@@ -206,7 +206,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.createBattleArena();
     this.stage.addChild(this.turnTimerText);
 
-    // SCORE UI INIT
     this.scoreText = new rune.text.BitmapField("SCORE: 0");
     this.scoreText.width = 800;  
     this.scoreText.height = 64;  
@@ -216,7 +215,6 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.scoreText.y = 8;
     this.stage.addChild(this.scoreText);
 
-    // FLOOR UI INIT
     this.floorNumber = 1;
     this.floorText = new rune.text.BitmapField("FLOOR: " + this.floorNumber);
     this.floorText.width = 400;  
@@ -260,7 +258,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
         }));
     }
 
-    // INIT INTRO TRANSITION
+    /* Initialize the intro passage transition into the first encounter. */
     this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
     this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
     this.passageTransitionTimerMs = 0;
@@ -299,11 +297,15 @@ GraveFallGame.scene.Game.prototype.init = function () {
 };
 
 //------------------------------------------------------------------------------
-// NEW SCORE HELPER FUNCTIONS
+// Score helpers
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Changes the current run score and refreshes score UI.
+ *
+ * @param {number} amount Amount to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.changeScore = function(amount) {
     this.score += amount;
@@ -312,7 +314,13 @@ GraveFallGame.scene.Game.prototype.changeScore = function(amount) {
 };
 
 /**
- * ...
+ * Adds a floating score popup to the scene.
+ *
+ * @param {number} amount Amount to apply.
+ * @param {string} text Text to render or sanitize.
+ * @param {string} color Color to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text, color) {
     if (!this.scorePopups) this.scorePopups = [];
@@ -365,7 +373,9 @@ GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text, color)
 };
 
 /**
- * ...
+ * Updates the score text display.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateScoreUi = function() {
     if (this.scoreText) {
@@ -375,7 +385,11 @@ GraveFallGame.scene.Game.prototype.updateScoreUi = function() {
 };
 
 /**
- * ...
+ * Updates active score popup animations.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateScorePopups = function(step) {
     if (!this.scorePopups) return;
@@ -396,7 +410,9 @@ GraveFallGame.scene.Game.prototype.updateScorePopups = function(step) {
 
 
 /**
- * ...
+ * Removes the active clear reward popup.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearClearRewardPopup = function () {
     if (this.clearRewardPopup && this.clearRewardPopup.parent) {
@@ -410,7 +426,17 @@ GraveFallGame.scene.Game.prototype.clearClearRewardPopup = function () {
 };
 
 /**
- * ...
+ * Creates one text line for the clear reward popup.
+ *
+ * @param {string} text Text to render or sanitize.
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} scale Display scale.
+ * @param {string} color Color to apply.
+ * @param {boolean} centered Centered.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.createClearRewardText = function (text, x, y, width, scale, color, centered) {
     var safeText = this.sanitizeBitmapText ? this.sanitizeBitmapText(text) : String(text || "");
@@ -432,7 +458,11 @@ GraveFallGame.scene.Game.prototype.createClearRewardText = function (text, x, y,
 };
 
 /**
- * ...
+ * Shows the floor clear reward popup.
+ *
+ * @param {Object} summary Clear reward summary object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.showClearRewardPopup = function (summary) {
     var screen = this.application.screen;
@@ -537,7 +567,11 @@ GraveFallGame.scene.Game.prototype.showClearRewardPopup = function (summary) {
 };
 
 /**
- * ...
+ * Updates the clear reward popup animation and lifetime.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateClearRewardPopup = function (step) {
     var popup = this.clearRewardPopup;
@@ -581,11 +615,15 @@ GraveFallGame.scene.Game.prototype.updateClearRewardPopup = function (step) {
 };
 
 //------------------------------------------------------------------------------
-// ACTION PREVIEW HELPERS (RESTORED)
+// Action preview helpers
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Updates command preview effects, queued sounds, and damage popups.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateActionPreviewEffects = function (step) {
     var i;
@@ -692,7 +730,9 @@ GraveFallGame.scene.Game.prototype.updateActionPreviewEffects = function (step) 
 };
 
 /**
- * ...
+ * Clears action preview state after command previews finish.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearActionPreviewState = function () {
     var i;
@@ -718,7 +758,9 @@ GraveFallGame.scene.Game.prototype.clearActionPreviewState = function () {
 };
 
 /**
- * ...
+ * Builds the queue of command preview steps.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.buildActionPreviewQueue = function () {
     var nonAttackQueue = [];
@@ -742,7 +784,9 @@ GraveFallGame.scene.Game.prototype.buildActionPreviewQueue = function () {
 };
 
 /**
- * ...
+ * Starts the command action preview phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startActionPreviewPhase = function () {
     var i;
@@ -792,7 +836,9 @@ GraveFallGame.scene.Game.prototype.startActionPreviewPhase = function () {
 };
 
 /**
- * ...
+ * Begins the next command action preview step.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.beginActionPreviewStep = function () {
     var playerMenu;
@@ -823,7 +869,9 @@ GraveFallGame.scene.Game.prototype.beginActionPreviewStep = function () {
 };
 
 /**
- * ...
+ * Finishes command action previews and advances combat flow.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.finishActionPreviewPhase = function () {
     var i;
@@ -845,7 +893,11 @@ GraveFallGame.scene.Game.prototype.finishActionPreviewPhase = function () {
 };
 
 /**
- * ...
+ * Updates command preview timing and step transitions.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateActionPreviewPhase = function (step) {
     if (!this.actionPreviewQueue || this.actionPreviewQueue.length <= 0) {
@@ -883,7 +935,11 @@ GraveFallGame.scene.Game.prototype.updateActionPreviewPhase = function (step) {
 //------------------------------------------------------------------------------
 
 /**
- * @inheritDoc
+ * Updates the scene once per engine tick.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.update = function (step) {
     var i;
@@ -1041,7 +1097,9 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 };
 
 /**
- * ...
+ * Creates the pause overlay if it does not already exist.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
     var screen;
@@ -1143,7 +1201,9 @@ GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
 };
 
 /**
- * ...
+ * Refreshes pause menu button selection visuals.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.refreshPauseMenuButtons = function () {
     var i;
@@ -1173,7 +1233,9 @@ GraveFallGame.scene.Game.prototype.refreshPauseMenuButtons = function () {
 };
 
 /**
- * ...
+ * Shows the pause overlay and freezes combat input.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.showPauseOverlay = function () {
     var overlay = this.ensurePauseOverlay();
@@ -1185,7 +1247,9 @@ GraveFallGame.scene.Game.prototype.showPauseOverlay = function () {
 };
 
 /**
- * ...
+ * Hides the pause overlay and resumes combat input.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.hidePauseOverlay = function () {
     if (this.pauseOverlay) {
@@ -1195,7 +1259,9 @@ GraveFallGame.scene.Game.prototype.hidePauseOverlay = function () {
 };
 
 /**
- * ...
+ * Toggles the pause overlay state.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.togglePauseState = function () {
     this.isPaused = !this.isPaused;
@@ -1209,7 +1275,9 @@ GraveFallGame.scene.Game.prototype.togglePauseState = function () {
 };
 
 /**
- * ...
+ * Executes the selected pause menu action.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.executePauseMenuSelection = function () {
     var selection;
@@ -1245,7 +1313,11 @@ GraveFallGame.scene.Game.prototype.executePauseMenuSelection = function () {
 };
 
 /**
- * ...
+ * Updates pause menu input and selection state.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updatePauseMenu = function (step) {
     var i;
@@ -1314,7 +1386,9 @@ GraveFallGame.scene.Game.prototype.updatePauseMenu = function (step) {
 };
 
 /**
- * ...
+ * Resets all player menus for a new command phase.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function () {
 
@@ -1351,7 +1425,11 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
 };
 
 /**
- * ...
+ * Starts a healing stand animation for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (playerMenu) {
     var standResource;
@@ -1421,7 +1499,11 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
 };
 
 /**
- * ...
+ * Updates active healing stand animations.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateHealingStandAnimations = function (step) {
     var i;
@@ -1459,7 +1541,12 @@ GraveFallGame.scene.Game.prototype.updateHealingStandAnimations = function (step
 };
 
 /**
- * ...
+ * Clears one healing stand animation.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {boolean} restoreStand Restore stand.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (playerMenu, restoreStand) {
     if (!playerMenu || !playerMenu.healingStandSprite) {
@@ -1480,7 +1567,11 @@ GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (player
 };
 
 /**
- * ...
+ * Clears all healing stand animations.
+ *
+ * @param {boolean} restoreStand Restore stand.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearAllHealingStandAnimations = function (restoreStand) {
     var i;
@@ -1495,7 +1586,9 @@ GraveFallGame.scene.Game.prototype.clearAllHealingStandAnimations = function (re
 };
 
 /**
- * @inheritDoc
+ * Disposes scene resources before the scene is removed.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.dispose = function () {
     var i;
@@ -1608,8 +1701,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.passageTransitionFocusX = null;
     this.passageTransitionFocusY = null;
 
-    // SCORE DISPOSE
-    this.clearClearRewardPopup();
+        this.clearClearRewardPopup();
     this.scoreText = null;
     this.scorePopups = null;
     this.clearRewardPopupTimerMs = null;
@@ -1619,8 +1711,6 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.finalScoreText = null;
     this.gameOverPartyNameText = null;
     this.gameOverInstruction = null;
-
-    // Dispose Highscore board array 
     if (this.highscoreTexts) {
         for (i = 0; i < this.highscoreTexts.length; i++) {
             if (this.highscoreTexts[i] && this.highscoreTexts[i].parent) {

@@ -73,8 +73,9 @@ var GraveFallGame = function() {
 GraveFallGame.FONT_SMALL = "GF_Font_192x30";
 
 /**
- * Enables the custom GraveFall test font after resources are available.
- * Call this from scene init methods, before creating game BitmapFields.
+ * Enables the GraveFall bitmap font after resources are available.
+ *
+ * @return {undefined}
  */
 GraveFallGame.useBitmapFont = function() {
     if (rune && rune.text && rune.text.BitmapFormat) {
@@ -87,11 +88,11 @@ GraveFallGame.useBitmapFont = function() {
 //------------------------------------------------------------------------------
 
 /**
- * The secret bootstrap. This method enables simple startup of the application, 
- * without knowledge of the internal package structure or the classes included 
- * in it.
+ * Creates and starts the GraveFall application instance.
  *
- * @ignore
+ * @param {Function} callback Callback executed by Rune after bootstrap.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.bootstrap = function(callback) {
     var app = new GraveFallGame.system.Main();

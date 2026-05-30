@@ -3,7 +3,11 @@
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Checks whether confirm input was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedConfirm = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -12,10 +16,17 @@ GraveFallGame.scene.Game.prototype.justPressedConfirm = function(pm) {
     return gp && gp.justPressed(0);
 };
 
-// Face button helpers keep combat/action buttons separate from movement input.
-// Standard controller mapping: A/Cross=0, B/Circle=1, X/Square=2, Y/Triangle=3.
+/*
+ * Face button helpers keep combat and action buttons separate from movement
+ * input. Standard controller mapping: A/Cross=0, B/Circle=1, X/Square=2,
+ * Y/Triangle=3.
+ */
 /**
- * ...
+ * Checks whether the face-down controller button was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedFaceDown = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -24,7 +35,11 @@ GraveFallGame.scene.Game.prototype.justPressedFaceDown = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether the face-right controller button was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedFaceRight = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -33,7 +48,11 @@ GraveFallGame.scene.Game.prototype.justPressedFaceRight = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether confirm input is currently held.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isHoldingConfirm = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -43,7 +62,11 @@ GraveFallGame.scene.Game.prototype.isHoldingConfirm = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether the face-right controller button is currently held.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isHoldingFaceRight = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -52,14 +75,22 @@ GraveFallGame.scene.Game.prototype.isHoldingFaceRight = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether an item-menu exit input is currently held.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isHoldingItemExitButton = function(pm) {
     return this.isHoldingConfirm(pm) || this.isHoldingFaceRight(pm) || this.keyboard.pressed("backspace");
 };
 
 /**
- * ...
+ * Checks whether the face-left controller button was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedFaceLeft = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -68,7 +99,11 @@ GraveFallGame.scene.Game.prototype.justPressedFaceLeft = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether the face-up controller button was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedFaceUp = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -77,7 +112,11 @@ GraveFallGame.scene.Game.prototype.justPressedFaceUp = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether back input was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedBack = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -86,7 +125,11 @@ GraveFallGame.scene.Game.prototype.justPressedBack = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether left input was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedLeft = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -96,7 +139,11 @@ GraveFallGame.scene.Game.prototype.justPressedLeft = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether right input was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedRight = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -106,7 +153,11 @@ GraveFallGame.scene.Game.prototype.justPressedRight = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether up input was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedUp = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -116,7 +167,11 @@ GraveFallGame.scene.Game.prototype.justPressedUp = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether down input was pressed on this frame.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.justPressedDown = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -126,7 +181,11 @@ GraveFallGame.scene.Game.prototype.justPressedDown = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether left movement input is currently held.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isHoldingLeft = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -136,7 +195,11 @@ GraveFallGame.scene.Game.prototype.isHoldingLeft = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether right movement input is currently held.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isHoldingRight = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -146,7 +209,11 @@ GraveFallGame.scene.Game.prototype.isHoldingRight = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether up movement input is currently held.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isHoldingUp = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -156,7 +223,11 @@ GraveFallGame.scene.Game.prototype.isHoldingUp = function(pm) {
 };
 
 /**
- * ...
+ * Checks whether down movement input is currently held.
+ *
+ * @param {Object} pm Player menu or input owner.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isHoldingDown = function(pm) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
@@ -170,7 +241,11 @@ GraveFallGame.scene.Game.prototype.isHoldingDown = function(pm) {
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Returns the connected gamepad assigned to an input owner.
+ *
+ * @param {Object} inputOwner Input owner that contains keyboard and gamepad metadata.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getGamepadForInput = function (inputOwner) {
     var index = inputOwner && inputOwner.gamepadIndex !== undefined ? inputOwner.gamepadIndex : 0;
@@ -190,7 +265,12 @@ GraveFallGame.scene.Game.prototype.getGamepadForInput = function (inputOwner) {
 };
 
 /**
- * ...
+ * Triggers controller or browser vibration for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {number} durationMs Duration in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.vibratePlayerController = function (playerMenu, durationMs) {
     var gp = this.getGamepadForInput(playerMenu);
@@ -222,7 +302,7 @@ GraveFallGame.scene.Game.prototype.vibratePlayerController = function (playerMen
             });
             return;
         } catch (error) {
-            // Fall through to other vibration paths.
+            /* Fall through to other vibration paths. */
         }
     }
 
@@ -231,7 +311,7 @@ GraveFallGame.scene.Game.prototype.vibratePlayerController = function (playerMen
             gamepad.hapticActuators[0].pulse(intensity, duration);
             return;
         } catch (error) {
-            // Fall through to other vibration paths.
+            /* Fall through to other vibration paths. */
         }
     }
 
@@ -240,7 +320,7 @@ GraveFallGame.scene.Game.prototype.vibratePlayerController = function (playerMen
             gp.vibrate(duration, intensity);
             return;
         } catch (error) {
-            // Fall through to other vibration paths.
+            /* Fall through to other vibration paths. */
         }
     }
 
@@ -249,7 +329,7 @@ GraveFallGame.scene.Game.prototype.vibratePlayerController = function (playerMen
             gamepad.vibrate(duration, intensity);
             return;
         } catch (error) {
-            // Fall through to browser vibration fallback.
+            /* Fall through to browser vibration fallback. */
         }
     }
 
@@ -258,10 +338,13 @@ GraveFallGame.scene.Game.prototype.vibratePlayerController = function (playerMen
     }
 };
 
-// Battle avatars all render into an 80x80 transparent class icon, but each
-// class has different transparent padding around the visible character. These
-// corrections keep every class aligned to the ASSASSIN avatar, whose arena
-// collision/clamp tuning is the baseline that matches the UI frame.
+/**
+ * Hitbox and clamp corrections for class-icon battle avatars. Each class icon
+ * is authored inside an 80x80 transparent canvas, so these values align visible
+ * character pixels to the Assassin baseline used by arena collision tuning.
+ *
+ * @type {Object}
+ */
 GraveFallGame.scene.Game.BATTLE_AVATAR_HITBOX_CORRECTIONS = {
     Assassin_Icon_T: { hitbox: [8, 3, 8, 3], clamp: [5, 3, 3, 0] },
     Fighter_Icon_T: { hitbox: [5, 1, 5, -4], clamp: [2, 1, 0, -7] },
@@ -270,7 +353,11 @@ GraveFallGame.scene.Game.BATTLE_AVATAR_HITBOX_CORRECTIONS = {
 };
 
 /**
- * ...
+ * Returns hitbox and clamp corrections for a battle avatar resource.
+ *
+ * @param {Object} classIconResource Class icon resource.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getBattleAvatarHitboxCorrection = function (classIconResource) {
     var corrections = GraveFallGame.scene.Game.BATTLE_AVATAR_HITBOX_CORRECTIONS || {};
@@ -279,7 +366,12 @@ GraveFallGame.scene.Game.prototype.getBattleAvatarHitboxCorrection = function (c
 };
 
 /**
- * ...
+ * Applies hitbox and clamp corrections to a battle avatar.
+ *
+ * @param {Object} battleAvatar Battle avatar.
+ * @param {Object} classIconResource Class icon resource.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyBattleAvatarHitboxCorrection = function (battleAvatar, classIconResource) {
     var correction = this.getBattleAvatarHitboxCorrection(classIconResource);
@@ -303,7 +395,11 @@ GraveFallGame.scene.Game.prototype.applyBattleAvatarHitboxCorrection = function 
 };
 
 /**
- * ...
+ * Creates a player command menu and its related battle avatar state.
+ *
+ * @param {Object} options Options object.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
     var menuWidth = 320;
@@ -645,7 +741,12 @@ GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
 };
 
 /**
- * ...
+ * Updates a player portrait and stand damage state.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {boolean} allPlayersDead All players dead.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMenu, allPlayersDead) {
     var state = this.getHealthDamageState(playerMenu.healthCurrent, playerMenu.healthMax, true, allPlayersDead);
@@ -687,7 +788,9 @@ GraveFallGame.scene.Game.prototype.updatePlayerDamageState = function (playerMen
 };
 
 /**
- * ...
+ * Updates damage states for every player menu.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateAllPlayerDamageStates = function () {
     var allPlayersDead = this.areAllPlayersDown();
@@ -700,14 +803,18 @@ GraveFallGame.scene.Game.prototype.updateAllPlayerDamageStates = function () {
 };
 
 /**
- * ...
+ * Returns the enemy damage state used while death recovery is pending.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getEnemyPendingDeathDamageState = function () {
     return "hp25";
 };
 
 /**
- * ...
+ * Checks whether the boss sprite should stay in its dying state.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.shouldKeepBossInDyingState = function () {
     var enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
@@ -721,7 +828,9 @@ GraveFallGame.scene.Game.prototype.shouldKeepBossInDyingState = function () {
 };
 
 /**
- * ...
+ * Updates the enemy damage state display.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
     var state = this.shouldKeepBossInDyingState && this.shouldKeepBossInDyingState()
@@ -732,7 +841,13 @@ GraveFallGame.scene.Game.prototype.updateEnemyDamageState = function () {
 };
 
 /**
- * ...
+ * Applies damage to the active enemy and updates score, effects, and UI.
+ *
+ * @param {number} amount Amount to apply.
+ * @param {Object} playerColor Player color.
+ * @param {boolean} skipDefaultSfx Skip default sfx.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor, skipDefaultSfx) {
     var wasAlive = this.enemyHealthCurrent > 0;
@@ -761,7 +876,13 @@ GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, player
 };
 
 /**
- * ...
+ * Tints a bitmap field and optionally strips its backdrop pixels.
+ *
+ * @param {Object} field Bitmap field to update.
+ * @param {string} targetColor Palette color to apply.
+ * @param {boolean} stripBackdrop Strip backdrop.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, targetColor, stripBackdrop) {
     var color;
@@ -799,7 +920,12 @@ GraveFallGame.scene.Game.prototype.tintBitmapFieldText = function (field, target
 };
 
 /**
- * ...
+ * Creates floating damage text over the enemy.
+ *
+ * @param {number} amount Amount to apply.
+ * @param {Object} playerColor Player color.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, playerColor) {
     var text;
@@ -874,7 +1000,11 @@ GraveFallGame.scene.Game.prototype.createEnemyDamagePopup = function (amount, pl
 };
 
 /**
- * ...
+ * Starts the enemy preview flash timer.
+ *
+ * @param {number} durationMs Duration in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setEnemyPreviewFlash = function (durationMs) {
     this.enemyPreviewFlashTimerMs = Math.max(this.enemyPreviewFlashTimerMs || 0, durationMs || 260);
@@ -882,7 +1012,13 @@ GraveFallGame.scene.Game.prototype.setEnemyPreviewFlash = function (durationMs) 
 };
 
 /**
- * ...
+ * Starts a temporary shake on the enemy preview sprite.
+ *
+ * @param {number} durationMs Duration in milliseconds.
+ * @param {number} amountX Amount x.
+ * @param {number} amountY Amount y.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startEnemyDamagePreviewShake = function (durationMs, amountX, amountY) {
     if (!this.enemySprite) {
@@ -901,7 +1037,9 @@ GraveFallGame.scene.Game.prototype.startEnemyDamagePreviewShake = function (dura
 };
 
 /**
- * ...
+ * Restores the enemy preview sprite after a shake.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.restoreEnemyDamagePreviewShake = function () {
     if (this.enemySprite && typeof this.enemyPreviewBaseX === "number") {
@@ -914,7 +1052,9 @@ GraveFallGame.scene.Game.prototype.restoreEnemyDamagePreviewShake = function () 
 };
 
 /**
- * ...
+ * Applies rewards and cleanup when the enemy is defeated.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
     var i;
@@ -1032,7 +1172,11 @@ GraveFallGame.scene.Game.prototype.applyEnemyDefeatedRecovery = function () {
 };
 
 /**
- * ...
+ * Returns the class buff type for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getClassBuffType = function (playerMenu) {
     var id = playerMenu && playerMenu.characterId ? String(playerMenu.characterId).toLowerCase() : "";
@@ -1058,7 +1202,11 @@ GraveFallGame.scene.Game.prototype.getClassBuffType = function (playerMenu) {
 };
 
 /**
- * ...
+ * Returns the item buff type selected by an item action.
+ *
+ * @param {string} selectedAction Selected command action.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getItemBuffTypeForAction = function (selectedAction) {
     if (selectedAction >= 10 && selectedAction <= 13) {
@@ -1069,7 +1217,12 @@ GraveFallGame.scene.Game.prototype.getItemBuffTypeForAction = function (selected
 };
 
 /**
- * ...
+ * Returns the stand animation state for an action preview.
+ *
+ * @param {string} selectedAction Selected command action.
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (selectedAction, playerMenu) {
     var itemBuffType;
@@ -1117,7 +1270,11 @@ GraveFallGame.scene.Game.prototype.getActionPreviewStandState = function (select
 };
 
 /**
- * ...
+ * Returns the preview duration for a command action.
+ *
+ * @param {string} selectedAction Selected command action.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getActionPreviewDuration = function (selectedAction) {
     if (selectedAction === 1 || selectedAction === 2 || selectedAction === 10 || selectedAction === 12 || selectedAction === 13) {
@@ -1132,7 +1289,12 @@ GraveFallGame.scene.Game.prototype.getActionPreviewDuration = function (selected
 };
 
 /**
- * ...
+ * Starts command preview shake for a player stand.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {string} selectedAction Selected command action.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.startPlayerActionPreviewShake = function (playerMenu, selectedAction) {
     if (!playerMenu || !playerMenu.stand) {
@@ -1151,7 +1313,11 @@ GraveFallGame.scene.Game.prototype.startPlayerActionPreviewShake = function (pla
 };
 
 /**
- * ...
+ * Restores a player stand after command preview shake.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.restorePlayerActionPreviewShake = function (playerMenu) {
     if (!playerMenu || !playerMenu.stand) {
@@ -1174,7 +1340,11 @@ GraveFallGame.scene.Game.prototype.restorePlayerActionPreviewShake = function (p
 };
 
 /**
- * ...
+ * Returns the attack preview sound for a player class.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPlayerAttackPreviewSfx = function (playerMenu) {
     var id = playerMenu && playerMenu.characterId ? playerMenu.characterId : "";
@@ -1192,7 +1362,13 @@ GraveFallGame.scene.Game.prototype.getPlayerAttackPreviewSfx = function (playerM
 };
 
 /**
- * ...
+ * Plays the sound effect for an action preview result.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {string} selectedAction Selected command action.
+ * @param {Object} didDamage Did damage.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.playActionPreviewSfx = function (playerMenu, selectedAction, didDamage) {
     var id;
@@ -1228,7 +1404,11 @@ GraveFallGame.scene.Game.prototype.playActionPreviewSfx = function (playerMenu, 
 };
 
 /**
- * ...
+ * Calculates a player attack damage value.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.calculatePlayerAttackDamage = function (playerMenu) {
     var baseDmg = (playerMenu.attackDamage || 5) + (playerMenu.permanentAttackBonus || 0);
@@ -1246,7 +1426,11 @@ GraveFallGame.scene.Game.prototype.calculatePlayerAttackDamage = function (playe
 };
 
 /**
- * ...
+ * Applies a defend command for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyDefendActionForPlayer = function (playerMenu) {
     var target = null;
@@ -1273,7 +1457,11 @@ GraveFallGame.scene.Game.prototype.applyDefendActionForPlayer = function (player
 };
 
 /**
- * ...
+ * Applies the selected command action for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playerMenu) {
     var totalDmg;
@@ -1323,7 +1511,9 @@ GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playe
 };
 
 /**
- * ...
+ * Resolves all confirmed command phase actions.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
     var i;
@@ -1351,7 +1541,11 @@ GraveFallGame.scene.Game.prototype.resolveCommandPhaseActions = function () {
 };
 
 /**
- * ...
+ * Updates target icons for a defend target submenu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateDefendTargetMenuIcons = function (playerMenu) {
     var i;
@@ -1383,7 +1577,11 @@ GraveFallGame.scene.Game.prototype.updateDefendTargetMenuIcons = function (playe
 };
 
 /**
- * ...
+ * Returns tooltip lines for a class buff.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getClassBuffTooltipLines = function (playerMenu) {
     var id = playerMenu && playerMenu.characterId ? String(playerMenu.characterId).toLowerCase() : "";
@@ -1409,7 +1607,11 @@ GraveFallGame.scene.Game.prototype.getClassBuffTooltipLines = function (playerMe
 };
 
 /**
- * ...
+ * Returns tooltip lines for the selected command menu option.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
     var targetPartyIndex;
@@ -1478,7 +1680,11 @@ GraveFallGame.scene.Game.prototype.getMenuTooltipLines = function (playerMenu) {
 };
 
 /**
- * ...
+ * Hides a player command menu tooltip.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.hideCharacterMenuTooltip = function (playerMenu) {
     if (playerMenu && playerMenu.tooltipContainer) {
@@ -1487,7 +1693,9 @@ GraveFallGame.scene.Game.prototype.hideCharacterMenuTooltip = function (playerMe
 };
 
 /**
- * ...
+ * Hides all player command menu tooltips.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.hideAllCharacterMenuTooltips = function () {
     var i;
@@ -1506,7 +1714,14 @@ GraveFallGame.scene.Game.prototype.hideAllCharacterMenuTooltips = function () {
 };
 
 /**
- * ...
+ * Sets one tooltip line in a player command menu.
+ *
+ * @param {Object} field Bitmap field to update.
+ * @param {string} text Text to render or sanitize.
+ * @param {number} scale Display scale.
+ * @param {number} menuWidth Menu width.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setCharacterMenuTooltipLine = function (field, text, scale, menuWidth) {
     var safeText;
@@ -1533,7 +1748,11 @@ GraveFallGame.scene.Game.prototype.setCharacterMenuTooltipLine = function (field
 };
 
 /**
- * ...
+ * Updates tooltip visibility and text for a player command menu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (playerMenu) {
     var key;
@@ -1589,9 +1808,12 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuTooltipVisual = function (
 };
 
 
-
 /**
- * ...
+ * Updates icons, labels, selection state, and tooltip visuals for a player menu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (playerMenu) {
     var i;
@@ -1666,7 +1888,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuVisuals = function (player
 };
 
 /**
- * ...
+ * Resets a player command menu for a new command phase.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMenu) {
     if (!playerMenu) {
@@ -1696,7 +1922,11 @@ GraveFallGame.scene.Game.prototype.resetCharacterMenuState = function (playerMen
 };
 
 /**
- * ...
+ * Restores command menu visibility after a preview phase.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.restorePlayerCommandMenuVisibility = function (playerMenu) {
     var alive;
@@ -1757,7 +1987,12 @@ GraveFallGame.scene.Game.BUFF_CONFIGS = {
 };
 
 /**
- * ...
+ * Returns a darkened hexadecimal color.
+ *
+ * @param {string} hexColor Hex color.
+ * @param {number} multiplier Multiplier.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.darkenHexColor = function (hexColor, multiplier) {
     var hex = (hexColor || "#FFFFFF").replace("#", "");
@@ -1787,7 +2022,11 @@ GraveFallGame.scene.Game.prototype.darkenHexColor = function (hexColor, multipli
 };
 
 /**
- * ...
+ * Returns visual effect colors for a player buff.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getBuffEffectColors = function (playerMenu) {
     var theme = playerMenu && playerMenu.theme ? playerMenu.theme : null;
@@ -1821,7 +2060,11 @@ GraveFallGame.scene.Game.prototype.getBuffEffectColors = function (playerMenu) {
 };
 
 /**
- * ...
+ * Returns particle colors for player damage effects.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getPlayerDamageEffectColors = function (playerMenu) {
     var colors = this.getBuffEffectColors(playerMenu);
@@ -1835,7 +2078,13 @@ GraveFallGame.scene.Game.prototype.getPlayerDamageEffectColors = function (playe
 };
 
 /**
- * ...
+ * Returns a stage-space anchor for a display node.
+ *
+ * @param {Object} node Character select class node.
+ * @param {Object} xRatio X ratio.
+ * @param {Object} yRatio Y ratio.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getStageAnchorForNode = function (node, xRatio, yRatio) {
     var scaleX;
@@ -1870,7 +2119,9 @@ GraveFallGame.scene.Game.prototype.getStageAnchorForNode = function (node, xRati
 };
 
 /**
- * ...
+ * Returns player menus for players that are still alive.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getLivingPlayerMenus = function () {
     var targets = [];
@@ -1890,7 +2141,9 @@ GraveFallGame.scene.Game.prototype.getLivingPlayerMenus = function () {
 };
 
 /**
- * ...
+ * Returns every player menu in party order.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getAllPlayerMenus = function () {
     var targets = [];
@@ -1910,7 +2163,11 @@ GraveFallGame.scene.Game.prototype.getAllPlayerMenus = function () {
 };
 
 /**
- * ...
+ * Returns a player menu by party index.
+ *
+ * @param {number} partyIndex Party member index.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPlayerMenuByPartyIndex = function (partyIndex) {
     var i;
@@ -1929,7 +2186,11 @@ GraveFallGame.scene.Game.prototype.getPlayerMenuByPartyIndex = function (partyIn
 };
 
 /**
- * ...
+ * Revives a player when healing raises health above zero.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.revivePlayerFromHealthGain = function (playerMenu) {
     if (!playerMenu || playerMenu.healthCurrent <= 0) {
@@ -2002,7 +2263,12 @@ GraveFallGame.scene.Game.prototype.revivePlayerFromHealthGain = function (player
 };
 
 /**
- * ...
+ * Applies healing to a player and updates related UI.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {number} amount Amount to apply.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.applyHealthGainToPlayer = function (playerMenu, amount) {
     var healAmount;
@@ -2033,7 +2299,11 @@ GraveFallGame.scene.Game.prototype.applyHealthGainToPlayer = function (playerMen
 };
 
 /**
- * ...
+ * Returns the icon resource for a class buff.
+ *
+ * @param {string} buffType Buff or item type identifier.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getBuffIconResource = function (buffType) {
     var config = GraveFallGame.scene.Game.BUFF_CONFIGS[buffType] || GraveFallGame.scene.Game.BUFF_CONFIGS.attack;
@@ -2041,7 +2311,11 @@ GraveFallGame.scene.Game.prototype.getBuffIconResource = function (buffType) {
 };
 
 /**
- * ...
+ * Returns the icon resource for an item buff.
+ *
+ * @param {string} buffType Buff or item type identifier.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getItemIconResource = function (buffType) {
     var config = GraveFallGame.scene.Game.BUFF_CONFIGS[buffType] || GraveFallGame.scene.Game.BUFF_CONFIGS.attack;
@@ -2049,14 +2323,23 @@ GraveFallGame.scene.Game.prototype.getItemIconResource = function (buffType) {
 };
 
 /**
- * ...
+ * Returns the item buff type assigned to an item menu index.
+ *
+ * @param {number} index Index to resolve.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getItemBuffTypeForIndex = function (index) {
     return GraveFallGame.scene.Game.ITEM_BUFF_TYPES[index] || null;
 };
 
 /**
- * ...
+ * Returns a player item count for one buff type.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {string} buffType Buff or item type identifier.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPlayerItemCount = function (playerMenu, buffType) {
     if (!playerMenu || !playerMenu.itemInventory || !buffType) {
@@ -2067,7 +2350,11 @@ GraveFallGame.scene.Game.prototype.getPlayerItemCount = function (playerMenu, bu
 };
 
 /**
- * ...
+ * Returns the total item count held by a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPlayerTotalItemCount = function (playerMenu) {
     var itemTypes = GraveFallGame.scene.Game.ITEM_BUFF_TYPES;
@@ -2086,7 +2373,12 @@ GraveFallGame.scene.Game.prototype.getPlayerTotalItemCount = function (playerMen
 };
 
 /**
- * ...
+ * Adds one item buff to a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {string} buffType Buff or item type identifier.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.givePlayerItem = function (playerMenu, buffType) {
     if (!playerMenu || !buffType) {
@@ -2103,7 +2395,12 @@ GraveFallGame.scene.Game.prototype.givePlayerItem = function (playerMenu, buffTy
 };
 
 /**
- * ...
+ * Consumes one item buff from a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {string} buffType Buff or item type identifier.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.consumePlayerItem = function (playerMenu, buffType) {
     if (!playerMenu || !buffType || this.getPlayerItemCount(playerMenu, buffType) <= 0) {
@@ -2116,7 +2413,13 @@ GraveFallGame.scene.Game.prototype.consumePlayerItem = function (playerMenu, buf
 };
 
 /**
- * ...
+ * Checks whether a command menu index can currently be selected.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {Object} menuState Menu state.
+ * @param {number} index Index to resolve.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isMenuIndexSelectable = function (playerMenu, menuState, index) {
     var buffType;
@@ -2151,7 +2454,14 @@ GraveFallGame.scene.Game.prototype.isMenuIndexSelectable = function (playerMenu,
 };
 
 /**
- * ...
+ * Finds the next selectable index in a command menu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {Object} menuState Menu state.
+ * @param {number} startIndex Index to begin searching from.
+ * @param {number} direction Navigation direction.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.findSelectableMenuIndex = function (playerMenu, menuState, startIndex, direction) {
     var count = menuState === "items" ? playerMenu.itemIcons.length : (menuState === "defendTarget" ? playerMenu.defendTargetIcons.length : playerMenu.actions.length);
@@ -2178,7 +2488,11 @@ GraveFallGame.scene.Game.prototype.findSelectableMenuIndex = function (playerMen
 };
 
 /**
- * ...
+ * Calculates a player movement speed with active buffs.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.calculateEffectiveMoveSpeed = function (playerMenu) {
     var speed = (playerMenu && playerMenu.baseMoveSpeed) || 4;
@@ -2197,7 +2511,11 @@ GraveFallGame.scene.Game.prototype.calculateEffectiveMoveSpeed = function (playe
 };
 
 /**
- * ...
+ * Applies a class-specific command buff for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMenu) {
     var id = playerMenu && playerMenu.characterId ? playerMenu.characterId : "";
@@ -2256,14 +2574,20 @@ GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMen
 };
 
 /**
- * ...
+ * Returns the maximum permanent defense stack count.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPermanentDefenseStackCap = function () {
     return 6;
 };
 
 /**
- * ...
+ * Returns permanent defense damage reduction for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPermanentDefenseDamageReduction = function (playerMenu) {
     var stacks = Math.min(this.getPermanentDefenseStackCap(), Math.max(0, playerMenu ? (playerMenu.permanentDefenseBonus || 0) : 0));
@@ -2271,7 +2595,11 @@ GraveFallGame.scene.Game.prototype.getPermanentDefenseDamageReduction = function
 };
 
 /**
- * ...
+ * Checks whether an item buff can become a permanent run buff.
+ *
+ * @param {string} buffType Buff or item type identifier.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.canApplyPermanentItemBuff = function (buffType) {
     var targets;
@@ -2297,7 +2625,12 @@ GraveFallGame.scene.Game.prototype.canApplyPermanentItemBuff = function (buffTyp
 };
 
 /**
- * ...
+ * Applies a permanent item buff to the party.
+ *
+ * @param {string} buffType Buff or item type identifier.
+ * @param {Object} sourceMenu Player menu that triggered the effect.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, sourceMenu) {
     var targets = this.getAllPlayerMenus();
@@ -2330,7 +2663,11 @@ GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, 
 };
 
 /**
- * ...
+ * Applies a random permanent item buff after an encounter reward.
+ *
+ * @param {Object} sourceMenu Player menu that triggered the effect.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyRandomPermanentItemBuff = function (sourceMenu) {
     var buffs = ["maxHp", "attack", "defense", "speed"];
@@ -2339,7 +2676,11 @@ GraveFallGame.scene.Game.prototype.applyRandomPermanentItemBuff = function (sour
 };
 
 /**
- * ...
+ * Returns the effect anchor position for a player buff.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getBuffEffectAnchor = function (playerMenu) {
     var node;
@@ -2358,14 +2699,22 @@ GraveFallGame.scene.Game.prototype.getBuffEffectAnchor = function (playerMenu) {
 };
 
 /**
- * ...
+ * Returns the effect anchor position for enemy effects.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getEnemyEffectAnchor = function () {
     return this.getStageAnchorForNode(this.enemySprite, 0.5, 0.5);
 };
 
 /**
- * ...
+ * Spawns a buff effect across multiple player targets.
+ *
+ * @param {string} buffType Buff or item type identifier.
+ * @param {Array} targets Target player collection.
+ * @param {number} durationMs Duration in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnPartyBuffEffect = function (buffType, targets, durationMs) {
     var i;
@@ -2380,7 +2729,13 @@ GraveFallGame.scene.Game.prototype.spawnPartyBuffEffect = function (buffType, ta
 };
 
 /**
- * ...
+ * Spawns a buff effect on one player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {string} buffType Buff or item type identifier.
+ * @param {number} durationMs Duration in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMenu, buffType, durationMs) {
     var colors;
@@ -2460,7 +2815,13 @@ GraveFallGame.scene.Game.prototype.spawnBuffEffectForPlayer = function (playerMe
 };
 
 /**
- * ...
+ * Spawns the pickup effect for a collected item.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {string} buffType Buff or item type identifier.
+ * @param {number} durationMs Duration in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnItemPickupEffect = function (playerMenu, buffType, durationMs) {
     var colors;
@@ -2526,7 +2887,13 @@ GraveFallGame.scene.Game.prototype.spawnItemPickupEffect = function (playerMenu,
 
 
 /**
- * ...
+ * Spawns a configurable particle burst at a position.
+ *
+ * @param {number} centerX Horizontal center position.
+ * @param {number} centerY Vertical center position.
+ * @param {Object} options Options object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnParticleBurstAt = function (centerX, centerY, options) {
     var effect;
@@ -2603,7 +2970,11 @@ GraveFallGame.scene.Game.prototype.spawnParticleBurstAt = function (centerX, cen
 };
 
 /**
- * ...
+ * Spawns particles for enemy damage.
+ *
+ * @param {number} amount Amount to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnEnemyDamageParticles = function (amount) {
     var anchor = this.getEnemyEffectAnchor();
@@ -2628,7 +2999,12 @@ GraveFallGame.scene.Game.prototype.spawnEnemyDamageParticles = function (amount)
 };
 
 /**
- * ...
+ * Spawns particles for player damage.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ * @param {number} amount Amount to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.spawnPlayerDamageParticles = function (playerMenu, amount) {
     var anchor;
@@ -2662,7 +3038,11 @@ GraveFallGame.scene.Game.prototype.spawnPlayerDamageParticles = function (player
 };
 
 /**
- * ...
+ * Updates active buff and particle visual effects.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateBuffVisualEffects = function (step) {
     var i;
@@ -2725,7 +3105,9 @@ GraveFallGame.scene.Game.prototype.updateBuffVisualEffects = function (step) {
 };
 
 /**
- * ...
+ * Removes all active buff and particle visual effects.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.clearBuffVisualEffects = function () {
     var i;
@@ -2755,20 +3137,27 @@ GraveFallGame.scene.Game.prototype.clearBuffVisualEffects = function () {
 
 
 /**
- * ...
+ * Returns a player from the item submenu to the main command menu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.returnPlayerItemMenuToMain = function (playerMenu) {
     playerMenu.menuState = "main";
     playerMenu.selectedIndex = 3;
-    // Do not let the same B/Circle or A/Cross press that exited Items
-    // immediately re-open Items when the menu lands back on the Item icon.
+    /* Prevent the release press that closes Items from reopening it immediately. */
     playerMenu.waitingForItemExitButtonRelease = true;
     this.playSfx(GraveFallGame.SOUNDS.UI_BACK, 0.55);
     this.updateCharacterMenuVisuals(playerMenu);
 };
 
 /**
- * ...
+ * Returns a player from the defend target submenu to the main command menu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.returnPlayerDefendTargetMenuToMain = function (playerMenu) {
     playerMenu.menuState = "main";
@@ -2780,7 +3169,11 @@ GraveFallGame.scene.Game.prototype.returnPlayerDefendTargetMenuToMain = function
 };
 
 /**
- * ...
+ * Confirms the selected command menu option for a player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.confirmPlayerMenuSelection = function (playerMenu) {
     var buffType;
@@ -2862,7 +3255,11 @@ GraveFallGame.scene.Game.prototype.confirmPlayerMenuSelection = function (player
 };
 
 /**
- * ...
+ * Handles direct face-button command shortcuts for a player menu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.handlePlayerMenuFaceAction = function (playerMenu) {
     if (playerMenu.menuState === "items") {
@@ -2883,23 +3280,21 @@ GraveFallGame.scene.Game.prototype.handlePlayerMenuFaceAction = function (player
         return false;
     }
 
-    // A/Cross remains the normal confirm button so D-pad/left-stick selection still works.
-    // The other right-side face buttons are direct command shortcuts.
+    /* A/Cross remains normal confirm; other face buttons are shortcuts. */
     if (this.justPressedFaceLeft(playerMenu)) {
-        playerMenu.selectedIndex = 1; // X/Square = Defend
+        playerMenu.selectedIndex = 1;
         this.confirmPlayerMenuSelection(playerMenu);
         return true;
     }
 
     if (this.justPressedFaceUp(playerMenu)) {
-        playerMenu.selectedIndex = 2; // Y/Triangle = Buff
+        playerMenu.selectedIndex = 2;
         this.confirmPlayerMenuSelection(playerMenu);
         return true;
     }
 
     if (this.justPressedBack(playerMenu)) {
-        // B/Circle and Backspace are reserved for backing out of submenus.
-        // On the normal command menu, backing out should do nothing.
+        /* Back input is reserved for submenus and is ignored on the main menu. */
         return true;
     }
 
@@ -2907,7 +3302,11 @@ GraveFallGame.scene.Game.prototype.handlePlayerMenuFaceAction = function (player
 };
 
 /**
- * ...
+ * Updates command menu input for one player.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMenu) {
     var direction;
@@ -2973,8 +3372,6 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
 };
 
 //------------------------------------------------------------------------------
-// Stats tracking wrappers
-//------------------------------------------------------------------------------
 
 (function () {
     var originalCreateCharacterMenu = GraveFallGame.scene.Game.prototype.createCharacterMenu;
@@ -2989,7 +3386,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     var originalApplyPermanentItemBuff = GraveFallGame.scene.Game.prototype.applyPermanentItemBuff;
 
     /**
-     * ...
+     * Ensures a player menu has a full stats tracking object.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     *
+     * @return {Array} Resolved collection.
      */
     GraveFallGame.scene.Game.prototype.ensurePlayerStats = function (playerMenu) {
         var stats;
@@ -3026,7 +3427,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Creates a player command menu and its related battle avatar state.
+     *
+     * @param {Object} options Options object.
+     *
+     * @return {Object} Created display object or data object.
      */
     GraveFallGame.scene.Game.prototype.createCharacterMenu = function (options) {
         var playerMenu = originalCreateCharacterMenu.call(this, options);
@@ -3034,7 +3439,14 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Applies damage to the active enemy and updates score, effects, and UI.
+     *
+     * @param {number} amount Amount to apply.
+     * @param {Object} playerColor Player color.
+     * @param {boolean} skipDefaultSfx Skip default sfx.
+     * @param {Object} sourceMenu Player menu that triggered the effect.
+     *
+     * @return {number} Resolved numeric value.
      */
     GraveFallGame.scene.Game.prototype.applyDamageToEnemy = function (amount, playerColor, skipDefaultSfx, sourceMenu) {
         var activeSourceMenu = sourceMenu || this._activeDamageSourceMenu || null;
@@ -3056,7 +3468,12 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Applies damage to a player and updates player state.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     * @param {number} amount Amount to apply.
+     *
+     * @return {number} Resolved numeric value.
      */
     GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
         var before = playerMenu && typeof playerMenu.healthCurrent === "number" ? playerMenu.healthCurrent : 0;
@@ -3079,7 +3496,13 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Applies healing to a player and updates related UI.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     * @param {number} amount Amount to apply.
+     * @param {Object} sourceMenu Player menu that triggered the effect.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.Game.prototype.applyHealthGainToPlayer = function (playerMenu, amount, sourceMenu) {
         var activeSourceMenu = sourceMenu || this._activeHealingSourceMenu || null;
@@ -3106,7 +3529,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Revives a player when healing raises health above zero.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.Game.prototype.revivePlayerFromHealthGain = function (playerMenu) {
         var wasDowned = !!(playerMenu && playerMenu.healthCurrent <= 0);
@@ -3121,7 +3548,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Applies a defend command for a player.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.Game.prototype.applyDefendActionForPlayer = function (playerMenu) {
         this.ensurePlayerStats(playerMenu);
@@ -3139,7 +3570,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Applies a class-specific command buff for a player.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.Game.prototype.applyClassBuffForPlayer = function (playerMenu) {
         this.ensurePlayerStats(playerMenu);
@@ -3157,7 +3592,11 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Applies the selected command action for a player.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.Game.prototype.applyCommandActionForPlayer = function (playerMenu) {
         this.ensurePlayerStats(playerMenu);
@@ -3176,7 +3615,12 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
     };
 
     /**
-     * ...
+     * Consumes one item buff from a player.
+     *
+     * @param {Object} playerMenu Player menu state object.
+     * @param {string} buffType Buff or item type identifier.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.Game.prototype.consumePlayerItem = function (playerMenu, buffType) {
         var consumed = originalConsumePlayerItem.call(this, playerMenu, buffType);
@@ -3191,7 +3635,12 @@ GraveFallGame.scene.Game.prototype.updateCharacterMenuInput = function (playerMe
 
 
 /**
- * ...
+ * Applies a permanent item buff to the party.
+ *
+ * @param {string} buffType Buff or item type identifier.
+ * @param {Object} sourceMenu Player menu that triggered the effect.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.applyPermanentItemBuff = function (buffType, sourceMenu) {
         var previousSource = this._activeHealingSourceMenu;

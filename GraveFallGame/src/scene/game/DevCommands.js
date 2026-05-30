@@ -1,18 +1,19 @@
 //------------------------------------------------------------------------------
 // GraveFall dev console commands
 //------------------------------------------------------------------------------
-// Rune debug console notes:
-// - Main enables Rune debug mode, which exposes application.screen.console.
-// - The Rune console command register is application.screen.console.commands.
-// - Commands are deliberately namespaced as gf.<category>.<action> so they are
-//   easy to find while bugtesting and easy to remove before release.
+/**
+ * Development commands are namespaced under gf.* so combat and select-scene
+ * testing shortcuts stay discoverable while debug mode is enabled.
+ */
 //------------------------------------------------------------------------------
 
 
 GraveFallGame.scene.Game.DEV_CONSOLE_SAFE_LINE_LENGTH = 42;
 
 /**
- * ...
+ * Installs a bitmap-safe output guard for the Rune debug console.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.installDevConsoleOutputGuard = function () {
     var proto;
@@ -30,10 +31,7 @@ GraveFallGame.scene.Game.installDevConsoleOutputGuard = function () {
     proto.__graveFallSafeRenderer = true;
     proto.__graveFallOriginalRenderCharacter = proto.m_renderCharacter;
 
-    // Rune's console input renderer already skips missing glyphs, but the
-    // output renderer assumes every character exists in the bitmap font.
-    // Dev commands often print dynamic text, so guard output locally instead
-    // of editing lib/rune.js. Unsupported characters render as spaces.
+    /* Guard dynamic console output against unsupported bitmap font glyphs. */
     proto.m_renderCharacter = function (characterCode, x, y) {
         var rect;
         var format;
@@ -101,7 +99,9 @@ GraveFallGame.scene.Game.DEV_COMMAND_NAMES = [
 ];
 
 /**
- * ...
+ * Returns the Rune debug console command manager.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getDevConsoleManager = function () {
     if (!this.application || !this.application.screen || !this.application.screen.console) {
@@ -112,7 +112,13 @@ GraveFallGame.scene.Game.prototype.getDevConsoleManager = function () {
 };
 
 /**
- * ...
+ * Registers a development console command.
+ *
+ * @param {Object} commands Console command registry.
+ * @param {string} name Name.
+ * @param {Function} callback Callback executed by Rune after bootstrap.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.registerDevConsoleCommand = function (commands, name, callback) {
     var scene = this;
@@ -131,7 +137,11 @@ GraveFallGame.scene.Game.prototype.registerDevConsoleCommand = function (command
 };
 
 /**
- * ...
+ * Sanitizes development console output for the bitmap font.
+ *
+ * @param {*} value Value to parse, clamp, or sanitize.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.sanitizeDevConsoleResult = function (value) {
     var text;
@@ -165,7 +175,9 @@ GraveFallGame.scene.Game.prototype.sanitizeDevConsoleResult = function (value) {
 };
 
 /**
- * ...
+ * Registers in-game development console commands.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.registerDevConsoleCommands = function () {
     GraveFallGame.scene.Game.installDevConsoleOutputGuard();
@@ -216,7 +228,11 @@ GraveFallGame.scene.Game.prototype.registerDevConsoleCommands = function () {
 };
 
 /**
- * ...
+ * Unregisters development console commands.
+ *
+ * @param {Object} commands Console command registry.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.unregisterDevConsoleCommands = function (commands) {
     var commandList = GraveFallGame.scene.Game.DEV_COMMAND_NAMES;
@@ -228,9 +244,7 @@ GraveFallGame.scene.Game.prototype.unregisterDevConsoleCommands = function (comm
     if (!commands || typeof commands.remove !== "function") {
         return;
     }
-
-    // Rune's remove() deletes the first match only, so repeat defensively in
-    // case a scene reload registered a duplicate during testing.
+        /* Rune remove() deletes the first match only, so repeat defensively. */
     for (i = 0; i < commandList.length; i++) {
         for (safety = 0; safety < 8; safety++) {
             commands.remove(commandList[i]);
@@ -239,7 +253,11 @@ GraveFallGame.scene.Game.prototype.unregisterDevConsoleCommands = function (comm
 };
 
 /**
- * ...
+ * Returns help text for development console commands.
+ *
+ * @param {string} section Section.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
     section = String(section || "all").toLowerCase();
@@ -329,7 +347,9 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
 };
 
 /**
- * ...
+ * Returns enemy identifiers available to development commands.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getDevEnemyIds = function () {
     var enemies = GraveFallGame.scene.Game.ENEMIES || {};
@@ -347,7 +367,11 @@ GraveFallGame.scene.Game.prototype.getDevEnemyIds = function () {
 };
 
 /**
- * ...
+ * Resolves a development enemy identifier.
+ *
+ * @param {string} enemyId Enemy id.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.resolveDevEnemyId = function (enemyId) {
     var ids = this.getDevEnemyIds();
@@ -376,7 +400,9 @@ GraveFallGame.scene.Game.prototype.resolveDevEnemyId = function (enemyId) {
 };
 
 /**
- * ...
+ * Returns the development enemy list output.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandEnemyList = function () {
     var ids = this.getDevEnemyIds();
@@ -393,7 +419,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyList = function () {
 };
 
 /**
- * ...
+ * Prepares the game scene for immediate battle testing.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.devPrepareImmediateBattle = function () {
     this.setBattleBackgroundForEnemy(this.currentEnemyType, false);
@@ -439,7 +467,11 @@ GraveFallGame.scene.Game.prototype.devPrepareImmediateBattle = function () {
 };
 
 /**
- * ...
+ * Loads an enemy encounter by development identifier.
+ *
+ * @param {string} enemyId Enemy id.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.devLoadEnemyById = function (enemyId) {
     var resolvedId = this.resolveDevEnemyId(enemyId);
@@ -459,7 +491,11 @@ GraveFallGame.scene.Game.prototype.devLoadEnemyById = function (enemyId) {
 };
 
 /**
- * ...
+ * Runs the development command that loads an enemy.
+ *
+ * @param {string} enemyId Enemy id.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandEnemyLoad = function (enemyId) {
     var resolvedId = this.devLoadEnemyById(enemyId);
@@ -472,7 +508,11 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyLoad = function (enemyId) {
 };
 
 /**
- * ...
+ * Runs the development command that defeats an enemy.
+ *
+ * @param {string} enemyId Enemy id.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandEnemyKill = function (enemyId) {
     var resolvedId = null;
@@ -497,7 +537,11 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyKill = function (enemyId) {
 };
 
 /**
- * ...
+ * Runs the development command that damages the active enemy.
+ *
+ * @param {number} amount Amount to apply.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.devCommandEnemyDamage = function (amount) {
     var damage = parseInt(amount, 10);
@@ -521,7 +565,11 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyDamage = function (amount) {
 };
 
 /**
- * ...
+ * Runs the development command that sets enemy health.
+ *
+ * @param {number} amount Amount to apply.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandEnemyHp = function (amount) {
     var hp = parseInt(amount, 10);
@@ -539,7 +587,11 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyHp = function (amount) {
 };
 
 /**
- * ...
+ * Runs the development command that leaves an enemy at one health.
+ *
+ * @param {string} enemyId Enemy id.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandEnemyOneHp = function (enemyId) {
     var resolvedId = null;
@@ -563,7 +615,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyOneHp = function (enemyId) {
 };
 
 /**
- * ...
+ * Returns projectile pattern identifiers available to development commands.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getDevPatternIds = function () {
     var enemies = GraveFallGame.scene.Game.ENEMIES || {};
@@ -590,7 +644,11 @@ GraveFallGame.scene.Game.prototype.getDevPatternIds = function () {
 };
 
 /**
- * ...
+ * Resolves a development projectile pattern identifier.
+ *
+ * @param {string} patternId Projectile pattern identifier.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.resolveDevPatternId = function (patternId) {
     var patterns = this.getDevPatternIds();
@@ -607,14 +665,18 @@ GraveFallGame.scene.Game.prototype.resolveDevPatternId = function (patternId) {
 };
 
 /**
- * ...
+ * Returns the development pattern list output.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPatternList = function () {
     return "Patterns:\n" + this.getDevPatternIds().join("\n");
 };
 
 /**
- * ...
+ * Ensures the action phase is active for projectile pattern tests.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.devEnsureActionPhaseForPatternTest = function () {
     this.devPrepareImmediateBattle();
@@ -640,7 +702,12 @@ GraveFallGame.scene.Game.prototype.devEnsureActionPhaseForPatternTest = function
 };
 
 /**
- * ...
+ * Runs the development command that spawns a projectile pattern.
+ *
+ * @param {string} patternId Projectile pattern identifier.
+ * @param {number} count Count.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPatternSpawn = function (patternId, count) {
     var resolvedId = this.resolveDevPatternId(patternId);
@@ -667,7 +734,11 @@ GraveFallGame.scene.Game.prototype.devCommandPatternSpawn = function (patternId,
 };
 
 /**
- * ...
+ * Resolves development command player targets.
+ *
+ * @param {Object} target Target.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.resolveDevPlayers = function (target) {
     var players = [];
@@ -706,7 +777,11 @@ GraveFallGame.scene.Game.prototype.resolveDevPlayers = function (target) {
 };
 
 /**
- * ...
+ * Refreshes player UI after development health changes.
+ *
+ * @param {Array} players Player collection.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.devRefreshPlayersAfterHealthChange = function (players) {
     var i;
@@ -724,7 +799,11 @@ GraveFallGame.scene.Game.prototype.devRefreshPlayersAfterHealthChange = function
 };
 
 /**
- * ...
+ * Runs the development command that heals players.
+ *
+ * @param {Object} target Target.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPlayerHeal = function (target) {
     var players = this.resolveDevPlayers(target || "all");
@@ -748,7 +827,11 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerHeal = function (target) {
 };
 
 /**
- * ...
+ * Runs the development command that downs players.
+ *
+ * @param {Object} target Target.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPlayerDown = function (target) {
     var players = this.resolveDevPlayers(target || "all");
@@ -770,7 +853,11 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerDown = function (target) {
 };
 
 /**
- * ...
+ * Runs the development command that kills players.
+ *
+ * @param {Object} target Target.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPlayerKill = function (target) {
     var result;
@@ -784,7 +871,12 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerKill = function (target) {
 };
 
 /**
- * ...
+ * Runs the development command that sets player health.
+ *
+ * @param {Object} target Target.
+ * @param {number} amount Amount to apply.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPlayerHp = function (target, amount) {
     var players = this.resolveDevPlayers(target || "all");
@@ -808,7 +900,11 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerHp = function (target, amount
 };
 
 /**
- * ...
+ * Resolves a development item identifier.
+ *
+ * @param {string} itemType Item type.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.resolveDevItemType = function (itemType) {
     var search = String(itemType || "").toLowerCase();
@@ -823,7 +919,13 @@ GraveFallGame.scene.Game.prototype.resolveDevItemType = function (itemType) {
 };
 
 /**
- * ...
+ * Gives items to players for development testing.
+ *
+ * @param {Array} players Player collection.
+ * @param {string} itemType Item type.
+ * @param {number} count Count.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.devGiveItems = function (players, itemType, count) {
     var itemTypes = GraveFallGame.scene.Game.ITEM_BUFF_TYPES || ["maxHp", "attack", "defense", "speed"];
@@ -849,7 +951,11 @@ GraveFallGame.scene.Game.prototype.devGiveItems = function (players, itemType, c
 };
 
 /**
- * ...
+ * Runs the development command that gives every item type.
+ *
+ * @param {number} count Count.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandItemAll = function (count) {
     var players = this.resolveDevPlayers("all");
@@ -864,7 +970,13 @@ GraveFallGame.scene.Game.prototype.devCommandItemAll = function (count) {
 };
 
 /**
- * ...
+ * Runs the development command that gives a specific item type.
+ *
+ * @param {Object} target Target.
+ * @param {string} itemType Item type.
+ * @param {number} count Count.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandItemGive = function (target, itemType, count) {
     var players = this.resolveDevPlayers(target || "all");
@@ -888,7 +1000,9 @@ GraveFallGame.scene.Game.prototype.devCommandItemGive = function (target, itemTy
 };
 
 /**
- * ...
+ * Runs the development command that returns to command phase.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPhaseCommand = function () {
     this.devPrepareImmediateBattle();
@@ -896,7 +1010,9 @@ GraveFallGame.scene.Game.prototype.devCommandPhaseCommand = function () {
 };
 
 /**
- * ...
+ * Runs the development command that starts action phase.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandPhaseAction = function () {
     this.devEnsureActionPhaseForPatternTest();
@@ -906,7 +1022,13 @@ GraveFallGame.scene.Game.prototype.devCommandPhaseAction = function () {
 
 
 /**
- * ...
+ * Parses and clamps a positive number for development commands.
+ *
+ * @param {*} value Value to parse, clamp, or sanitize.
+ * @param {number} min Minimum accepted value.
+ * @param {number} max Maximum accepted value.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devParsePositiveNumber = function (value, min, max) {
     var number = parseFloat(value);
@@ -927,7 +1049,9 @@ GraveFallGame.scene.Game.prototype.devParsePositiveNumber = function (value, min
 };
 
 /**
- * ...
+ * Returns development timer status output.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandTimerStatus = function () {
     var turnSeconds = this.getTurnTimerDurationMs() / 1000;
@@ -945,7 +1069,11 @@ GraveFallGame.scene.Game.prototype.devCommandTimerStatus = function () {
 };
 
 /**
- * ...
+ * Runs the development command that sets the turn timer.
+ *
+ * @param {number} seconds Duration measured in seconds.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandTimerTurn = function (seconds) {
     var value = this.devParsePositiveNumber(seconds, 1, 300);
@@ -966,7 +1094,11 @@ GraveFallGame.scene.Game.prototype.devCommandTimerTurn = function (seconds) {
 };
 
 /**
- * ...
+ * Runs the development command that sets remaining turn time.
+ *
+ * @param {number} seconds Duration measured in seconds.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandTimerTurnLeft = function (seconds) {
     var value = this.devParsePositiveNumber(seconds, 0, 300);
@@ -988,7 +1120,11 @@ GraveFallGame.scene.Game.prototype.devCommandTimerTurnLeft = function (seconds) 
 };
 
 /**
- * ...
+ * Runs the development command that sets action phase duration.
+ *
+ * @param {number} frames Duration or count measured in frames.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandTimerAction = function (frames) {
     var value = this.devParsePositiveNumber(frames, 1, 3600);
@@ -1007,7 +1143,11 @@ GraveFallGame.scene.Game.prototype.devCommandTimerAction = function (frames) {
 };
 
 /**
- * ...
+ * Runs the development command that sets minigame duration.
+ *
+ * @param {number} seconds Duration measured in seconds.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandTimerMinigame = function (seconds) {
     var value = this.devParsePositiveNumber(seconds, 1, 300);
@@ -1027,7 +1167,9 @@ GraveFallGame.scene.Game.prototype.devCommandTimerMinigame = function (seconds) 
 };
 
 /**
- * ...
+ * Runs the development command that resets timers.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandTimerReset = function () {
     GraveFallGame.scene.Game.DEV_TURN_TIMER_MS = null;
@@ -1042,7 +1184,11 @@ GraveFallGame.scene.Game.prototype.devCommandTimerReset = function () {
 };
 
 /**
- * ...
+ * Removes and clears a tracked display list used by transient UI.
+ *
+ * @param {Object} listName List name.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devRemoveTrackedDisplayList = function (listName) {
     var list = this[listName];
@@ -1067,7 +1213,9 @@ GraveFallGame.scene.Game.prototype.devRemoveTrackedDisplayList = function (listN
 };
 
 /**
- * ...
+ * Cleans transient UI created during development testing.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCleanTransientUi = function () {
     var minigamesRemoved = 0;
@@ -1117,7 +1265,9 @@ GraveFallGame.scene.Game.prototype.devCleanTransientUi = function () {
 };
 
 /**
- * ...
+ * Repairs visible UI for the current phase after a dev command.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.devRepairCurrentPhaseUi = function () {
     var i;
@@ -1174,7 +1324,9 @@ GraveFallGame.scene.Game.prototype.devRepairCurrentPhaseUi = function () {
 };
 
 /**
- * ...
+ * Runs the development command that cleans transient UI.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandUiClean = function () {
     var removed = this.devCleanTransientUi();
@@ -1194,7 +1346,9 @@ GraveFallGame.scene.Game.prototype.devCommandUiClean = function () {
 };
 
 /**
- * ...
+ * Runs the development command that rebuilds phase UI.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.devCommandUiReset = function () {
     var removed = this.devCleanTransientUi();
@@ -1214,7 +1368,11 @@ GraveFallGame.scene.Game.prototype.devCommandUiReset = function () {
 };
 
 /**
- * ...
+ * Runs the development command that adds score.
+ *
+ * @param {number} amount Amount to apply.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.devCommandScoreAdd = function (amount) {
     var scoreAmount = parseInt(amount, 10);
@@ -1228,7 +1386,11 @@ GraveFallGame.scene.Game.prototype.devCommandScoreAdd = function (amount) {
 };
 
 /**
- * ...
+ * Runs the development command that sets score.
+ *
+ * @param {number} amount Amount to apply.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.devCommandScoreSet = function (amount) {
     var scoreAmount = parseInt(amount, 10);
@@ -1244,10 +1406,7 @@ GraveFallGame.scene.Game.prototype.devCommandScoreSet = function (amount) {
 
 
 //------------------------------------------------------------------------------
-// Character Select dev console commands
-//------------------------------------------------------------------------------
-// These are registered only while the CharacterSelect scene is active. They keep
-// menu testing shortcuts separate from in-game combat commands.
+// Character select development console commands
 //------------------------------------------------------------------------------
 
 if (GraveFallGame.scene.CharacterSelect) {
@@ -1264,7 +1423,9 @@ if (GraveFallGame.scene.CharacterSelect) {
     GraveFallGame.scene.CharacterSelect.prototype.registerDevConsoleCommand = GraveFallGame.scene.Game.prototype.registerDevConsoleCommand;
 
     /**
-     * ...
+     * Registers development commands for the character select scene.
+     *
+     * @return {undefined}
      */
     GraveFallGame.scene.CharacterSelect.prototype.registerCharacterSelectDevConsoleCommands = function () {
         GraveFallGame.scene.Game.installDevConsoleOutputGuard();
@@ -1291,7 +1452,11 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Unregisters character select development commands.
+     *
+     * @param {Object} commands Console command registry.
+     *
+     * @return {undefined}
      */
     GraveFallGame.scene.CharacterSelect.prototype.unregisterCharacterSelectDevConsoleCommands = function (commands) {
         var commandList = GraveFallGame.scene.CharacterSelect.DEV_COMMAND_NAMES;
@@ -1312,7 +1477,9 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Returns help text for character select development commands.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandSelectHelp = function () {
         return [
@@ -1329,7 +1496,9 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Returns the list of quick-start character templates.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandStartList = function () {
         var templates = GraveFallGame.scene.Game.CLASS_TEMPLATES || [];
@@ -1344,7 +1513,11 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Resolves a quick-start character template identifier.
+     *
+     * @param {string} classId Class id.
+     *
+     * @return {Object} Resolved value.
      */
     GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartTemplate = function (classId) {
         var templates = GraveFallGame.scene.Game.CLASS_TEMPLATES || [];
@@ -1371,7 +1544,11 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Resolves a quick-start party size.
+     *
+     * @param {*} value Value to parse, clamp, or sanitize.
+     *
+     * @return {number} Resolved numeric value.
      */
     GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartCount = function (value) {
         var count = parseInt(value, 10);
@@ -1384,7 +1561,11 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Creates a development party from selected character templates.
+     *
+     * @param {Array} templates Character template collection.
+     *
+     * @return {Array} Resolved collection.
      */
     GraveFallGame.scene.CharacterSelect.prototype.createDevPartyFromTemplates = function (templates) {
         var party = [];
@@ -1429,14 +1610,22 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Creates a one-player development party.
+     *
+     * @param {Object} template Template.
+     *
+     * @return {Object} Created display object or data object.
      */
     GraveFallGame.scene.CharacterSelect.prototype.createDevSinglePlayerParty = function (template) {
         return this.createDevPartyFromTemplates([template]);
     };
 
     /**
-     * ...
+     * Resolves quick-start command arguments into character templates.
+     *
+     * @param {Array} args Command argument list.
+     *
+     * @return {Array} Resolved collection.
      */
     GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartTemplates = function (args) {
         var templates = [];
@@ -1475,7 +1664,12 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Starts a development run from console arguments.
+     *
+     * @param {Array} args Command argument list.
+     * @param {boolean} bossMode Boss mode.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.CharacterSelect.prototype.devStartRunFromArgs = function (args, bossMode) {
         var templates;
@@ -1510,14 +1704,18 @@ if (GraveFallGame.scene.CharacterSelect) {
     };
 
     /**
-     * ...
+     * Runs the character select command that quick-starts a run.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandQuickStart = function () {
         return this.devStartRunFromArgs(Array.prototype.slice.call(arguments), false);
     };
 
     /**
-     * ...
+     * Runs the character select command that quick-starts a boss run.
+     *
+     * @return {*} Returned value.
      */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandBossQuickStart = function () {
         return this.devStartRunFromArgs(Array.prototype.slice.call(arguments), true);

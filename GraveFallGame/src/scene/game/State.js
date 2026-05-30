@@ -73,7 +73,11 @@ GraveFallGame.scene.Game.DEV_START_RANDOM_BOSS = false;
 
 
 /**
- * ...
+ * Normalizes a party size into the supported leaderboard range.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize = function (partySize) {
     var parsed = parseInt(partySize, 10);
@@ -91,21 +95,34 @@ GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize = function (par
 };
 
 /**
- * ...
+ * Returns the localStorage key used for a party-size leaderboard.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.getLeaderboardStorageKey = function (partySize) {
     return "gravefall_highscores_" + GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize(partySize);
 };
 
 /**
- * ...
+ * Returns the localStorage key used for a party-size leaderboard.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getLeaderboardStorageKey = function (partySize) {
     return GraveFallGame.scene.Game.getLeaderboardStorageKey(partySize);
 };
 
 /**
- * ...
+ * Normalizes stored leaderboard data into a safe leaderboard entry.
+ *
+ * @param {Object} entry Leaderboard or recent-run entry.
+ * @param {number} partySize Number of party members.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry = function (entry, partySize) {
     var score;
@@ -153,7 +170,11 @@ GraveFallGame.scene.Game.prototype.normalizeLeaderboardEntry = function (entry, 
 };
 
 /**
- * ...
+ * Returns the saved leaderboard entries for the requested party size.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.getHighscores = function (partySize) {
     var normalizedPartySize = GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize(partySize);
@@ -205,7 +226,13 @@ GraveFallGame.scene.Game.getHighscores = function (partySize) {
 };
 
 /**
- * ...
+ * Saves a score to the matching party-size leaderboard.
+ *
+ * @param {string} name Name.
+ * @param {Object} score Score.
+ * @param {number} partySize Number of party members.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.saveHighscore = function (name, score, partySize) {
     var normalizedPartySize = GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize(partySize);
@@ -251,7 +278,11 @@ GraveFallGame.scene.Game.saveHighscore = function (name, score, partySize) {
 };
 
 /**
- * ...
+ * Clears saved leaderboard entries for the requested party size.
+ *
+ * @param {number} partySize Number of party members.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.clearHighscores = function (partySize) {
     var normalizedPartySize = GraveFallGame.scene.Game.prototype.normalizeLeaderboardPartySize(partySize);
@@ -274,14 +305,20 @@ GraveFallGame.scene.Game.clearHighscores = function (partySize) {
 };
 
 /**
- * ...
+ * Returns the localStorage key used for recent run history.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.getRecentRunsStorageKey = function () {
     return "gravefall_recent_runs";
 };
 
 /**
- * ...
+ * Formats a date using the Swedish display format used by the leaderboard.
+ *
+ * @param {Date} date Date to format.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.getSwedishDateTimeString = function (date) {
     var resolvedDate = date instanceof Date ? date : new Date();
@@ -310,21 +347,29 @@ GraveFallGame.scene.Game.getSwedishDateTimeString = function (date) {
 };
 
 /**
- * ...
+ * Returns the timestamp used when saving the current run.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.getCurrentRunSaveTimestamp = function () {
     return GraveFallGame.scene.Game.getSwedishDateTimeString(new Date());
 };
 
 /**
- * ...
+ * Returns the localStorage key used for recent run history.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getRecentRunsStorageKey = function () {
     return GraveFallGame.scene.Game.getRecentRunsStorageKey();
 };
 
 /**
- * ...
+ * Normalizes stored recent-run data into a safe recent-run entry.
+ *
+ * @param {Object} entry Leaderboard or recent-run entry.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.normalizeRecentRunEntry = function (entry) {
     var normalized;
@@ -345,7 +390,9 @@ GraveFallGame.scene.Game.prototype.normalizeRecentRunEntry = function (entry) {
 };
 
 /**
- * ...
+ * Returns saved recent-run entries from localStorage.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.getRecentRuns = function () {
     var key = GraveFallGame.scene.Game.getRecentRunsStorageKey();
@@ -396,7 +443,11 @@ GraveFallGame.scene.Game.getRecentRuns = function () {
 };
 
 /**
- * ...
+ * Saves a recent run entry to localStorage.
+ *
+ * @param {Object} entry Leaderboard or recent-run entry.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.saveRecentRun = function (entry) {
     var key = GraveFallGame.scene.Game.getRecentRunsStorageKey();
@@ -436,7 +487,11 @@ GraveFallGame.scene.Game.saveRecentRun = function (entry) {
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Checks whether the Rune development console is currently handling input.
+ *
+ * @param {Object} application Rune application instance.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.isDevConsoleInputActive = function (application) {
     var app = application || (typeof rune !== "undefined" && rune.system && rune.system.Application ? rune.system.Application.instance : null);
@@ -459,7 +514,9 @@ GraveFallGame.scene.Game.isDevConsoleInputActive = function (application) {
 };
 
 /**
- * ...
+ * Checks whether the Rune development console is currently handling input.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.isDevConsoleInputActive = function () {
     return GraveFallGame.scene.Game.isDevConsoleInputActive(this.application);
@@ -476,7 +533,9 @@ GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS = null;
 GraveFallGame.scene.Game.DEV_ACTION_PHASE_FRAMES = null;
 
 /**
- * ...
+ * Returns the command turn timer duration in milliseconds.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getTurnTimerDurationMs = function () {
     var override = GraveFallGame.scene.Game.DEV_TURN_TIMER_MS;
@@ -489,7 +548,11 @@ GraveFallGame.scene.Game.prototype.getTurnTimerDurationMs = function () {
 };
 
 /**
- * ...
+ * Formats the command turn timer label.
+ *
+ * @param {Object} ms Ms.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getTurnTimerLabel = function (ms) {
     var duration = typeof ms === "number" ? ms : this.getTurnTimerDurationMs();
@@ -497,7 +560,12 @@ GraveFallGame.scene.Game.prototype.getTurnTimerLabel = function (ms) {
 };
 
 /**
- * ...
+ * Resets and optionally shows the command phase turn timer.
+ *
+ * @param {boolean} visible Whether the target should be visible.
+ * @param {number} alpha Alpha value to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.resetCommandTurnTimer = function (visible, alpha) {
     this.turnTimerMs = this.getTurnTimerDurationMs();
@@ -512,7 +580,9 @@ GraveFallGame.scene.Game.prototype.resetCommandTurnTimer = function (visible, al
 };
 
 /**
- * ...
+ * Returns the minigame phase duration in milliseconds.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getMinigameDurationMs = function () {
     var override = GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS;
@@ -525,7 +595,11 @@ GraveFallGame.scene.Game.prototype.getMinigameDurationMs = function () {
 };
 
 /**
- * ...
+ * Returns the action phase duration in frames for an enemy encounter.
+ *
+ * @param {Object} enemyConfig Enemy configuration object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getActionPhaseDurationFrames = function (enemyConfig) {
     var override = GraveFallGame.scene.Game.DEV_ACTION_PHASE_FRAMES;
@@ -607,7 +681,6 @@ GraveFallGame.scene.Game.ENEMY_DAMAGE_STATE_KEYS = [
 ];
 
 
-
 GraveFallGame.scene.Game.CLOTHING_SOURCE = {
     mid: "#b654b7",
     dark: "#942f97",
@@ -632,8 +705,12 @@ GraveFallGame.scene.Game.FRAME_SOURCE = {
     dark: "#942f97"
 };
 
-// New flat background textures are authored with this 8-color source palette.
-// Keep these keys stable so future backgrounds can use the same palette map.
+/**
+ * Source palette used by flat background textures. Keep these colors stable so
+ * future backgrounds can reuse the same palette map.
+ *
+ * @type {Array}
+ */
 GraveFallGame.scene.Game.BACKGROUND_SOURCE = {
     glow: "#ff00ff",
     bright: "#d000c2",
@@ -760,8 +837,7 @@ GraveFallGame.scene.Game.RUN_PALETTES = [
 ];
 
 (function () {
-    // Grimy floor palettes keep the swapped dungeon backdrop dark enough for
-    // white UI text while still giving each floor a different brick/mortar tone.
+    /* Floor palette seeds keep dungeon backdrops dark enough for white UI text. */
     var themeSeeds = [
         { name: "Soot Brick", hue: 8, saturation: 24 },
         { name: "Blood Mortar", hue: 356, saturation: 22 },
@@ -893,7 +969,11 @@ GraveFallGame.scene.Game.RUN_PALETTES = [
 GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY = null;
 
 /**
- * ...
+ * Resolves a run palette key to a valid palette identifier.
+ *
+ * @param {string} key Key.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.resolveRunPaletteKey = function (key) {
     var palettes = GraveFallGame.scene.Game.RUN_PALETTES;
@@ -916,7 +996,9 @@ GraveFallGame.scene.Game.resolveRunPaletteKey = function (key) {
 };
 
 /**
- * ...
+ * Chooses a palette identifier for a new run.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.chooseRunPaletteKey = function () {
     var palettes = GraveFallGame.scene.Game.RUN_PALETTES;
@@ -926,7 +1008,9 @@ GraveFallGame.scene.Game.chooseRunPaletteKey = function () {
 };
 
 /**
- * ...
+ * Starts a new run palette and stores it as the active palette.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.startNewRunPalette = function () {
     var key = GraveFallGame.scene.Game.chooseRunPaletteKey();
@@ -937,7 +1021,11 @@ GraveFallGame.scene.Game.startNewRunPalette = function () {
 };
 
 /**
- * ...
+ * Returns the run palette data for a palette key.
+ *
+ * @param {string} key Key.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.getRunPalette = function (key) {
     var palettes = GraveFallGame.scene.Game.RUN_PALETTES;
@@ -1082,7 +1170,12 @@ GraveFallGame.scene.Game.PARTY_MEMBERS = [];
 GraveFallGame.scene.Game.PARTY_NAME = "THE FALLEN";
 
 /**
- * ...
+ * Returns whether a party member sprite should be flipped horizontally.
+ *
+ * @param {number} renderIndex Party member render index.
+ * @param {number} partySize Number of party members.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.getPartyMemberFlippedX = function (renderIndex, partySize) {
     if (partySize === 2) {
@@ -1101,7 +1194,14 @@ GraveFallGame.scene.Game.getPartyMemberFlippedX = function (renderIndex, partySi
 };
 
 /**
- * ...
+ * Returns the x position for a party command menu.
+ *
+ * @param {number} renderIndex Party member render index.
+ * @param {number} partySize Number of party members.
+ * @param {number} menuWidth Menu width.
+ * @param {number} screenWidth Screen width in pixels.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.getPartyMenuX = function (renderIndex, partySize, menuWidth, screenWidth) {
     menuWidth = menuWidth || 320;
@@ -1157,7 +1257,7 @@ GraveFallGame.scene.Game.CRYSTAL_HUSK_DAMAGE_STATE_RESOURCES = {
 };
 
 //------------------------------------------------------------------------------
-// DYNAMIC ENEMY SCALING
+// Dynamic enemy scaling
 //------------------------------------------------------------------------------
 
 GraveFallGame.scene.Game.ENEMY_PLAYER_HEALTH_MULTIPLIERS = {
@@ -1178,7 +1278,11 @@ GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MIN_PATTERN_INTERVAL_SCALE = 0.65;
 GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MIN_ACTION_DURATION_SCALE = 0.75;
 
 /**
- * ...
+ * Returns scaling data for the given enemy type.
+ *
+ * @param {string} enemyType Enemy type identifier.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getEnemyDifficultyProfile = function (enemyType) {
     var counts = this.enemyDifficultyCounts || {};
@@ -1214,7 +1318,11 @@ GraveFallGame.scene.Game.prototype.getEnemyDifficultyProfile = function (enemyTy
 };
 
 /**
- * ...
+ * Stores the most recent encounter type for random encounter avoidance.
+ *
+ * @param {string} enemyType Enemy type identifier.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.rememberLastEncounterType = function (enemyType) {
     var key = enemyType || this.currentEnemyType || "ghoul";
@@ -1228,7 +1336,11 @@ GraveFallGame.scene.Game.prototype.rememberLastEncounterType = function (enemyTy
 };
 
 /**
- * ...
+ * Registers an enemy encounter and updates difficulty tracking.
+ *
+ * @param {string} enemyType Enemy type identifier.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.registerEnemyEncounter = function (enemyType) {
     var key;
@@ -1248,7 +1360,9 @@ GraveFallGame.scene.Game.prototype.registerEnemyEncounter = function (enemyType)
 };
 
 /**
- * ...
+ * Returns the current damage and health difficulty multiplier.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getDifficultyMultiplier = function () {
     var profile = this.getEnemyDifficultyProfile(this.currentEnemyType);
@@ -1265,7 +1379,9 @@ GraveFallGame.scene.Game.prototype.getDifficultyMultiplier = function () {
 };
 
 /**
- * ...
+ * Returns the current projectile speed difficulty multiplier.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getDifficultySpeedMultiplier = function () {
     var profile = this.getEnemyDifficultyProfile(this.currentEnemyType);
@@ -1282,7 +1398,9 @@ GraveFallGame.scene.Game.prototype.getDifficultySpeedMultiplier = function () {
 };
 
 /**
- * ...
+ * Returns the enemy health multiplier based on party size.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getEnemyPlayerHealthMultiplier = function () {
     var playerCount = this.partyMembers ? this.partyMembers.length : 0;
@@ -1407,7 +1525,9 @@ GraveFallGame.scene.Game.ENEMIES = {
 };
 
 /**
- * ...
+ * Returns the active enemy configuration.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
     var baseConfig = GraveFallGame.scene.Game.ENEMIES[this.currentEnemyType] || GraveFallGame.scene.Game.ENEMIES.ghoul;
@@ -1481,7 +1601,15 @@ GraveFallGame.SOUNDS = {
 };
 
 /**
- * ...
+ * Plays a sound resource through the active Rune application.
+ *
+ * @param {Object} application Rune application instance.
+ * @param {string} soundName Sound resource name to play.
+ * @param {number} volume Playback volume.
+ * @param {number} pan Stereo pan value.
+ * @param {boolean} unique Whether Rune should create a unique sound instance.
+ *
+ * @return {Object} Played sound object, or null if playback is unavailable.
  */
 GraveFallGame.playSound = function (application, soundName, volume, pan, unique) {
     var sound;
@@ -1506,7 +1634,14 @@ GraveFallGame.playSound = function (application, soundName, volume, pan, unique)
 };
 
 /**
- * ...
+ * Plays a looping music resource through the active Rune application.
+ *
+ * @param {Object} application Rune application instance.
+ * @param {string} musicName Music resource name to play.
+ * @param {number} volume Playback volume.
+ * @param {number} pan Stereo pan value.
+ *
+ * @return {Object} Played music object, or null if playback is unavailable.
  */
 GraveFallGame.playMusic = function (application, musicName, volume, pan) {
     var music;
@@ -1532,7 +1667,11 @@ GraveFallGame.playMusic = function (application, musicName, volume, pan) {
 };
 
 /**
- * ...
+ * Stops a music channel when one is active.
+ *
+ * @param {Object} music Music channel to stop or fade.
+ *
+ * @return {undefined}
  */
 GraveFallGame.stopMusic = function (music) {
     try {
@@ -1544,14 +1683,29 @@ GraveFallGame.stopMusic = function (music) {
 };
 
 /**
- * ...
+ * Plays a sound effect when the resource exists.
+ *
+ * @param {string} soundName Sound name.
+ * @param {number} volume Volume.
+ * @param {number} pan Pan.
+ * @param {boolean} unique Unique.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.playSfx = function (soundName, volume, pan, unique) {
     return GraveFallGame.playSound(this.application, soundName, volume, pan, unique);
 };
 
 /**
- * ...
+ * Queues a sound effect to be played after a delay.
+ *
+ * @param {number} delayMs Delay before the action is executed, in milliseconds.
+ * @param {string} soundName Sound name.
+ * @param {number} volume Volume.
+ * @param {number} pan Pan.
+ * @param {boolean} unique Unique.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.queueSfx = function (delayMs, soundName, volume, pan, unique) {
     if (!this.delayedSfxQueue) {
@@ -1568,7 +1722,12 @@ GraveFallGame.scene.Game.prototype.queueSfx = function (delayMs, soundName, volu
 };
 
 /**
- * ...
+ * Returns the current volume for a music channel.
+ *
+ * @param {Object} music Music channel to stop or fade.
+ * @param {number} fallbackVolume Fallback volume.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getMusicVolume = function (music, fallbackVolume) {
     if (music && typeof music.volume === "number") {
@@ -1579,7 +1738,12 @@ GraveFallGame.scene.Game.prototype.getMusicVolume = function (music, fallbackVol
 };
 
 /**
- * ...
+ * Sets the volume for a music channel.
+ *
+ * @param {Object} music Music channel to stop or fade.
+ * @param {number} volume Volume.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setMusicVolume = function (music, volume) {
     try {
@@ -1591,7 +1755,11 @@ GraveFallGame.scene.Game.prototype.setMusicVolume = function (music, volume) {
 };
 
 /**
- * ...
+ * Cancels an active fade on a music channel.
+ *
+ * @param {Object} music Music channel to stop or fade.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.cancelMusicFade = function (music) {
     var i;
@@ -1608,7 +1776,14 @@ GraveFallGame.scene.Game.prototype.cancelMusicFade = function (music) {
 };
 
 /**
- * ...
+ * Starts a volume fade for a music channel.
+ *
+ * @param {Object} music Music channel to stop or fade.
+ * @param {number} targetVolume Target volume.
+ * @param {number} durationMs Duration in milliseconds.
+ * @param {boolean} stopWhenComplete Stop when complete.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.fadeMusic = function (music, targetVolume, durationMs, stopWhenComplete) {
     var fade;
@@ -1659,7 +1834,11 @@ GraveFallGame.scene.Game.prototype.fadeMusic = function (music, targetVolume, du
 };
 
 /**
- * ...
+ * Updates active music fade operations.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updateMusicFades = function (step) {
     var i;
@@ -1705,7 +1884,11 @@ GraveFallGame.scene.Game.prototype.updateMusicFades = function (step) {
 };
 
 /**
- * ...
+ * Starts dungeon music with an optional fade.
+ *
+ * @param {number} fadeMs Fade duration in milliseconds.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.startDungeonMusic = function (fadeMs) {
     var targetVolume = typeof this.dungeonMusicDefaultVolume === "number" ? this.dungeonMusicDefaultVolume : 0.32;
@@ -1731,7 +1914,11 @@ GraveFallGame.scene.Game.prototype.startDungeonMusic = function (fadeMs) {
 };
 
 /**
- * ...
+ * Stops dungeon music with an optional fade.
+ *
+ * @param {number} fadeMs Fade duration in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.stopDungeonMusic = function (fadeMs) {
     if (!this.dungeonMusic) {
@@ -1748,7 +1935,11 @@ GraveFallGame.scene.Game.prototype.stopDungeonMusic = function (fadeMs) {
 };
 
 /**
- * ...
+ * Starts boss music with an optional fade.
+ *
+ * @param {number} fadeMs Fade duration in milliseconds.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.startBossMusic = function (fadeMs) {
     var targetVolume = typeof this.bossMusicDefaultVolume === "number" ? this.bossMusicDefaultVolume : 0.44;
@@ -1774,7 +1965,11 @@ GraveFallGame.scene.Game.prototype.startBossMusic = function (fadeMs) {
 };
 
 /**
- * ...
+ * Stops boss music with an optional fade.
+ *
+ * @param {number} fadeMs Fade duration in milliseconds.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.stopBossMusic = function (fadeMs) {
     if (!this.bossMusic) {
@@ -1791,14 +1986,18 @@ GraveFallGame.scene.Game.prototype.stopBossMusic = function (fadeMs) {
 };
 
 /**
- * ...
+ * Transitions audio from dungeon music to boss music.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.prepareBossEncounterMusic = function () {
     this.stopDungeonMusic(2200);
 };
 
 /**
- * ...
+ * Transitions audio from boss music back to dungeon music.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.returnToDungeonMusicAfterBoss = function () {
     this.stopBossMusic(1800);
@@ -1806,7 +2005,11 @@ GraveFallGame.scene.Game.prototype.returnToDungeonMusicAfterBoss = function () {
 };
 
 /**
- * ...
+ * Plays the sound effect associated with a projectile pattern.
+ *
+ * @param {string} patternId Projectile pattern identifier.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
     switch (patternId) {
@@ -1868,7 +2071,14 @@ GraveFallGame.scene.Game.prototype.playEnemyPatternSfx = function (patternId) {
 };
 
 /**
- * ...
+ * Applies a camera shake effect to the active camera.
+ *
+ * @param {number} duration Duration.
+ * @param {number} amountX Amount x.
+ * @param {number} amountY Amount y.
+ * @param {Object} easing Easing.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.shakeCamera = function (duration, amountX, amountY, easing) {
     var camera;
@@ -1893,7 +2103,11 @@ GraveFallGame.scene.Game.prototype.shakeCamera = function (duration, amountX, am
 };
 
 /**
- * ...
+ * Applies camera shake scaled by player damage.
+ *
+ * @param {number} damageAmount Damage amount used to scale the effect.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.shakeOnPlayerDamage = function (damageAmount) {
     var strength = Math.min(14, Math.max(6, Math.round((damageAmount || 0) * 0.65)));
@@ -1901,18 +2115,27 @@ GraveFallGame.scene.Game.prototype.shakeOnPlayerDamage = function (damageAmount)
 };
 
 //------------------------------------------------------------------------------
-// Helper
+// Display helpers
 //------------------------------------------------------------------------------
 
 /**
- * ...
+ * Checks whether a resource exists in Rune resource storage.
+ *
+ * @param {string} resourceName Resource name to use.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.resourceExists = function (resourceName) {
     return !!(resourceName && this.application && this.application.resources && this.application.resources.get(resourceName));
 };
 
 /**
- * ...
+ * Returns the first available resource from a candidate list.
+ *
+ * @param {Array} candidates Candidate resource name list.
+ * @param {string} fallbackResource Fallback resource name to use when no candidate exists.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.resolveExistingResource = function (candidates, fallbackResource) {
     var i;
@@ -1927,7 +2150,16 @@ GraveFallGame.scene.Game.prototype.resolveExistingResource = function (candidate
 };
 
 /**
- * ...
+ * Creates a layered display group for health-based sprite states.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {Array} stateConfigs Damage state configuration list.
+ * @param {Object} options Options object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.createDamageStateGroup = function (x, y, width, height, stateConfigs, options) {
     var group = new rune.display.DisplayObjectContainer(x, y, width, height);
@@ -1954,7 +2186,12 @@ GraveFallGame.scene.Game.prototype.createDamageStateGroup = function (x, y, widt
 };
 
 /**
- * ...
+ * Flips every sprite in a damage state group.
+ *
+ * @param {Object} group Group.
+ * @param {boolean} flippedX Flipped x.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setDamageStateGroupFlippedX = function (group, flippedX) {
     var i;
@@ -1976,7 +2213,12 @@ GraveFallGame.scene.Game.prototype.setDamageStateGroupFlippedX = function (group
 };
 
 /**
- * ...
+ * Shows the requested visual state in a damage state group.
+ *
+ * @param {Object} group Group.
+ * @param {Object} state State.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setDamageStateGroupState = function (group, state) {
     var i;
@@ -2002,7 +2244,13 @@ GraveFallGame.scene.Game.prototype.setDamageStateGroupState = function (group, s
 };
 
 /**
- * ...
+ * Applies normal and downed palette swaps to a damage state group.
+ *
+ * @param {Object} group Group.
+ * @param {Array} normalPaletteSwaps Palette swaps for the normal state.
+ * @param {Array} downedPaletteSwaps Palette swaps for the downed state.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyPaletteSwapsToDamageStateGroup = function (group, normalPaletteSwaps, downedPaletteSwaps) {
     var i;
@@ -2027,7 +2275,11 @@ GraveFallGame.scene.Game.prototype.applyPaletteSwapsToDamageStateGroup = functio
 };
 
 /**
- * ...
+ * Returns the visual state list for a player stand sprite.
+ *
+ * @param {string} baseResource Base resource.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseResource) {
     var prefix = baseResource.replace("_Idle_Stance", "");
@@ -2049,7 +2301,11 @@ GraveFallGame.scene.Game.prototype.getPlayerStandDamageStates = function (baseRe
 };
 
 /**
- * ...
+ * Returns the visual state list for a portrait sprite.
+ *
+ * @param {string} portraitResource Portrait resource.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getPortraitDamageStates = function (portraitResource) {
     return [
@@ -2063,7 +2319,11 @@ GraveFallGame.scene.Game.prototype.getPortraitDamageStates = function (portraitR
 };
 
 /**
- * ...
+ * Returns the visual state list for an enemy sprite.
+ *
+ * @param {Object} enemyConfig Enemy configuration object.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getEnemyDamageStates = function (enemyConfig) {
     var resources = enemyConfig.damageStateResources || {};
@@ -2079,7 +2339,14 @@ GraveFallGame.scene.Game.prototype.getEnemyDamageStates = function (enemyConfig)
 };
 
 /**
- * ...
+ * Returns the visual damage state for current health.
+ *
+ * @param {number} currentHealth Current health.
+ * @param {number} maxHealth Max health.
+ * @param {Object} isPlayer Is player.
+ * @param {boolean} allPlayersDead All players dead.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.getHealthDamageState = function (currentHealth, maxHealth, isPlayer, allPlayersDead) {
     var healthRatio = maxHealth > 0 ? currentHealth / maxHealth : 0;
@@ -2108,7 +2375,9 @@ GraveFallGame.scene.Game.prototype.getHealthDamageState = function (currentHealt
 };
 
 /**
- * ...
+ * Checks whether every player has been downed.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.areAllPlayersDown = function () {
     var i;
@@ -2123,14 +2392,22 @@ GraveFallGame.scene.Game.prototype.areAllPlayersDown = function () {
 };
 
 /**
- * ...
+ * Returns the player color theme for an index.
+ *
+ * @param {number} index Index to resolve.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getPlayerTheme = function (index) {
     return GraveFallGame.scene.Game.PLAYER_THEMES[index % GraveFallGame.scene.Game.PLAYER_THEMES.length];
 };
 
 /**
- * ...
+ * Returns enemy types filtered by boss status.
+ *
+ * @param {boolean} isBoss Is boss.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getEnemyTypesByBossFlag = function (isBoss) {
     var enemies = GraveFallGame.scene.Game.ENEMIES;
@@ -2151,7 +2428,12 @@ GraveFallGame.scene.Game.prototype.getEnemyTypesByBossFlag = function (isBoss) {
 };
 
 /**
- * ...
+ * Returns a random enemy type while optionally avoiding the previous type.
+ *
+ * @param {string} enemyTypes Enemy types.
+ * @param {string} avoidEnemyType Avoid enemy type.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getRandomEnemyType = function (enemyTypes, avoidEnemyType) {
     var candidates = [];
@@ -2177,7 +2459,11 @@ GraveFallGame.scene.Game.prototype.getRandomEnemyType = function (enemyTypes, av
 };
 
 /**
- * ...
+ * Returns the enemy type for an encounter index.
+ *
+ * @param {number} encounterIndex Encounter index.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getEnemyTypeForEncounter = function (encounterIndex) {
     var isBossEncounter = (encounterIndex + 1) % 3 === 0;
@@ -2201,7 +2487,11 @@ GraveFallGame.scene.Game.prototype.getEnemyTypeForEncounter = function (encounte
 };
 
 /**
- * ...
+ * Returns palette swaps for player clothing colors.
+ *
+ * @param {Object} theme Player or UI theme object.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {
     return [
@@ -2221,7 +2511,11 @@ GraveFallGame.scene.Game.prototype.getClothingPaletteSwaps = function (theme) {
 };
 
 /**
- * ...
+ * Returns projectile palette swaps for a target palette.
+ *
+ * @param {Object} targetPalette Palette whose projectile colors should be used.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getProjectilePaletteSwaps = function (targetPalette) {
     var palette = targetPalette || GraveFallGame.scene.Game.PROJECTILE_NEUTRAL;
@@ -2243,7 +2537,11 @@ GraveFallGame.scene.Game.prototype.getProjectilePaletteSwaps = function (targetP
 };
 
 /**
- * ...
+ * Returns UI frame palette swaps for a skin.
+ *
+ * @param {Object} uiSkin UI skin object.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getFramePaletteSwaps = function (uiSkin) {
     uiSkin = uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -2265,7 +2563,11 @@ GraveFallGame.scene.Game.prototype.getFramePaletteSwaps = function (uiSkin) {
 };
 
 /**
- * ...
+ * Returns background palette colors for a UI skin.
+ *
+ * @param {Object} uiSkin UI skin object.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getBackgroundPaletteColors = function (uiSkin) {
     uiSkin = uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -2287,7 +2589,11 @@ GraveFallGame.scene.Game.prototype.getBackgroundPaletteColors = function (uiSkin
 };
 
 /**
- * ...
+ * Returns background palette swaps for a UI skin.
+ *
+ * @param {Object} uiSkin UI skin object.
+ *
+ * @return {Array} Resolved collection.
  */
 GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps = function (uiSkin) {
     var source = GraveFallGame.scene.Game.BACKGROUND_SOURCE;
@@ -2304,7 +2610,7 @@ GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps = function (uiSkin)
         { from: source.darkest, to: colors[7] },
         { from: "#050005", to: colors[7] },
 
-        // Compatibility for older 3-color placeholder backgrounds.
+        /* Compatibility for older three-color placeholder backgrounds. */
         { from: GraveFallGame.scene.Game.FRAME_SOURCE.light, to: colors[1] },
         { from: GraveFallGame.scene.Game.FRAME_SOURCE.mid, to: colors[3] },
         { from: GraveFallGame.scene.Game.FRAME_SOURCE.dark, to: colors[5] }
@@ -2312,7 +2618,12 @@ GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps = function (uiSkin)
 };
 
 /**
- * ...
+ * Applies palette swaps to a graphic or sprite when supported.
+ *
+ * @param {Object} graphic Graphic or sprite to recolor.
+ * @param {Array} paletteSwaps Palette swap list.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyPaletteSwaps = function (graphic, paletteSwaps) {
     var i;
@@ -2333,7 +2644,12 @@ GraveFallGame.scene.Game.prototype.applyPaletteSwaps = function (graphic, palett
 };
 
 /**
- * ...
+ * Recolors a monochrome icon to the requested color.
+ *
+ * @param {Object} graphic Graphic or sprite to recolor.
+ * @param {string} targetColor Palette color to apply.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyMonochromeIconColor = function (graphic, targetColor) {
     this.applyPaletteSwaps(graphic, [
@@ -2365,7 +2681,14 @@ GraveFallGame.scene.Game.prototype.applyMonochromeIconColor = function (graphic,
 };
 
 /**
- * ...
+ * Creates one UI frame sprite piece.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {string} resource Resource name to use.
+ * @param {Array} paletteSwaps Palette swap list.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createFramePiece = function (x, y, resource, paletteSwaps) {
     var piece = new rune.display.Sprite(x, y, 16, 16, resource);
@@ -2374,7 +2697,15 @@ GraveFallGame.scene.Game.prototype.createFramePiece = function (x, y, resource, 
 };
 
 /**
- * ...
+ * Creates a framed panel border from frame sprites.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {Array} paletteSwaps Palette swap list.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.createBoxFrame = function (x, y, width, height, paletteSwaps) {
     var tile = 16;
@@ -2401,7 +2732,14 @@ GraveFallGame.scene.Game.prototype.createBoxFrame = function (x, y, width, heigh
 };
 
 /**
- * ...
+ * Creates a horizontal UI separator.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {Array} paletteSwaps Palette swap list.
+ *
+ * @return {Object} Created display object or data object.
  */
 GraveFallGame.scene.Game.prototype.createSeparator = function (x, y, width, paletteSwaps) {
     var tile = 16;
@@ -2420,7 +2758,13 @@ GraveFallGame.scene.Game.prototype.createSeparator = function (x, y, width, pale
 };
 
 /**
- * ...
+ * Applies player theme colors to portrait, icon, and stand parts.
+ *
+ * @param {Object} theme Player or UI theme object.
+ * @param {Object} parts Display parts to recolor.
+ * @param {Object} options Options object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, options) {
     var i;
@@ -2460,7 +2804,12 @@ GraveFallGame.scene.Game.prototype.applyPlayerTheme = function (theme, parts, op
 };
 
 /**
- * ...
+ * Returns a safe bitmap text width using fallback character metrics.
+ *
+ * @param {Object} field Bitmap field to update.
+ * @param {number} fallbackCharacterWidth Fallback character width.
+ *
+ * @return {string} Resolved string value.
  */
 GraveFallGame.scene.Game.prototype.getBitmapTextWidth = function (field, fallbackCharacterWidth) {
     var text = field && field.text !== undefined && field.text !== null ? String(field.text) : "";
@@ -2472,7 +2821,11 @@ GraveFallGame.scene.Game.prototype.getBitmapTextWidth = function (field, fallbac
 };
 
 /**
- * ...
+ * Positions a player health label inside its menu.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.layoutPlayerHealthText = function (playerMenu) {
     var currentWidth;
@@ -2501,7 +2854,11 @@ GraveFallGame.scene.Game.prototype.layoutPlayerHealthText = function (playerMenu
 };
 
 /**
- * ...
+ * Updates player health text, bar fill, and related damage visuals.
+ *
+ * @param {Object} playerMenu Player menu state object.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.updatePlayerHealthUi = function (playerMenu) {
     var maxHealth;
@@ -2530,7 +2887,9 @@ GraveFallGame.scene.Game.prototype.updatePlayerHealthUi = function (playerMenu) 
 };
 
 /**
- * ...
+ * Checks whether every active player menu has confirmed an action.
+ *
+ * @return {boolean} True if the condition is met.
  */
 GraveFallGame.scene.Game.prototype.areAllPlayersConfirmed = function () {
     var i;
@@ -2550,7 +2909,13 @@ GraveFallGame.scene.Game.prototype.areAllPlayersConfirmed = function () {
 
 
 /**
- * ...
+ * Clamps a number between a minimum and maximum value.
+ *
+ * @param {*} value Value to parse, clamp, or sanitize.
+ * @param {number} min Minimum accepted value.
+ * @param {number} max Maximum accepted value.
+ *
+ * @return {*} Returned value.
  */
 GraveFallGame.scene.Game.prototype.clampValue = function (value, min, max) {
     if (value < min) {
@@ -2565,7 +2930,15 @@ GraveFallGame.scene.Game.prototype.clampValue = function (value, min, max) {
 };
 
 /**
- * ...
+ * Stores collision hitbox insets on a display object.
+ *
+ * @param {Object} object Display object to measure or clamp.
+ * @param {number} insetX Inset x.
+ * @param {number} insetY Inset y.
+ * @param {number} insetRight Inset right.
+ * @param {number} insetBottom Inset bottom.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setObjectHitboxInset = function (object, insetX, insetY, insetRight, insetBottom) {
     var scaleX;
@@ -2601,9 +2974,7 @@ GraveFallGame.scene.Game.prototype.setObjectHitboxInset = function (object, inse
     scaledWidth = Math.abs((object.width || 0) * scaleX);
     scaledHeight = Math.abs((object.height || 0) * scaleY);
 
-    // Positive values inset the hitbox. Negative values intentionally outset it,
-    // which lets sprites with less transparent padding match the Assassin's
-    // already-tuned collision footprint.
+    /* Negative values intentionally outset the hitbox for padded sprites. */
     insetLeft = typeof insetX === "number" ? insetX : 0;
     insetTop = typeof insetY === "number" ? insetY : 0;
     insetRight = typeof insetRight === "number" ? insetRight : insetLeft;
@@ -2629,15 +3000,22 @@ GraveFallGame.scene.Game.prototype.setObjectHitboxInset = function (object, inse
 };
 
 /**
- * ...
+ * Stores arena clamp insets on a display object.
+ *
+ * @param {Object} object Display object to measure or clamp.
+ * @param {number} insetLeft Inset left.
+ * @param {number} insetTop Inset top.
+ * @param {number} insetRight Inset right.
+ * @param {number} insetBottom Inset bottom.
+ *
+ * @return {undefined}
  */
 GraveFallGame.scene.Game.prototype.setObjectClampInset = function (object, insetLeft, insetTop, insetRight, insetBottom) {
     if (!object) {
         return;
     }
 
-    // Clamp insets also accept negative values. A negative value acts as an
-    // outset, making the sprite stop earlier on that side of the arena.
+    /* Negative clamp insets make padded sprites stop earlier at arena edges. */
     object.hitboxClampInsetLeft = typeof insetLeft === "number" ? insetLeft : 0;
     object.hitboxClampInsetTop = typeof insetTop === "number" ? insetTop : 0;
     object.hitboxClampInsetRight = typeof insetRight === "number" ? insetRight : object.hitboxClampInsetLeft;
@@ -2645,19 +3023,24 @@ GraveFallGame.scene.Game.prototype.setObjectClampInset = function (object, inset
 };
 
 /**
- * ...
+ * Returns a random number between two values.
+ *
+ * @param {number} min Minimum accepted value.
+ * @param {number} max Maximum accepted value.
+ *
+ * @return {number} Resolved numeric value.
  */
 GraveFallGame.scene.Game.prototype.randomRange = function (min, max) {
     return min + Math.random() * (max - min);
 };
 
 /**
- * ...
+ * Returns the playable bounds inside the arena frame.
+ *
+ * @return {Object} Resolved value.
  */
 GraveFallGame.scene.Game.prototype.getArenaInnerBounds = function () {
-    // The frame sprites are 16x16, but the visible straight border is only
-    // four pixels thick. Clamp and bounce against the visible wall, not the
-    // full transparent frame tile.
+    /* Clamp and bounce against the visible wall instead of transparent padding. */
     var borderPadding = 4;
 
     return {
