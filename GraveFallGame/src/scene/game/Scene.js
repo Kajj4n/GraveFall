@@ -2,6 +2,9 @@
 // Scene lifecycle
 //------------------------------------------------------------------------------
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.Game.prototype.init = function () {
     GraveFallGame.useBitmapFont();
 
@@ -96,7 +99,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.enemyEntranceBaseScaleX = 3.2;
     this.enemyEntranceBaseScaleY = 3.2;
 
-    // --- SCORE SYSTEM ---
+    // SCORE SYSTEM
     this.score = 0;
     this.scorePopups = [];
     this.clearRewardPopup = null;
@@ -203,7 +206,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.createBattleArena();
     this.stage.addChild(this.turnTimerText);
 
-    // --- SCORE UI INIT ---
+    // SCORE UI INIT
     this.scoreText = new rune.text.BitmapField("SCORE: 0");
     this.scoreText.width = 800;  
     this.scoreText.height = 64;  
@@ -213,7 +216,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     this.scoreText.y = 8;
     this.stage.addChild(this.scoreText);
 
-    // --- FLOOR UI INIT ---
+    // FLOOR UI INIT
     this.floorNumber = 1;
     this.floorText = new rune.text.BitmapField("FLOOR: " + this.floorNumber);
     this.floorText.width = 400;  
@@ -257,7 +260,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
         }));
     }
 
-    // --- INIT INTRO TRANSITION ---
+    // INIT INTRO TRANSITION
     this.phase = GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED;
     this.enemyDefeatedTimerMs = this.passageTransitionDurationMs;
     this.passageTransitionTimerMs = 0;
@@ -295,13 +298,22 @@ GraveFallGame.scene.Game.prototype.init = function () {
     }
 };
 
-// --- NEW SCORE HELPER FUNCTIONS ---
+//------------------------------------------------------------------------------
+// NEW SCORE HELPER FUNCTIONS
+//------------------------------------------------------------------------------
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.changeScore = function(amount) {
     this.score += amount;
     if (this.score < 0) this.score = 0;
     this.updateScoreUi();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text, color) {
     if (!this.scorePopups) this.scorePopups = [];
 
@@ -352,6 +364,9 @@ GraveFallGame.scene.Game.prototype.addScorePopup = function(amount, text, color)
     this.changeScore(amount);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateScoreUi = function() {
     if (this.scoreText) {
         this.scoreText.text = "SCORE: " + this.score;
@@ -359,6 +374,9 @@ GraveFallGame.scene.Game.prototype.updateScoreUi = function() {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateScorePopups = function(step) {
     if (!this.scorePopups) return;
     for (var i = this.scorePopups.length - 1; i >= 0; i--) {
@@ -377,6 +395,9 @@ GraveFallGame.scene.Game.prototype.updateScorePopups = function(step) {
 };
 
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearClearRewardPopup = function () {
     if (this.clearRewardPopup && this.clearRewardPopup.parent) {
         this.clearRewardPopup.parent.removeChild(this.clearRewardPopup, true);
@@ -388,6 +409,9 @@ GraveFallGame.scene.Game.prototype.clearClearRewardPopup = function () {
     this.clearRewardPopupBlocksTransition = false;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createClearRewardText = function (text, x, y, width, scale, color, centered) {
     var safeText = this.sanitizeBitmapText ? this.sanitizeBitmapText(text) : String(text || "");
     var field = new rune.text.BitmapField(safeText.length > 0 ? safeText : " ");
@@ -407,6 +431,9 @@ GraveFallGame.scene.Game.prototype.createClearRewardText = function (text, x, y,
     return field;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.showClearRewardPopup = function (summary) {
     var screen = this.application.screen;
     var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -509,6 +536,9 @@ GraveFallGame.scene.Game.prototype.showClearRewardPopup = function (summary) {
     this.playSfx(GraveFallGame.SOUNDS.UI_CONFIRM, isBoss ? 0.68 : 0.52);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateClearRewardPopup = function (step) {
     var popup = this.clearRewardPopup;
     var duration;
@@ -550,7 +580,13 @@ GraveFallGame.scene.Game.prototype.updateClearRewardPopup = function (step) {
     }
 };
 
-// --- ACTION PREVIEW HELPERS (RESTORED) ---
+//------------------------------------------------------------------------------
+// ACTION PREVIEW HELPERS (RESTORED)
+//------------------------------------------------------------------------------
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateActionPreviewEffects = function (step) {
     var i;
     var menu;
@@ -655,6 +691,9 @@ GraveFallGame.scene.Game.prototype.updateActionPreviewEffects = function (step) 
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearActionPreviewState = function () {
     var i;
 
@@ -678,6 +717,9 @@ GraveFallGame.scene.Game.prototype.clearActionPreviewState = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.buildActionPreviewQueue = function () {
     var nonAttackQueue = [];
     var attackQueue = [];
@@ -699,6 +741,9 @@ GraveFallGame.scene.Game.prototype.buildActionPreviewQueue = function () {
     return nonAttackQueue.concat(attackQueue);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startActionPreviewPhase = function () {
     var i;
     var menu;
@@ -746,6 +791,9 @@ GraveFallGame.scene.Game.prototype.startActionPreviewPhase = function () {
     this.beginActionPreviewStep();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.beginActionPreviewStep = function () {
     var playerMenu;
     var standState;
@@ -774,6 +822,9 @@ GraveFallGame.scene.Game.prototype.beginActionPreviewStep = function () {
     this.applyCommandActionForPlayer(playerMenu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.finishActionPreviewPhase = function () {
     var i;
 
@@ -793,6 +844,9 @@ GraveFallGame.scene.Game.prototype.finishActionPreviewPhase = function () {
     this.startActionPhase();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateActionPreviewPhase = function (step) {
     if (!this.actionPreviewQueue || this.actionPreviewQueue.length <= 0) {
         this.finishActionPreviewPhase();
@@ -823,9 +877,14 @@ GraveFallGame.scene.Game.prototype.updateActionPreviewPhase = function (step) {
 
     this.beginActionPreviewStep();
 };
-// ---------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Override public prototype methods (ENGINE)
+//------------------------------------------------------------------------------
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.Game.prototype.update = function (step) {
     var i;
     var secondsLeft;
@@ -981,6 +1040,9 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
     var screen;
     var framePaletteSwaps;
@@ -1080,6 +1142,9 @@ GraveFallGame.scene.Game.prototype.ensurePauseOverlay = function () {
     return overlay;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.refreshPauseMenuButtons = function () {
     var i;
     var item;
@@ -1107,6 +1172,9 @@ GraveFallGame.scene.Game.prototype.refreshPauseMenuButtons = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.showPauseOverlay = function () {
     var overlay = this.ensurePauseOverlay();
 
@@ -1116,6 +1184,9 @@ GraveFallGame.scene.Game.prototype.showPauseOverlay = function () {
     overlay.alpha = 0.96;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.hidePauseOverlay = function () {
     if (this.pauseOverlay) {
         this.pauseOverlay.visible = false;
@@ -1123,6 +1194,9 @@ GraveFallGame.scene.Game.prototype.hidePauseOverlay = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.togglePauseState = function () {
     this.isPaused = !this.isPaused;
 
@@ -1134,6 +1208,9 @@ GraveFallGame.scene.Game.prototype.togglePauseState = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.executePauseMenuSelection = function () {
     var selection;
 
@@ -1167,6 +1244,9 @@ GraveFallGame.scene.Game.prototype.executePauseMenuSelection = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updatePauseMenu = function (step) {
     var i;
     var gp;
@@ -1233,6 +1313,9 @@ GraveFallGame.scene.Game.prototype.updatePauseMenu = function (step) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function () {
 
     var i;
@@ -1267,6 +1350,9 @@ GraveFallGame.scene.Game.prototype.resetPlayerMenusForCommandPhase = function ()
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (playerMenu) {
     var standResource;
     var sprite;
@@ -1334,6 +1420,9 @@ GraveFallGame.scene.Game.prototype.startHealingStandAnimation = function (player
     playerMenu.stand.alpha = 0;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateHealingStandAnimations = function (step) {
     var i;
     var menu;
@@ -1369,6 +1458,9 @@ GraveFallGame.scene.Game.prototype.updateHealingStandAnimations = function (step
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (playerMenu, restoreStand) {
     if (!playerMenu || !playerMenu.healingStandSprite) {
         return;
@@ -1387,6 +1479,9 @@ GraveFallGame.scene.Game.prototype.clearHealingStandAnimation = function (player
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearAllHealingStandAnimations = function (restoreStand) {
     var i;
 
@@ -1399,6 +1494,9 @@ GraveFallGame.scene.Game.prototype.clearAllHealingStandAnimations = function (re
     }
 };
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.Game.prototype.dispose = function () {
     var i;
 
@@ -1510,7 +1608,7 @@ GraveFallGame.scene.Game.prototype.dispose = function () {
     this.passageTransitionFocusX = null;
     this.passageTransitionFocusY = null;
 
-    // --- SCORE DISPOSE ---
+    // SCORE DISPOSE
     this.clearClearRewardPopup();
     this.scoreText = null;
     this.scorePopups = null;

@@ -2,6 +2,9 @@
 // Arena / battle state
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createBattleArena = function () {
     var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
     var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
@@ -48,6 +51,9 @@ GraveFallGame.scene.Game.prototype.createBattleArena = function () {
 };
 
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, uiSkin, keepTransform) {
     var oldBackground = this.backgroundBackdrop;
     var parent;
@@ -97,6 +103,9 @@ GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, ui
     this.backgroundBackdropResource = resource;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getBattleBackgroundResourceForEnemy = function (enemyType) {
     var enemyConfig = GraveFallGame.scene.Game.ENEMIES[enemyType] || null;
 
@@ -107,6 +116,9 @@ GraveFallGame.scene.Game.prototype.getBattleBackgroundResourceForEnemy = functio
     return GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE || "Dungeon_Background";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setBattleBackgroundForEnemy = function (enemyType, keepTransform) {
     this.setPassageBackground(
         this.getBattleBackgroundResourceForEnemy(enemyType),
@@ -115,6 +127,9 @@ GraveFallGame.scene.Game.prototype.setBattleBackgroundForEnemy = function (enemy
     );
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setDungeonPassageBackground = function (keepTransform) {
     this.setPassageBackground(
         GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE || "Dungeon_Background",
@@ -123,6 +138,9 @@ GraveFallGame.scene.Game.prototype.setDungeonPassageBackground = function (keepT
     );
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getFloorPaletteKey = function (floorNumber) {
     var palettes = GraveFallGame.scene.Game.RUN_PALETTES || [];
     var index;
@@ -135,6 +153,9 @@ GraveFallGame.scene.Game.prototype.getFloorPaletteKey = function (floorNumber) {
     return palettes[index].key;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.replaceUiFrame = function (oldFrame, newFrame) {
     var parent;
     var index = -1;
@@ -160,6 +181,9 @@ GraveFallGame.scene.Game.prototype.replaceUiFrame = function (oldFrame, newFrame
     return newFrame;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.rebuildPlayerMenuFramesForSkin = function (playerMenu, uiSkin) {
     var framePaletteSwaps = this.getFramePaletteSwaps(uiSkin);
 
@@ -205,6 +229,9 @@ GraveFallGame.scene.Game.prototype.rebuildPlayerMenuFramesForSkin = function (pl
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.refreshPassageBackgroundPalette = function (keepTransform) {
     var resource = this.backgroundBackdropResource || GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE || "Dungeon_Background";
 
@@ -212,6 +239,9 @@ GraveFallGame.scene.Game.prototype.refreshPassageBackgroundPalette = function (k
     this.setPassageBackground(resource, this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, keepTransform === true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
     var paletteKey = this.getFloorPaletteKey(this.floorNumber || 1);
     var palette = GraveFallGame.scene.Game.getRunPalette(paletteKey);
@@ -265,6 +295,9 @@ GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
     this.setDungeonPassageBackground(true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.advanceFloorAfterBossDefeat = function () {
     this.floorNumber++;
 
@@ -281,10 +314,16 @@ GraveFallGame.scene.Game.prototype.advanceFloorAfterBossDefeat = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.queueFloorAdvanceAfterBlackout = function () {
     this.passageTransitionPendingFloorAdvance = true;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.applyPendingFloorAdvanceAfterBlackout = function (elapsedMs, blackStartMs) {
     if (this.passageTransitionPendingFloorAdvance !== true) {
         return;
@@ -298,6 +337,9 @@ GraveFallGame.scene.Game.prototype.applyPendingFloorAdvanceAfterBlackout = funct
     this.advanceFloorAfterBossDefeat();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
     this.arenaBackground.visible = visible;
     this.arenaProjectileLayer.visible = visible;
@@ -311,6 +353,9 @@ GraveFallGame.scene.Game.prototype.setBattleArenaVisible = function (visible) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.showActionPromptForFirstEnemy = function () {
     if (this.encounterIndex === 0 && this.actionPromptText) {
         this.actionPromptTimerFrames = 150;
@@ -324,6 +369,9 @@ GraveFallGame.scene.Game.prototype.showActionPromptForFirstEnemy = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateActionPromptTimer = function () {
     if (!this.actionPromptText) {
         return;
@@ -344,6 +392,9 @@ GraveFallGame.scene.Game.prototype.updateActionPromptTimer = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.hideActionPrompt = function () {
     this.actionPromptTimerFrames = 0;
 
@@ -353,6 +404,9 @@ GraveFallGame.scene.Game.prototype.hideActionPrompt = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
     var inner = this.getArenaInnerBounds();
     var livingCount = 0;
@@ -398,12 +452,18 @@ GraveFallGame.scene.Game.prototype.layoutBattleAvatarsInArena = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.activateBattleAvatar = function (playerMenu) {
     playerMenu.stand.visible = false;
     playerMenu.battleAvatar.visible = playerMenu.healthCurrent > 0;
     playerMenu.battleAvatar.alpha = 1;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.deactivateBattleAvatar = function (playerMenu) {
     playerMenu.stand.visible = true;
     playerMenu.stand.alpha = 1;
@@ -411,6 +471,9 @@ GraveFallGame.scene.Game.prototype.deactivateBattleAvatar = function (playerMenu
     playerMenu.battleAvatar.alpha = 1;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getCurrentPartyName = function () {
     var partyName = "THE FALLEN";
 
@@ -429,11 +492,20 @@ GraveFallGame.scene.Game.prototype.getCurrentPartyName = function () {
     return String(GraveFallGame.scene.Game.PARTY_NAME);
 };
 
-// --- DYNAMIC LOCALSTORAGE SAVING DIRECTLY IN ARENA.JS ---
+//------------------------------------------------------------------------------
+// DYNAMIC LOCALSTORAGE SAVING DIRECTLY IN ARENA.JS
+//------------------------------------------------------------------------------
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getRunAwayMessage = function (partySize) {
     return partySize > 1 ? "RAN AWAY AS COWARDS" : "RAN AWAY AS A COWARD";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
     var partyName;
     var finalScoreStr;
@@ -513,6 +585,9 @@ GraveFallGame.scene.Game.prototype.showGameOverAndReturnToMenu = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setEnemyUiAlpha = function (alpha) {
     alpha = Math.max(0, Math.min(1, alpha));
 
@@ -542,6 +617,9 @@ GraveFallGame.scene.Game.prototype.setEnemyUiAlpha = function (alpha) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (visible, actionsVisible) {
     var i;
     var menu;
@@ -619,6 +697,9 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionVisibility = function (vis
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAlpha, actionsAlpha) {
     var i;
     var menu;
@@ -697,6 +778,9 @@ GraveFallGame.scene.Game.prototype.setPlayerTransitionAlpha = function (playerAl
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setPlayerActionMenusVisible = function (visible) {
     var i;
     var menu;
@@ -728,6 +812,9 @@ GraveFallGame.scene.Game.prototype.setPlayerActionMenusVisible = function (visib
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateEnemyHealthBarUi = function () {
     var eBarWidth = this.enemyHealthBarWidth || 300;
     var eBarX = typeof this.enemyHealthBarX === "number" ? this.enemyHealthBarX : (this.application.screen.width / 2) - (eBarWidth / 2);
@@ -742,6 +829,9 @@ GraveFallGame.scene.Game.prototype.updateEnemyHealthBarUi = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     var enemyConfig = this.getCurrentEnemyConfig();
     var layerIndex = 0;
@@ -777,6 +867,9 @@ GraveFallGame.scene.Game.prototype.rebuildEnemySprite = function (fadeIn) {
     this.enemyDisplaySprite = this.enemySprite;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fadeIn) {
     var enemyConfig;
     var alpha = fadeIn === true ? 0 : 1;
@@ -813,6 +906,9 @@ GraveFallGame.scene.Game.prototype.loadEnemyEncounter = function (enemyType, fad
     this.enemyFadeTimerMs = fadeIn === true ? 0 : this.enemyFadeDurationMs;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
     var i;
 
@@ -840,6 +936,9 @@ GraveFallGame.scene.Game.prototype.resetPlayersForNewEncounter = function () {
     this.updateAllPlayerDamageStates();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getPrimaryCamera = function () {
     if (!this.cameras || typeof this.cameras.getCameraAt !== "function") {
         return null;
@@ -848,6 +947,9 @@ GraveFallGame.scene.Game.prototype.getPrimaryCamera = function () {
     return this.cameras.getCameraAt(0);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.easePassageTransition = function (value) {
     value = Math.max(0, Math.min(1, value));
     return value < 0.5
@@ -855,6 +957,9 @@ GraveFallGame.scene.Game.prototype.easePassageTransition = function (value) {
         : 1 - Math.pow(-2 * value + 2, 3) / 2;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resetPassageCameraTransition = function () {
     var camera = this.getPrimaryCamera();
 
@@ -884,6 +989,9 @@ GraveFallGame.scene.Game.prototype.resetPassageCameraTransition = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elapsedMs) {
     var camera = this.getPrimaryCamera();
     var walkStartMs = this.passageTransitionWalkStartMs || 1650;
@@ -938,6 +1046,9 @@ GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elap
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = function () {
     var nextEnemyType;
 
@@ -966,6 +1077,9 @@ GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = func
     this.hideActionPrompt();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = function () {
     var enemyConfig;
 
@@ -994,6 +1108,9 @@ GraveFallGame.scene.Game.prototype.finishEnemyDefeatedTransitionToCommand = func
     this.commandMenuResetDone = true;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
     var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
 
@@ -1005,6 +1122,9 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatResolution = function () {
     this.startEnemyDefeatedSequence();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     var i;
     var defeatedEnemyConfig;
@@ -1110,12 +1230,18 @@ GraveFallGame.scene.Game.prototype.startEnemyDefeatedSequence = function () {
     this.applyPassageCameraTransition(0);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startNextEnemyEncounter = function () {
     this.passageTransitionEncounterLoaded = false;
     this.loadNextEnemyEncounterDuringTransition();
     this.finishEnemyDefeatedTransitionToCommand();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resetBossEntranceState = function () {
     this.bossEntranceState = null;
     this.bossEntranceComplete = false;
@@ -1129,12 +1255,18 @@ GraveFallGame.scene.Game.prototype.resetBossEntranceState = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.isBossEntranceRequiredForCurrentEncounter = function () {
     var enemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
 
     return !!(enemyConfig && enemyConfig.isBoss === true && this.passageTransitionEncounterLoaded === true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function (elapsedMs, entranceStartMs) {
     var localMs = elapsedMs - entranceStartMs;
     var warningStartMs = 600;
@@ -1267,6 +1399,9 @@ GraveFallGame.scene.Game.prototype.updateBossEntranceDuringTransition = function
     return false;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step) {
     var elapsedMs;
     var playerFadeStartMs;
@@ -1466,6 +1601,9 @@ GraveFallGame.scene.Game.prototype.updateEnemyDefeatedSequence = function (step)
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     var enemy = this.getCurrentEnemyConfig();
     var i;
@@ -1510,6 +1648,9 @@ GraveFallGame.scene.Game.prototype.startActionPhase = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     var i;
 
@@ -1558,6 +1699,9 @@ GraveFallGame.scene.Game.prototype.endActionPhase = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearProjectiles = function (fadeOut) {
     var i;
 
@@ -1585,6 +1729,9 @@ GraveFallGame.scene.Game.prototype.clearProjectiles = function (fadeOut) {
     this.projectiles = [];
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) {
     var display;
     var sprite;
@@ -1775,6 +1922,9 @@ GraveFallGame.scene.Game.prototype.createProjectileDisplay = function (options) 
     return display;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.applyProjectileAnimation = function (display, animation) {
     var animationName;
 
@@ -1792,6 +1942,9 @@ GraveFallGame.scene.Game.prototype.applyProjectileAnimation = function (display,
     display.animation.gotoAndPlay(animationName, animation.startFrame || 0);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnProjectile = function (options) {
     var projectile = this.createProjectileDisplay(options);
     this.arenaProjectileLayer.addChild(projectile);
@@ -1799,6 +1952,9 @@ GraveFallGame.scene.Game.prototype.spawnProjectile = function (options) {
     return projectile;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (options) {
     var dmgMulti = this.getDifficultyMultiplier ? this.getDifficultyMultiplier() : 1.0;
     var spdMulti = this.getDifficultySpeedMultiplier ? this.getDifficultySpeedMultiplier() : 1.0;
@@ -1846,6 +2002,9 @@ GraveFallGame.scene.Game.prototype.spawnVerticalSweepProjectile = function (opti
     return hitbox;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, amount) {
     var wasAlive = playerMenu.healthCurrent > 0;
     var finalDamage = amount;
@@ -1896,6 +2055,9 @@ GraveFallGame.scene.Game.prototype.applyDamageToPlayer = function (playerMenu, a
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (playerMenu) {
     var speed = playerMenu.moveSpeed || 3;
     var avatar = playerMenu.battleAvatar;
@@ -1952,6 +2114,9 @@ GraveFallGame.scene.Game.prototype.updateBattleAvatarMovement = function (player
     avatar.y = nextY;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
     if (this.arenaItem && this.arenaItem.parent) {
         this.arenaItem.parent.removeChild(this.arenaItem, true);
@@ -1960,15 +2125,24 @@ GraveFallGame.scene.Game.prototype.clearArenaItem = function () {
     this.arenaItem = null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getArenaItemPickupColors = function () {
     return ["#1E88E5", "#FDD835", "#E53935", "#43A047"];
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.hexPair = function (value) {
     var out = Math.max(0, Math.min(255, Math.round(value))).toString(16).toUpperCase();
     return out.length < 2 ? "0" + out : out;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.lerpHexColor = function (fromColor, toColor, ratio) {
     var fromHex = (fromColor || "#FFFFFF").replace("#", "");
     var toHex = (toColor || "#FFFFFF").replace("#", "");
@@ -1994,6 +2168,9 @@ GraveFallGame.scene.Game.prototype.lerpHexColor = function (fromColor, toColor, 
     return "#" + this.hexPair(r1 + ((r2 - r1) * t)) + this.hexPair(g1 + ((g2 - g1) * t)) + this.hexPair(b1 + ((b2 - b1) * t));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.applyArenaItemPickupColor = function (item, targetColor) {
     var swaps;
     var sourceColors;
@@ -2030,6 +2207,9 @@ GraveFallGame.scene.Game.prototype.applyArenaItemPickupColor = function (item, t
     item.pickupTintColor = targetColor;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnArenaItemAmbientSparkles = function (item) {
     var anchor;
     var colors;
@@ -2059,6 +2239,9 @@ GraveFallGame.scene.Game.prototype.spawnArenaItemAmbientSparkles = function (ite
     });
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateArenaItemPickupVisuals = function (item, step) {
     var colors;
     var elapsed;
@@ -2106,6 +2289,9 @@ GraveFallGame.scene.Game.prototype.updateArenaItemPickupVisuals = function (item
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
     var inner = this.getArenaInnerBounds();
     var itemScale = 0.45;
@@ -2136,6 +2322,9 @@ GraveFallGame.scene.Game.prototype.spawnArenaItem = function () {
     this.playSfx(GraveFallGame.SOUNDS.ITEM_SPAWN, 0.45);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateArenaItem = function (step) {
     if (this.arenaItem) {
         this.updateArenaItemPickupVisuals(this.arenaItem, step);
@@ -2150,6 +2339,9 @@ GraveFallGame.scene.Game.prototype.updateArenaItem = function (step) {
     this.spawnArenaItem();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
     var i;
     var playerMenu;
@@ -2174,6 +2366,9 @@ GraveFallGame.scene.Game.prototype.checkItemCollisions = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateActionPhase = function (step) {
     var enemy = this.getCurrentEnemyConfig();
     var i;
@@ -2226,6 +2421,9 @@ GraveFallGame.scene.Game.prototype.updateActionPhase = function (step) {
 //------------------------------------------------------------------------------
 
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     var screenWidth;
     var x;
@@ -2260,6 +2458,10 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
 
 
 (function () {
+
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.buildGameOverSummary = function () {
         var defeatedEnemyConfig = this.getCurrentEnemyConfig ? this.getCurrentEnemyConfig() : null;
         var summary = {
@@ -2311,6 +2513,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         return summary;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.getGameOverBestStat = function (stats) {
         var candidates = [
             { key: "damageDealt", label: "DAMAGE DEALT", value: typeof stats.damageDealt === "number" ? stats.damageDealt : 0 },
@@ -2343,6 +2548,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         return best;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.saveCurrentRunToLeaderboard = function (options) {
         var partyName;
         var partySize;
@@ -2418,6 +2626,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         }
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.getPlayerTombstoneResource = function (standResource) {
         var baseResource = standResource ? String(standResource) : "";
         var prefix;
@@ -2447,6 +2658,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         return this.resolveExistingResource(candidates, baseResource);
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.createGameOverPortrait = function (playerEntry, theme, cardWidth) {
         var sprite;
         var standResource = playerEntry && playerEntry.standResource ? playerEntry.standResource : null;
@@ -2475,6 +2689,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
     };
 
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.sanitizeBitmapText = function (text) {
         var safeText;
     
@@ -2490,6 +2707,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         return safeText;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.createGameOverStatLine = function (text, x, y, width, color) {
         var safeText = this.sanitizeBitmapText ? this.sanitizeBitmapText(text) : String(text || "");
         var field = new rune.text.BitmapField(safeText);
@@ -2507,6 +2727,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         return field;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.createGameOverStatsCard = function (x, y, width, height, playerEntry, uiSkin) {
         var card = new rune.display.DisplayObjectContainer(x, y, width, height);
         var bgTop = new rune.display.Graphic(0, 0, width, Math.round(height * 0.38));
@@ -2616,6 +2839,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         return card;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.renderGameOverStats = function () {
         var screen = this.application.screen;
         var summary = this.gameOverSummary || this.buildGameOverSummary();
@@ -2747,6 +2973,9 @@ GraveFallGame.scene.Game.prototype.getEnemySpritePosition = function (scale) {
         }
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.Game.prototype.updateGameOver = function (step) {
         var continuePressed = false;
         var i;

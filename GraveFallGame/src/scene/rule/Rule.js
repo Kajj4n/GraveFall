@@ -187,6 +187,9 @@ GraveFallGame.scene.Rule.prototype.dispose = function () {
 // General helpers
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createText = function (text, x, y, scale, width) {
     var field = new rune.text.BitmapField(text);
 
@@ -206,6 +209,9 @@ GraveFallGame.scene.Rule.prototype.createText = function (text, x, y, scale, wid
     return field;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.centerText = function (field, centerX, scale) {
     if (!field) {
         return;
@@ -215,6 +221,9 @@ GraveFallGame.scene.Rule.prototype.centerText = function (field, centerX, scale)
     field.x = Math.round(centerX - ((String(field.text).length * 6 * scale) / 2));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createPanel = function (x, y, width, height, skin, framePaletteSwaps) {
     var panel = new rune.display.DisplayObjectContainer(x, y, width, height);
     var top = new rune.display.Graphic(0, 0, width, Math.round(height * 0.45));
@@ -230,6 +239,9 @@ GraveFallGame.scene.Rule.prototype.createPanel = function (x, y, width, height, 
     return panel;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createScreenFooter = function (text, framePaletteSwaps) {
     var screen = this.application.screen;
     var footerHeight = 62;
@@ -249,6 +261,9 @@ GraveFallGame.scene.Rule.prototype.createScreenFooter = function (text, framePal
     return footer;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createRuleCard = function (parent, x, y, width, height, title, accentColor) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
     var card = new rune.display.DisplayObjectContainer(x, y, width, height);
@@ -274,6 +289,9 @@ GraveFallGame.scene.Rule.prototype.createRuleCard = function (parent, x, y, widt
     return card;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.addCardLine = function (card, text, x, y, scale, color) {
     var field = this.createText(text, x, y, scale || 1, 1000);
     card.addChild(field);
@@ -285,6 +303,9 @@ GraveFallGame.scene.Rule.prototype.addCardLine = function (card, text, x, y, sca
     return field;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createSmallIcon = function (parent, x, y, resource, scale, color) {
     var icon = new rune.display.Sprite(x, y, 100, 100, resource);
 
@@ -299,6 +320,9 @@ GraveFallGame.scene.Rule.prototype.createSmallIcon = function (parent, x, y, res
     return icon;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createPageTabs = function () {
     var i;
     var tab;
@@ -326,6 +350,9 @@ GraveFallGame.scene.Rule.prototype.createPageTabs = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createPageDots = function () {
     var i;
     var dot;
@@ -342,6 +369,9 @@ GraveFallGame.scene.Rule.prototype.createPageDots = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.changePage = function (direction) {
     this.pageIndex += direction;
 
@@ -357,6 +387,9 @@ GraveFallGame.scene.Rule.prototype.changePage = function (direction) {
     this.renderPage();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.renderPage = function () {
     var renderer;
     var i;
@@ -388,6 +421,9 @@ GraveFallGame.scene.Rule.prototype.renderPage = function () {
 // Page renderers
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.renderOverviewPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
     var card;
@@ -411,6 +447,9 @@ GraveFallGame.scene.Rule.prototype.renderOverviewPage = function (root) {
     this.createEnemyStep(enemyCard, 370, 206, "BOSS", "HyDragon_Idle_T", colors[2].accent);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.renderControlsPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
     var card;
@@ -448,6 +487,9 @@ GraveFallGame.scene.Rule.prototype.renderControlsPage = function (root) {
     this.createPlayerControlRow(keyCard, 24, 290, "P4", "T F G H", "V / N", "B", colors[3].accent);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
     var commandCard;
@@ -490,6 +532,9 @@ GraveFallGame.scene.Rule.prototype.renderCommandsPage = function (root) {
     this.createPlayerColorLegend(arenaCard, 388, 336, "P4", "Assassin_Icon_T", colors[3].accent, "GREEN");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.renderMinigamesPage = function (root) {
     var colors = GraveFallGame.scene.Game.PLAYER_THEMES;
     var colorCard;
@@ -504,6 +549,9 @@ GraveFallGame.scene.Rule.prototype.renderMinigamesPage = function (root) {
 // Reusable page widgets
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createFlowNode = function (parent, x, y, number, label, color) {
     var node = new rune.display.DisplayObjectContainer(x, y, 156, 64);
     var bg = new rune.display.Graphic(0, 0, 156, 64);
@@ -527,12 +575,18 @@ GraveFallGame.scene.Rule.prototype.createFlowNode = function (parent, x, y, numb
     return node;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createFlowArrow = function (parent, x, y) {
     var arrow = this.createText(">", x, y, 2, 30);
     parent.addChild(arrow);
     this.tintBitmapFieldText(arrow, this.menuSkin.frame.light, true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createEnemyStep = function (parent, x, y, label, resource, color) {
     var step = new rune.display.DisplayObjectContainer(x, y, 126, 82);
     var bg = new rune.display.Graphic(0, 0, 126, 82);
@@ -554,6 +608,9 @@ GraveFallGame.scene.Rule.prototype.createEnemyStep = function (parent, x, y, lab
     return step;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createPlayerHeaderRow = function (parent, x, y, width) {
     var row = new rune.display.DisplayObjectContainer(x, y, width, 28);
     var bg = new rune.display.Graphic(0, 0, width, 28);
@@ -574,6 +631,9 @@ GraveFallGame.scene.Rule.prototype.createPlayerHeaderRow = function (parent, x, 
     return row;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createPlayerControlRow = function (parent, x, y, player, move, menu, ok, color) {
     var row = new rune.display.DisplayObjectContainer(x, y, 482, 52);
     var bg = new rune.display.Graphic(0, 0, 482, 52);
@@ -599,6 +659,9 @@ GraveFallGame.scene.Rule.prototype.createPlayerControlRow = function (parent, x,
     return row;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createCommandIconCard = function (parent, x, y, title, resource, color, description) {
     var mini = new rune.display.DisplayObjectContainer(x, y, 218, 102);
     var bg = new rune.display.Graphic(0, 0, 218, 102);
@@ -625,6 +688,9 @@ GraveFallGame.scene.Rule.prototype.createCommandIconCard = function (parent, x, 
     return mini;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createArenaHazard = function (parent, x, y, width, height, alpha) {
     var hazard = new rune.display.Graphic(x, y, width, height);
     hazard.backgroundColor = "#F5F5F5";
@@ -633,6 +699,9 @@ GraveFallGame.scene.Rule.prototype.createArenaHazard = function (parent, x, y, w
     return hazard;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createPlayerColorLegend = function (parent, x, y, label, resource, color, colorName) {
     var chip = new rune.display.DisplayObjectContainer(x, y, 102, 44);
     var bg = new rune.display.Graphic(0, 0, 102, 44);
@@ -654,6 +723,9 @@ GraveFallGame.scene.Rule.prototype.createPlayerColorLegend = function (parent, x
     this.tintBitmapFieldText(pText, color, true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createMinigamePreviewCard = function (parent, x, y, width, height, title, classIcon, color, type) {
     var card = this.createRuleCard(parent, x, y, width, height, title, color);
     var panel = this.createStaticMinigamePanel(card, 7, 48, 256, 128, color, type);
@@ -674,6 +746,9 @@ GraveFallGame.scene.Rule.prototype.createMinigamePreviewCard = function (parent,
     return panel;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent, x, y, width, height, color, type) {
     var group = new rune.display.DisplayObjectContainer(x, y, width, height);
     var bg = new rune.display.Graphic(0, 0, width, height);
@@ -838,6 +913,9 @@ GraveFallGame.scene.Rule.prototype.createStaticMinigamePanel = function (parent,
     return group;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createOptionalSprite = function (x, y, width, height, resourceName, fallbackColor) {
     var display;
 
@@ -851,6 +929,9 @@ GraveFallGame.scene.Rule.prototype.createOptionalSprite = function (x, y, width,
     return display;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createPickupToken = function (parent, x, y, resourceName, color) {
     var token = this.createOptionalSprite(x, y, 16, 16, resourceName, "#6E6E6E");
     if (token instanceof rune.display.Sprite) {
@@ -860,6 +941,9 @@ GraveFallGame.scene.Rule.prototype.createPickupToken = function (parent, x, y, r
     return token;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createArenaProjectile = function (parent, x, y, width, height, resourceName, rotation, flippedX, palette) {
     var shot = this.createOptionalSprite(x, y, width, height, resourceName, "#FFFFFF");
 
@@ -879,6 +963,9 @@ GraveFallGame.scene.Rule.prototype.createArenaProjectile = function (parent, x, 
     return shot;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createColorChip = function (parent, x, y, label, resource, color, description) {
     var chip = new rune.display.DisplayObjectContainer(x, y, 248, 42);
     var bg = new rune.display.Graphic(0, 0, 248, 42);
@@ -900,6 +987,9 @@ GraveFallGame.scene.Rule.prototype.createColorChip = function (parent, x, y, lab
     this.tintBitmapFieldText(labelText, color, true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.createCenteredIcon = function (resource, centerX, centerY, scale) {
     var size = Math.round(100 * (scale || 0.42));
     var icon = new rune.display.Sprite(Math.round(centerX - (size / 2)), Math.round(centerY - (size / 2)), 100, 100, resource);
@@ -910,6 +1000,9 @@ GraveFallGame.scene.Rule.prototype.createCenteredIcon = function (resource, cent
     return icon;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.getButtonIconForDirection = function (direction) {
     if (direction === "up") {
         return "Y_Button_Icon_T";
@@ -926,6 +1019,9 @@ GraveFallGame.scene.Rule.prototype.getButtonIconForDirection = function (directi
     return "A_Button_Icon_T";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Rule.prototype.getMovementIconForDirection = function (direction) {
     if (direction === "up") {
         return "Gamepad_Button_Up_T";

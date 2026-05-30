@@ -24,7 +24,7 @@ STEPS_BEGUN=$((STEPS_BEGUN+1));
 
 if [ $EXIT_CODE == 0 ];
 then
-    RESULTS=$(eval ./build.sh 2>&1);
+    RESULTS=$(bash ./build.sh 2>&1);
 
     if [ -z "$RESULTS" ];
     then

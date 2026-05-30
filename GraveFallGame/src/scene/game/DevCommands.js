@@ -11,6 +11,9 @@
 
 GraveFallGame.scene.Game.DEV_CONSOLE_SAFE_LINE_LENGTH = 42;
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.installDevConsoleOutputGuard = function () {
     var proto;
 
@@ -97,6 +100,9 @@ GraveFallGame.scene.Game.DEV_COMMAND_NAMES = [
     "gf.score.set",
 ];
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getDevConsoleManager = function () {
     if (!this.application || !this.application.screen || !this.application.screen.console) {
         return null;
@@ -105,6 +111,9 @@ GraveFallGame.scene.Game.prototype.getDevConsoleManager = function () {
     return this.application.screen.console;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.registerDevConsoleCommand = function (commands, name, callback) {
     var scene = this;
 
@@ -121,6 +130,9 @@ GraveFallGame.scene.Game.prototype.registerDevConsoleCommand = function (command
     }, this);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.sanitizeDevConsoleResult = function (value) {
     var text;
     var lines;
@@ -152,6 +164,9 @@ GraveFallGame.scene.Game.prototype.sanitizeDevConsoleResult = function (value) {
     return safeLines.join("\n");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.registerDevConsoleCommands = function () {
     GraveFallGame.scene.Game.installDevConsoleOutputGuard();
 
@@ -200,6 +215,9 @@ GraveFallGame.scene.Game.prototype.registerDevConsoleCommands = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.unregisterDevConsoleCommands = function (commands) {
     var commandList = GraveFallGame.scene.Game.DEV_COMMAND_NAMES;
     var i;
@@ -220,6 +238,9 @@ GraveFallGame.scene.Game.prototype.unregisterDevConsoleCommands = function (comm
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
     section = String(section || "all").toLowerCase();
 
@@ -307,6 +328,9 @@ GraveFallGame.scene.Game.prototype.devCommandHelp = function (section) {
     ].join("\n");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getDevEnemyIds = function () {
     var enemies = GraveFallGame.scene.Game.ENEMIES || {};
     var enemyIds = [];
@@ -322,6 +346,9 @@ GraveFallGame.scene.Game.prototype.getDevEnemyIds = function () {
     return enemyIds;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resolveDevEnemyId = function (enemyId) {
     var ids = this.getDevEnemyIds();
     var search = String(enemyId || "").toLowerCase();
@@ -348,6 +375,9 @@ GraveFallGame.scene.Game.prototype.resolveDevEnemyId = function (enemyId) {
     return null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandEnemyList = function () {
     var ids = this.getDevEnemyIds();
     var lines = ["Enemies:"];
@@ -362,6 +392,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyList = function () {
     return lines.join("\n");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devPrepareImmediateBattle = function () {
     this.setBattleBackgroundForEnemy(this.currentEnemyType, false);
 
@@ -405,6 +438,9 @@ GraveFallGame.scene.Game.prototype.devPrepareImmediateBattle = function () {
     this.commandMenuResetDone = true;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devLoadEnemyById = function (enemyId) {
     var resolvedId = this.resolveDevEnemyId(enemyId);
 
@@ -422,6 +458,9 @@ GraveFallGame.scene.Game.prototype.devLoadEnemyById = function (enemyId) {
     return resolvedId;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandEnemyLoad = function (enemyId) {
     var resolvedId = this.devLoadEnemyById(enemyId);
 
@@ -432,6 +471,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyLoad = function (enemyId) {
     return "Loaded enemy: " + resolvedId + " (" + this.getCurrentEnemyConfig().name + ")";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandEnemyKill = function (enemyId) {
     var resolvedId = null;
 
@@ -454,6 +496,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyKill = function (enemyId) {
     return "Killed enemy: " + resolvedId;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandEnemyDamage = function (amount) {
     var damage = parseInt(amount, 10);
 
@@ -475,6 +520,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyDamage = function (amount) {
     return "Enemy HP: " + this.enemyHealthCurrent + "/" + this.enemyHealthMax;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandEnemyHp = function (amount) {
     var hp = parseInt(amount, 10);
 
@@ -490,6 +538,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyHp = function (amount) {
     return "Enemy HP set to " + this.enemyHealthCurrent + "/" + this.enemyHealthMax;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandEnemyOneHp = function (enemyId) {
     var resolvedId = null;
 
@@ -511,6 +562,9 @@ GraveFallGame.scene.Game.prototype.devCommandEnemyOneHp = function (enemyId) {
     return "Enemy set to 1 HP: " + resolvedId;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getDevPatternIds = function () {
     var enemies = GraveFallGame.scene.Game.ENEMIES || {};
     var seen = {};
@@ -535,6 +589,9 @@ GraveFallGame.scene.Game.prototype.getDevPatternIds = function () {
     return patterns;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resolveDevPatternId = function (patternId) {
     var patterns = this.getDevPatternIds();
     var search = String(patternId || "").toLowerCase();
@@ -549,10 +606,16 @@ GraveFallGame.scene.Game.prototype.resolveDevPatternId = function (patternId) {
     return null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPatternList = function () {
     return "Patterns:\n" + this.getDevPatternIds().join("\n");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devEnsureActionPhaseForPatternTest = function () {
     this.devPrepareImmediateBattle();
 
@@ -576,6 +639,9 @@ GraveFallGame.scene.Game.prototype.devEnsureActionPhaseForPatternTest = function
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPatternSpawn = function (patternId, count) {
     var resolvedId = this.resolveDevPatternId(patternId);
     var spawnCount = parseInt(count, 10);
@@ -600,6 +666,9 @@ GraveFallGame.scene.Game.prototype.devCommandPatternSpawn = function (patternId,
     return "Spawned pattern " + resolvedId + " x" + spawnCount;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resolveDevPlayers = function (target) {
     var players = [];
     var search = String(target || "all").toLowerCase();
@@ -636,6 +705,9 @@ GraveFallGame.scene.Game.prototype.resolveDevPlayers = function (target) {
     return players;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devRefreshPlayersAfterHealthChange = function (players) {
     var i;
 
@@ -651,6 +723,9 @@ GraveFallGame.scene.Game.prototype.devRefreshPlayersAfterHealthChange = function
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPlayerHeal = function (target) {
     var players = this.resolveDevPlayers(target || "all");
     var i;
@@ -672,6 +747,9 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerHeal = function (target) {
     return "Healed players: " + players.length;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPlayerDown = function (target) {
     var players = this.resolveDevPlayers(target || "all");
     var i;
@@ -691,6 +769,9 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerDown = function (target) {
     return "Downed players: " + players.length;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPlayerKill = function (target) {
     var result;
 
@@ -702,6 +783,9 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerKill = function (target) {
     return result.replace("Downed", "Killed");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPlayerHp = function (target, amount) {
     var players = this.resolveDevPlayers(target || "all");
     var hp = parseInt(amount, 10);
@@ -723,6 +807,9 @@ GraveFallGame.scene.Game.prototype.devCommandPlayerHp = function (target, amount
     return "Set player HP for " + players.length + " players.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resolveDevItemType = function (itemType) {
     var search = String(itemType || "").toLowerCase();
 
@@ -735,6 +822,9 @@ GraveFallGame.scene.Game.prototype.resolveDevItemType = function (itemType) {
     return null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devGiveItems = function (players, itemType, count) {
     var itemTypes = GraveFallGame.scene.Game.ITEM_BUFF_TYPES || ["maxHp", "attack", "defense", "speed"];
     var types = itemType === "all" ? itemTypes : [itemType];
@@ -758,6 +848,9 @@ GraveFallGame.scene.Game.prototype.devGiveItems = function (players, itemType, c
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandItemAll = function (count) {
     var players = this.resolveDevPlayers("all");
     var amount = parseInt(count, 10);
@@ -770,6 +863,9 @@ GraveFallGame.scene.Game.prototype.devCommandItemAll = function (count) {
     return "Gave every item x" + amount + " to every player.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandItemGive = function (target, itemType, count) {
     var players = this.resolveDevPlayers(target || "all");
     var resolvedType = this.resolveDevItemType(itemType || "all");
@@ -791,11 +887,17 @@ GraveFallGame.scene.Game.prototype.devCommandItemGive = function (target, itemTy
     return "Gave " + resolvedType + " x" + amount + " to " + players.length + " players.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPhaseCommand = function () {
     this.devPrepareImmediateBattle();
     return "Entered command phase.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandPhaseAction = function () {
     this.devEnsureActionPhaseForPatternTest();
     this.nextPatternIn = 0;
@@ -803,6 +905,9 @@ GraveFallGame.scene.Game.prototype.devCommandPhaseAction = function () {
 };
 
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devParsePositiveNumber = function (value, min, max) {
     var number = parseFloat(value);
 
@@ -821,6 +926,9 @@ GraveFallGame.scene.Game.prototype.devParsePositiveNumber = function (value, min
     return number;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandTimerStatus = function () {
     var turnSeconds = this.getTurnTimerDurationMs() / 1000;
     var minigameSeconds = this.getMinigameDurationMs() / 1000;
@@ -836,6 +944,9 @@ GraveFallGame.scene.Game.prototype.devCommandTimerStatus = function () {
     ].join("\n");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandTimerTurn = function (seconds) {
     var value = this.devParsePositiveNumber(seconds, 1, 300);
 
@@ -854,6 +965,9 @@ GraveFallGame.scene.Game.prototype.devCommandTimerTurn = function (seconds) {
     return "Turn timer default set to " + value + " seconds.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandTimerTurnLeft = function (seconds) {
     var value = this.devParsePositiveNumber(seconds, 0, 300);
 
@@ -873,6 +987,9 @@ GraveFallGame.scene.Game.prototype.devCommandTimerTurnLeft = function (seconds) 
     return "Turn timer remaining set to " + value + " seconds.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandTimerAction = function (frames) {
     var value = this.devParsePositiveNumber(frames, 1, 3600);
 
@@ -889,6 +1006,9 @@ GraveFallGame.scene.Game.prototype.devCommandTimerAction = function (frames) {
     return "Action phase duration set to " + Math.round(value) + " frames.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandTimerMinigame = function (seconds) {
     var value = this.devParsePositiveNumber(seconds, 1, 300);
 
@@ -906,6 +1026,9 @@ GraveFallGame.scene.Game.prototype.devCommandTimerMinigame = function (seconds) 
     return "Minigame timer set to " + value + " seconds.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandTimerReset = function () {
     GraveFallGame.scene.Game.DEV_TURN_TIMER_MS = null;
     GraveFallGame.scene.Game.DEV_MINIGAME_TIMER_MS = null;
@@ -918,6 +1041,9 @@ GraveFallGame.scene.Game.prototype.devCommandTimerReset = function () {
     return "Timer overrides reset.";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devRemoveTrackedDisplayList = function (listName) {
     var list = this[listName];
     var removed = 0;
@@ -940,6 +1066,9 @@ GraveFallGame.scene.Game.prototype.devRemoveTrackedDisplayList = function (listN
     return removed;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCleanTransientUi = function () {
     var minigamesRemoved = 0;
     var i;
@@ -987,6 +1116,9 @@ GraveFallGame.scene.Game.prototype.devCleanTransientUi = function () {
     return minigamesRemoved;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devRepairCurrentPhaseUi = function () {
     var i;
     var menu;
@@ -1041,6 +1173,9 @@ GraveFallGame.scene.Game.prototype.devRepairCurrentPhaseUi = function () {
     this.updateAllPlayerDamageStates();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandUiClean = function () {
     var removed = this.devCleanTransientUi();
 
@@ -1058,6 +1193,9 @@ GraveFallGame.scene.Game.prototype.devCommandUiClean = function () {
     return "Cleaned UI. Minigames removed: " + removed;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandUiReset = function () {
     var removed = this.devCleanTransientUi();
 
@@ -1075,6 +1213,9 @@ GraveFallGame.scene.Game.prototype.devCommandUiReset = function () {
     return "Reset UI for current phase. Removed: " + removed;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandScoreAdd = function (amount) {
     var scoreAmount = parseInt(amount, 10);
 
@@ -1086,6 +1227,9 @@ GraveFallGame.scene.Game.prototype.devCommandScoreAdd = function (amount) {
     return "Score: " + this.score;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.devCommandScoreSet = function (amount) {
     var scoreAmount = parseInt(amount, 10);
 
@@ -1119,6 +1263,9 @@ if (GraveFallGame.scene.CharacterSelect) {
     GraveFallGame.scene.CharacterSelect.prototype.sanitizeDevConsoleResult = GraveFallGame.scene.Game.prototype.sanitizeDevConsoleResult;
     GraveFallGame.scene.CharacterSelect.prototype.registerDevConsoleCommand = GraveFallGame.scene.Game.prototype.registerDevConsoleCommand;
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.registerCharacterSelectDevConsoleCommands = function () {
         GraveFallGame.scene.Game.installDevConsoleOutputGuard();
 
@@ -1143,6 +1290,9 @@ if (GraveFallGame.scene.CharacterSelect) {
         }
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.unregisterCharacterSelectDevConsoleCommands = function (commands) {
         var commandList = GraveFallGame.scene.CharacterSelect.DEV_COMMAND_NAMES;
         var i;
@@ -1161,6 +1311,9 @@ if (GraveFallGame.scene.CharacterSelect) {
         }
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandSelectHelp = function () {
         return [
             "Character select dev commands:",
@@ -1175,6 +1328,9 @@ if (GraveFallGame.scene.CharacterSelect) {
         ].join("\n");
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandStartList = function () {
         var templates = GraveFallGame.scene.Game.CLASS_TEMPLATES || [];
         var lines = ["Start classes:"];
@@ -1187,6 +1343,9 @@ if (GraveFallGame.scene.CharacterSelect) {
         return lines.join("\n");
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartTemplate = function (classId) {
         var templates = GraveFallGame.scene.Game.CLASS_TEMPLATES || [];
         var search = String(classId || "random").toLowerCase();
@@ -1211,6 +1370,9 @@ if (GraveFallGame.scene.CharacterSelect) {
         return null;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartCount = function (value) {
         var count = parseInt(value, 10);
 
@@ -1221,6 +1383,9 @@ if (GraveFallGame.scene.CharacterSelect) {
         return Math.max(1, Math.min(4, count));
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.createDevPartyFromTemplates = function (templates) {
         var party = [];
         var partySize = Math.max(1, Math.min(4, templates.length));
@@ -1263,10 +1428,16 @@ if (GraveFallGame.scene.CharacterSelect) {
         return party;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.createDevSinglePlayerParty = function (template) {
         return this.createDevPartyFromTemplates([template]);
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.resolveDevStartTemplates = function (args) {
         var templates = [];
         var partySize = null;
@@ -1303,6 +1474,9 @@ if (GraveFallGame.scene.CharacterSelect) {
         return templates;
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.devStartRunFromArgs = function (args, bossMode) {
         var templates;
         var party;
@@ -1335,10 +1509,16 @@ if (GraveFallGame.scene.CharacterSelect) {
         return "Quick started " + party.length + "P" + (bossMode === true ? " boss" : "") + " run.";
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandQuickStart = function () {
         return this.devStartRunFromArgs(Array.prototype.slice.call(arguments), false);
     };
 
+    /**
+     * ...
+     */
     GraveFallGame.scene.CharacterSelect.prototype.devCommandBossQuickStart = function () {
         return this.devStartRunFromArgs(Array.prototype.slice.call(arguments), true);
     };

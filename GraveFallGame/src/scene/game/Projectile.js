@@ -2,12 +2,18 @@
 // Combat, collisions, projectiles, items
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnEnemyPattern = function () {
     var enemy = this.getCurrentEnemyConfig();
     var patternId = enemy.patterns[Math.floor(Math.random() * enemy.patterns.length)];
     this.spawnEnemyPatternById(patternId);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) {
     this.playEnemyPatternSfx(patternId);
 
@@ -60,6 +66,9 @@ GraveFallGame.scene.Game.prototype.spawnEnemyPatternById = function (patternId) 
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBossSwordRain = function () {
     var inner = this.getArenaInnerBounds();
     var count = 5 + Math.floor(Math.random() * 3);
@@ -90,6 +99,10 @@ GraveFallGame.scene.Game.prototype.spawnBossSwordRain = function () {
         });
     }
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBossVerticalSweep = function () {
     var inner = this.getArenaInnerBounds();
     var fromTop = Math.random() > 0.5;
@@ -117,6 +130,9 @@ GraveFallGame.scene.Game.prototype.spawnBossVerticalSweep = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBossOrbBurst = function () {
     var inner = this.getArenaInnerBounds();
     var originX = inner.x + (inner.width / 2);
@@ -153,6 +169,10 @@ GraveFallGame.scene.Game.prototype.spawnBossOrbBurst = function () {
         });
     }
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBossDiagonalDrop = function () {
     var inner = this.getArenaInnerBounds();
     var fromLeft = Math.random() > 0.5;
@@ -185,6 +205,10 @@ GraveFallGame.scene.Game.prototype.spawnBossDiagonalDrop = function () {
         });
     }
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinPebbleRain = function () {
     var inner = this.getArenaInnerBounds();
     var count = 12 + Math.floor(Math.random() * 5);
@@ -214,6 +238,10 @@ GraveFallGame.scene.Game.prototype.spawnGoblinPebbleRain = function () {
         });
     }
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinDartFan = function () {
     var inner = this.getArenaInnerBounds();
     var side = Math.random() > 0.5 ? -1 : 1;
@@ -248,6 +276,10 @@ GraveFallGame.scene.Game.prototype.spawnGoblinDartFan = function () {
         });
     }
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinStompWave = function () {
     var inner = this.getArenaInnerBounds();
     var i;
@@ -273,6 +305,10 @@ GraveFallGame.scene.Game.prototype.spawnGoblinStompWave = function () {
         });
     }
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossMaceQuake = function () {
     var inner = this.getArenaInnerBounds();
     var count = 9;
@@ -332,6 +368,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossMaceQuake = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossSwordPincer = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.22, 0.45, 0.68, 0.82];
@@ -403,6 +442,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossSwordPincer = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossHeadToss = function () {
     var inner = this.getArenaInnerBounds();
     var count = 4 + Math.floor(Math.random() * 2);
@@ -436,6 +478,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossHeadToss = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossMobCharge = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.18, 0.36, 0.54, 0.72, 0.88];
@@ -481,6 +526,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossMobCharge = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossBladeTrap = function () {
     var inner = this.getArenaInnerBounds();
     var i;
@@ -532,6 +580,10 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossBladeTrap = function () {
         });
     }
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGhoulOrbCrawl = function () {
     var inner = this.getArenaInnerBounds();
     var count = 7 + Math.floor(Math.random() * 2);
@@ -601,6 +653,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulOrbCrawl = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGhoulDartAmbush = function () {
     var inner = this.getArenaInnerBounds();
     var side = Math.random() > 0.5 ? -1 : 1;
@@ -659,6 +714,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulDartAmbush = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGhoulStompPulse = function () {
     var inner = this.getArenaInnerBounds();
     var count = 6;
@@ -687,6 +745,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulStompPulse = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGhoulImpaledSwordDrop = function () {
     var inner = this.getArenaInnerBounds();
     var count = 5 + Math.floor(Math.random() * 2);
@@ -715,6 +776,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulImpaledSwordDrop = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGhoulBoneShardSpread = function () {
     var inner = this.getArenaInnerBounds();
     var originX = inner.x + (inner.width / 2);
@@ -772,6 +836,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulBoneShardSpread = function () {
     });
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGhoulSkullDrift = function () {
     var inner = this.getArenaInnerBounds();
     var count = 4 + Math.floor(Math.random() * 2);
@@ -805,6 +872,9 @@ GraveFallGame.scene.Game.prototype.spawnGhoulSkullDrift = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnHyDragonFireballBreath = function () {
     var inner = this.getArenaInnerBounds();
     var fromLeft = Math.random() > 0.5;
@@ -849,6 +919,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireballBreath = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnHyDragonFireWave = function () {
     var inner = this.getArenaInnerBounds();
     var centerX = inner.x + (inner.width / 2);
@@ -894,6 +967,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFireWave = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnHyDragonSwordHunt = function () {
     var inner = this.getArenaInnerBounds();
     var count = 8;
@@ -962,6 +1038,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonSwordHunt = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnHyDragonSwordStorm = function () {
     var inner = this.getArenaInnerBounds();
     var count = 7 + Math.floor(Math.random() * 4);
@@ -993,6 +1072,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonSwordStorm = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnHyDragonCrossSweep = function () {
     var inner = this.getArenaInnerBounds();
     var horizontalY = inner.y + this.randomRange(58, inner.height - 76);
@@ -1031,6 +1113,10 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonCrossSweep = function () {
         type: "hydragon_vertical_sweep"
     });
 };
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnHyDragonFangFan = function () {
     var inner = this.getArenaInnerBounds();
     var originX = inner.x + (inner.width / 2);
@@ -1066,6 +1152,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonFangFan = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnHyDragonRoarQuake = function () {
     var inner = this.getArenaInnerBounds();
     var stompCount = 9;
@@ -1127,6 +1216,9 @@ GraveFallGame.scene.Game.prototype.spawnHyDragonRoarQuake = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCryptSpearProjectile = function (options) {
     var collisionWidth = options.collisionWidth || 20;
     var collisionHeight = options.collisionHeight || 80;
@@ -1161,6 +1253,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptSpearProjectile = function (options
     });
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCryptSpearCorridor = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.14, 0.30, 0.46, 0.62, 0.78, 0.90];
@@ -1203,6 +1298,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptSpearCorridor = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCryptSpearRiseFall = function () {
     var inner = this.getArenaInnerBounds();
     var pairs = [0.20, 0.38, 0.56, 0.74];
@@ -1260,6 +1358,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptSpearRiseFall = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCryptArrowSpearCrossfire = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.18, 0.36, 0.54, 0.72, 0.88];
@@ -1302,6 +1403,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptArrowSpearCrossfire = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCryptArrowCrossfire = function (options) {
     var inner = this.getArenaInnerBounds();
     var config = options || {};
@@ -1364,6 +1468,9 @@ GraveFallGame.scene.Game.prototype.spawnCryptArrowCrossfire = function (options)
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBoneCallerShardArc = function () {
     var inner = this.getArenaInnerBounds();
     var originX = inner.x + (inner.width / 2);
@@ -1398,6 +1505,9 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerShardArc = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBoneCallerSkullRing = function () {
     var inner = this.getArenaInnerBounds();
     var count = 4;
@@ -1466,6 +1576,9 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerSkullRing = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
     var inner = this.getArenaInnerBounds();
     var centerX = inner.x + (inner.width / 2);
@@ -1534,6 +1647,9 @@ GraveFallGame.scene.Game.prototype.spawnBoneCallerBoneSpiral = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCrystalRain = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.12, 0.27, 0.42, 0.58, 0.73, 0.88];
@@ -1578,6 +1694,9 @@ GraveFallGame.scene.Game.prototype.spawnCrystalRain = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCrystalWall = function () {
     var inner = this.getArenaInnerBounds();
     var fromLeft = Math.random() > 0.5;
@@ -1622,6 +1741,9 @@ GraveFallGame.scene.Game.prototype.spawnCrystalWall = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnCrystalOrbSplit = function () {
     var inner = this.getArenaInnerBounds();
     var origins = [
@@ -1661,6 +1783,9 @@ GraveFallGame.scene.Game.prototype.spawnCrystalOrbSplit = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinAnimatedWalkers = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.16, 0.34, 0.52, 0.70, 0.88];
@@ -1697,6 +1822,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinAnimatedWalkers = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnOrbSplitChain = function () {
     var inner = this.getArenaInnerBounds();
     var count = 3;
@@ -1731,6 +1859,9 @@ GraveFallGame.scene.Game.prototype.spawnOrbSplitChain = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBouncingSkulls = function () {
     var inner = this.getArenaInnerBounds();
     var count = 4;
@@ -1788,6 +1919,9 @@ GraveFallGame.scene.Game.prototype.spawnBouncingSkulls = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnBombCluster = function () {
     var inner = this.getArenaInnerBounds();
     var count = 3;
@@ -1843,6 +1977,9 @@ GraveFallGame.scene.Game.prototype.spawnBombCluster = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnAttackFireSpray = function () {
     var inner = this.getArenaInnerBounds();
     var fromLeft = Math.random() > 0.5;
@@ -1888,6 +2025,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackFireSpray = function () {
 
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnAttackHomingWisps = function () {
     var inner = this.getArenaInnerBounds();
     var count = 8;
@@ -1952,6 +2092,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackHomingWisps = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnAttackPulseOrbs = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.12, 0.28, 0.44, 0.60, 0.76, 0.90];
@@ -1993,6 +2136,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackPulseOrbs = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnAttackHunterPack = function () {
     var inner = this.getArenaInnerBounds();
     var lanes = [0.18, 0.36, 0.54, 0.72, 0.88];
@@ -2038,6 +2184,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackHunterPack = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnAttackFuseMinefield = function () {
     var inner = this.getArenaInnerBounds();
     var count = 4;
@@ -2102,6 +2251,9 @@ GraveFallGame.scene.Game.prototype.spawnAttackFuseMinefield = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnGoblinBossFuseBombs = function () {
     var inner = this.getArenaInnerBounds();
     var count = 3;
@@ -2172,6 +2324,9 @@ GraveFallGame.scene.Game.prototype.spawnGoblinBossFuseBombs = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnRadialProjectiles = function (options) {
     var count = options.count || 8;
     var speed = options.speed || 3.5;
@@ -2209,6 +2364,9 @@ GraveFallGame.scene.Game.prototype.spawnRadialProjectiles = function (options) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.splitProjectile = function (projectile) {
     var centerX = projectile.x + (projectile.width / 2);
     var centerY = projectile.y + (projectile.height / 2);
@@ -2235,6 +2393,9 @@ GraveFallGame.scene.Game.prototype.splitProjectile = function (projectile) {
     });
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
     var centerX;
     var centerY;
@@ -2297,6 +2458,9 @@ GraveFallGame.scene.Game.prototype.explodeProjectile = function (projectile) {
     this.shakeCamera(260, 8, 6, true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateProjectileBounce = function (projectile, inner) {
     var bounds;
     var overflow;
@@ -2350,6 +2514,9 @@ GraveFallGame.scene.Game.prototype.updateProjectileBounce = function (projectile
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getNearestBattleAvatarCenter = function (x, y) {
     var best = null;
     var bestDistance = Infinity;
@@ -2389,6 +2556,9 @@ GraveFallGame.scene.Game.prototype.getNearestBattleAvatarCenter = function (x, y
     return best;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.activateDelayedProjectile = function (projectile) {
     if (!projectile) {
         return;
@@ -2403,6 +2573,9 @@ GraveFallGame.scene.Game.prototype.activateDelayedProjectile = function (project
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clampProjectileSpeed = function (projectile) {
     var speed;
     var targetSpeed = null;
@@ -2433,6 +2606,9 @@ GraveFallGame.scene.Game.prototype.clampProjectileSpeed = function (projectile) 
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setProjectileSpeedKeepingDirection = function (projectile, targetSpeed) {
     var speed;
     var scale;
@@ -2452,6 +2628,9 @@ GraveFallGame.scene.Game.prototype.setProjectileSpeedKeepingDirection = function
     projectile.vy *= scale;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateProjectileFacing = function (projectile) {
     var angle;
 
@@ -2467,6 +2646,9 @@ GraveFallGame.scene.Game.prototype.updateProjectileFacing = function (projectile
     projectile.rotation = angle + (projectile.faceVelocityOffset || 0);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (projectile) {
     var centerX;
     var centerY;
@@ -2600,6 +2782,9 @@ GraveFallGame.scene.Game.prototype.updateProjectileDynamicMotion = function (pro
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.beginProjectileFadeOut = function (projectile, frames, keepMotion) {
     var duration;
 
@@ -2628,6 +2813,9 @@ GraveFallGame.scene.Game.prototype.beginProjectileFadeOut = function (projectile
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index, immediate) {
     var projectile = this.projectiles[index];
 
@@ -2647,6 +2835,9 @@ GraveFallGame.scene.Game.prototype.removeProjectileAt = function (index, immedia
     this.projectiles.splice(index, 1);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getProjectileHitboxLeeway = function (options) {
     var width = options && options.collisionWidth ? options.collisionWidth : (options && options.width ? options.width : 0);
     var height = options && options.collisionHeight ? options.collisionHeight : (options && options.height ? options.height : 0);
@@ -2674,6 +2865,9 @@ GraveFallGame.scene.Game.prototype.getProjectileHitboxLeeway = function (options
     return leeway;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getCollisionBoundsAt = function (object, x, y) {
     var objectX = object ? object.x || 0 : 0;
     var objectY = object ? object.y || 0 : 0;
@@ -2710,10 +2904,16 @@ GraveFallGame.scene.Game.prototype.getCollisionBoundsAt = function (object, x, y
     };
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getCollisionBounds = function (object) {
     return this.getCollisionBoundsAt(object);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.rectBoundsOverlap = function (aBounds, bBounds) {
     return rune.geom.Rectangle.intersects(
         aBounds.x,
@@ -2727,10 +2927,16 @@ GraveFallGame.scene.Game.prototype.rectBoundsOverlap = function (aBounds, bBound
     );
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.rectsOverlap = function (a, b) {
     return this.rectBoundsOverlap(this.getCollisionBounds(a), this.getCollisionBounds(b));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMenu, testX, testY) {
     var i;
     var otherMenu;
@@ -2745,6 +2951,9 @@ GraveFallGame.scene.Game.prototype.isBattleAvatarColliding = function (playerMen
     return false;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu) {
     var flashAlpha = 1;
 
@@ -2764,6 +2973,9 @@ GraveFallGame.scene.Game.prototype.updatePlayerHitFlicker = function (playerMenu
     playerMenu.classIcon.alpha = flashAlpha;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
     var i;
     var j;
@@ -2809,6 +3021,9 @@ GraveFallGame.scene.Game.prototype.checkProjectileCollisions = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
     var inner = this.getArenaInnerBounds();
     var i;
@@ -2919,6 +3134,9 @@ GraveFallGame.scene.Game.prototype.updateProjectiles = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getClampBoundsAt = function (object, x, y) {
     var objectX = object ? object.x || 0 : 0;
     var objectY = object ? object.y || 0 : 0;
@@ -2959,6 +3177,9 @@ GraveFallGame.scene.Game.prototype.getClampBoundsAt = function (object, x, y) {
     };
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clampObjectHitboxToBounds = function (object, x, y, bounds) {
     var clampedX = x;
     var clampedY = y;

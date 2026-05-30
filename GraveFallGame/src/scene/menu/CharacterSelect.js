@@ -64,7 +64,13 @@ GraveFallGame.scene.CharacterSelect.prototype.getPlayerStandDamageStates = Grave
 GraveFallGame.scene.CharacterSelect.prototype.getPortraitDamageStates = GraveFallGame.scene.Game.prototype.getPortraitDamageStates;
 GraveFallGame.scene.CharacterSelect.prototype.isDevConsoleInputActive = GraveFallGame.scene.Game.prototype.isDevConsoleInputActive;
 
-// --- UNIVERSAL INPUT HELPERS FOR SELECT SCENE ---
+//------------------------------------------------------------------------------
+// UNIVERSAL INPUT HELPERS FOR SELECT SCENE
+//------------------------------------------------------------------------------
+
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.getGamepadForInput = function (inputOwner) {
     var index = inputOwner && inputOwner.gamepadIndex !== undefined ? inputOwner.gamepadIndex : 0;
     var gp = null;
@@ -82,6 +88,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getGamepadForInput = function (inp
     return gp && gp.connected ? gp : null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.controls.confirm)) return true;
@@ -89,6 +98,9 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedConfirm = function (ctr
     return gp && gp.justPressed(0);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedBack = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed("backspace")) return true;
@@ -96,6 +108,9 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedBack = function (ctrl) 
     return gp && (gp.justPressed(1) || gp.justPressed(2)); // Button B or X
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.controls.left)) return true;
@@ -103,6 +118,9 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedLeft = function (ctrl) 
     return gp && (gp.justPressed(14) || gp.stickLeftJustLeft);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.controls.right)) return true;
@@ -110,6 +128,9 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedRight = function (ctrl)
     return gp && (gp.justPressed(15) || gp.stickLeftJustRight);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedUp = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.moveControls.up)) return true;
@@ -117,6 +138,9 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedUp = function (ctrl) {
     return gp && (gp.justPressed(12) || gp.stickLeftJustUp);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.justPressedDown = function (ctrl) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) return false;
     if (this.keyboard.justPressed(ctrl.moveControls.down)) return true;
@@ -124,6 +148,9 @@ GraveFallGame.scene.CharacterSelect.prototype.justPressedDown = function (ctrl) 
     return gp && (gp.justPressed(13) || gp.stickLeftJustDown);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = function (controller) {
     var controls = controller && controller.controls ? controller.controls : {};
     var moveControls = controller && controller.moveControls ? controller.moveControls : {};
@@ -146,6 +173,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getCanonicalControllerInput = func
 // Public prototype methods
 //------------------------------------------------------------------------------
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     GraveFallGame.useBitmapFont();
 
@@ -205,6 +235,9 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     }
 };
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
 
@@ -212,7 +245,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
         return;
     }
 
-    // --- PHASE ROUTING ---
+    // PHASE ROUTING
     if (this.phase === "name") {
         this.updateNamePhase(step);
         return;
@@ -223,7 +256,7 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
         return;
     }
 
-    // --- PHASE: SELECT ---
+    // PHASE: SELECT
     var allJoinedConfirmed = true;
     var anyJoined = this.players.length > 0;
     var c;
@@ -333,6 +366,9 @@ GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
     }
 };
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.CharacterSelect.prototype.dispose = function () {
     if (typeof this.unregisterCharacterSelectDevConsoleCommands === "function") {
         this.unregisterCharacterSelectDevConsoleCommands();
@@ -345,6 +381,9 @@ GraveFallGame.scene.CharacterSelect.prototype.dispose = function () {
 // PARTY NAME PHASE
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.startNameInputPhase = function () {
     this.phase = "name";
 
@@ -434,6 +473,9 @@ GraveFallGame.scene.CharacterSelect.prototype.startNameInputPhase = function () 
     this.refreshPartyNameDisplay();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.updateNamePhase = function (step) {
     var allReady = true;
 
@@ -499,12 +541,15 @@ GraveFallGame.scene.CharacterSelect.prototype.updateNamePhase = function (step) 
         this.kbContainer.visible = false;
         this.instructionText.visible = false;
         
-        // FIX: Update phase state so the transition actually begins in the update loop!
+        // Update the phase state so the transition begins in the update loop.
         this.phase = "transition"; 
         this.beginEnterTransition();
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.updatePlayerKbdCursor = function (player, playerIndex) {
     var vis = this.kbVisuals[player.kbdY][player.kbdX];
     var cursor = this.kbdCursors[playerIndex];
@@ -521,11 +566,14 @@ GraveFallGame.scene.CharacterSelect.prototype.updatePlayerKbdCursor = function (
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.refreshPartyNameDisplay = function () {
     var str = this.partyName + (this.partyName.length < 12 ? "_" : "");
     this.partyNameText.text = str;
     
-    // FIX: Removed autoSize = true and manually centered the string
+    // Keep the string manually centered to avoid auto-size layout drift.
     this.partyNameText.x = Math.floor((this.application.screen.width / 2) - ((str.length * 6 * 4) / 2));
 };
 
@@ -533,6 +581,9 @@ GraveFallGame.scene.CharacterSelect.prototype.refreshPartyNameDisplay = function
 // Character select visuals
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.centerText = function (field, centerX, scale) {
     if (!field) {
         return;
@@ -541,6 +592,9 @@ GraveFallGame.scene.CharacterSelect.prototype.centerText = function (field, cent
     field.x = Math.round(centerX - ((field.text.length * 6 * scale) / 2));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.getDownedCharacterTheme = function () {
     return {
         accent: GraveFallGame.scene.Game.PLAYER_DOWNED_PALETTE.mid,
@@ -554,6 +608,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getDownedCharacterTheme = function
     };
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription = function (template) {
     var id = template && template.id ? String(template.id).toLowerCase() : "";
     var name = template && template.name ? String(template.name).toLowerCase() : "";
@@ -577,6 +634,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getCharacterSelectBuffDescription 
     return "ACTIVE BUFF: DAMAGE x1.5";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (template, x, y, width, height, index) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.selectionSkin);
     var panel;
@@ -699,6 +759,9 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassCard = function (templa
     this.restoreClassNodeVisual(node);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodePortrait = function (node, theme, downed) {
     var portrait;
     var paletteTheme = theme || this.getDownedCharacterTheme();
@@ -715,6 +778,9 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodePortrait = function
     return portrait;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodeIcon = function (node, theme) {
     var icon;
     var resource;
@@ -733,6 +799,9 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodeIcon = function (no
     return icon;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (node, theme, downed) {
     var sprite;
     var paletteTheme = theme || this.getDownedCharacterTheme();
@@ -761,6 +830,9 @@ GraveFallGame.scene.CharacterSelect.prototype.createClassNodeSprite = function (
     return sprite;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.removeNodeDynamicVisuals = function (node) {
     if (!node) {
         return;
@@ -783,6 +855,9 @@ GraveFallGame.scene.CharacterSelect.prototype.removeNodeDynamicVisuals = functio
     node.sprite = null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.applyClassNodeChrome = function (node, theme) {
     var tintTheme = theme || this.getDownedCharacterTheme();
 
@@ -806,6 +881,9 @@ GraveFallGame.scene.CharacterSelect.prototype.applyClassNodeChrome = function (n
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (node, theme, lockedBy) {
     var icon;
     var sprite;
@@ -849,6 +927,9 @@ GraveFallGame.scene.CharacterSelect.prototype.setClassNodeVisual = function (nod
     node.lockedBy = lockedBy || null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.restoreClassNodeVisual = function (node) {
     if (!node) {
         return;
@@ -861,6 +942,9 @@ GraveFallGame.scene.CharacterSelect.prototype.restoreClassNodeVisual = function 
 // Layout and transition helpers
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.getControllerOrderIndex = function (ctrl) {
     var i;
 
@@ -877,6 +961,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getControllerOrderIndex = function
     return 0;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.getSpriteXForCardX = function (node, cardX) {
     if (!node) {
         return 0;
@@ -885,6 +972,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getSpriteXForCardX = function (nod
     return Math.round(cardX + (node.cardWidth / 2) - ((100 * node.spriteScale) / 2));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.applyNodeVisualX = function (node, visualX) {
     if (!node) {
         return;
@@ -901,6 +991,9 @@ GraveFallGame.scene.CharacterSelect.prototype.applyNodeVisualX = function (node,
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.setNodeTargetSlot = function (node, slotIndex, animate) {
     var targetX;
 
@@ -932,6 +1025,9 @@ GraveFallGame.scene.CharacterSelect.prototype.setNodeTargetSlot = function (node
     node.layoutStartX = (typeof node.visualX === "number") ? node.visualX : (node.panel ? node.panel.x : targetX);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.updateClassLayoutAnimations = function (step) {
     var i;
     var node;
@@ -969,6 +1065,9 @@ GraveFallGame.scene.CharacterSelect.prototype.updateClassLayoutAnimations = func
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.rebuildClassLayout = function (animate) {
     var slotByClassIndex = {};
     var usedSlots = [];
@@ -1028,6 +1127,9 @@ GraveFallGame.scene.CharacterSelect.prototype.rebuildClassLayout = function (ani
 };
 
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.easeTransition = function (progress) {
     progress = Math.max(0, Math.min(1, progress || 0));
 
@@ -1038,6 +1140,9 @@ GraveFallGame.scene.CharacterSelect.prototype.easeTransition = function (progres
     return progress * progress * (3 - (2 * progress));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.getSelectedPlayersInRenderOrder = function () {
     var selectedPlayers = [];
     var controllerIndex;
@@ -1065,6 +1170,9 @@ GraveFallGame.scene.CharacterSelect.prototype.getSelectedPlayersInRenderOrder = 
     return selectedPlayers;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.beginEnterTransition = function () {
     var selectedPlayers;
     var partySize;
@@ -1157,6 +1265,9 @@ GraveFallGame.scene.CharacterSelect.prototype.beginEnterTransition = function ()
     };
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.updateEnterTransition = function (step) {
     var transition = this.enterTransition;
     var progress;
@@ -1277,6 +1388,9 @@ GraveFallGame.scene.CharacterSelect.prototype.updateEnterTransition = function (
 // Selection logic
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.findAvailableClassIndex = function (startIndex, step, player) {
     var total;
     var i;
@@ -1308,6 +1422,9 @@ GraveFallGame.scene.CharacterSelect.prototype.findAvailableClassIndex = function
     return startIndex;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.releasePlayerSelection = function (player) {
     var node;
 
@@ -1324,6 +1441,9 @@ GraveFallGame.scene.CharacterSelect.prototype.releasePlayerSelection = function 
     player.hoveredClassIndex = -1;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.claimPlayerSelection = function (player, classIndex) {
     var node;
     var theme;
@@ -1351,6 +1471,9 @@ GraveFallGame.scene.CharacterSelect.prototype.claimPlayerSelection = function (p
     return true;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
     var player;
 
@@ -1377,6 +1500,9 @@ GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
     this.updatePlayerCursor(player);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.updatePlayerCursor = function (player) {
     var node = this.classNodes[player.classIndex];
     var theme = GraveFallGame.scene.Game.PLAYER_THEMES[player.controller.themeIndex];
@@ -1421,6 +1547,9 @@ GraveFallGame.scene.CharacterSelect.prototype.updatePlayerCursor = function (pla
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (anyJoined, allJoinedConfirmed) {
     if (anyJoined && allJoinedConfirmed) {
         return;
@@ -1435,6 +1564,9 @@ GraveFallGame.scene.CharacterSelect.prototype.updateInstructionText = function (
     this.centerText(this.instructionText, this.application.screen.width / 2, 2);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
     var activeParty = [];
     var selectedPlayers = [];

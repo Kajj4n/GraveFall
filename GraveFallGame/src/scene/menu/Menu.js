@@ -221,6 +221,9 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
 // Private visual helpers
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.createText = function (text, x, y, scale, width) {
     var field = new rune.text.BitmapField(text);
 
@@ -240,6 +243,9 @@ GraveFallGame.scene.Menu.prototype.createText = function (text, x, y, scale, wid
     return field;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.centerText = function (field, centerX, scale) {
     if (!field) {
         return;
@@ -249,6 +255,9 @@ GraveFallGame.scene.Menu.prototype.centerText = function (field, centerX, scale)
     field.x = Math.round(centerX - ((String(field.text).length * 6 * scale) / 2));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.createMenuPanel = function (x, y, width, height, skin, framePaletteSwaps) {
     var panel = new rune.display.DisplayObjectContainer(x, y, width, height);
     var top = new rune.display.Graphic(0, 0, width, Math.round(height * 0.44));
@@ -267,6 +276,9 @@ GraveFallGame.scene.Menu.prototype.createMenuPanel = function (x, y, width, heig
     return panel;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.createScreenFooter = function (text, framePaletteSwaps) {
     var screen = this.application.screen;
     var footerHeight = 62;
@@ -286,6 +298,9 @@ GraveFallGame.scene.Menu.prototype.createScreenFooter = function (text, framePal
     return footer;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
     var card = new rune.display.DisplayObjectContainer(options.x, options.y, options.width, options.height);
@@ -338,6 +353,9 @@ GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     };
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.createControlHint = function (parent, x, y, iconResource, title, detail, color) {
     var group = new rune.display.DisplayObjectContainer(x, y, 210, 54);
     var icons = iconResource instanceof Array ? iconResource : [iconResource];
@@ -368,6 +386,9 @@ GraveFallGame.scene.Menu.prototype.createControlHint = function (parent, x, y, i
     return group;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
     var panel;
     var heading;
@@ -394,6 +415,9 @@ GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
  
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.updateVisuals = function () {
     var i;
     var card;
@@ -415,6 +439,9 @@ GraveFallGame.scene.Menu.prototype.updateVisuals = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Menu.prototype.updateAnimatedVisuals = function () {
     var card;
     var pulse;

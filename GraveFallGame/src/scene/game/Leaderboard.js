@@ -1,8 +1,3 @@
-// -----------------------------------------------------------------------------
-// IMPORTANT: YOU MUST ADD <script src="js/scene/Leaderboard.js"></script> 
-// TO YOUR index.html FILE FOR THIS SCENE TO LOAD WITHOUT CRASHING!
-// -----------------------------------------------------------------------------
-
 //------------------------------------------------------------------------------
 // Constructor scope
 //------------------------------------------------------------------------------
@@ -45,6 +40,10 @@ GraveFallGame.scene.Leaderboard.prototype.applyMonochromeIconColor = GraveFallGa
 GraveFallGame.scene.Leaderboard.prototype.createBoxFrame = GraveFallGame.scene.Game.prototype.createBoxFrame;
 GraveFallGame.scene.Leaderboard.prototype.createSeparator = GraveFallGame.scene.Game.prototype.createSeparator;
 GraveFallGame.scene.Leaderboard.prototype.createFramePiece = GraveFallGame.scene.Game.prototype.createFramePiece;
+
+/**
+ * ...
+ */
 GraveFallGame.scene.Leaderboard.prototype.tintBitmapFieldText = function (field, targetColor, stripBackdrop) {
     if (GraveFallGame.scene.Game.prototype.tintBitmapFieldText) {
         return GraveFallGame.scene.Game.prototype.tintBitmapFieldText.call(this, field, targetColor, stripBackdrop);
@@ -56,6 +55,9 @@ GraveFallGame.scene.Leaderboard.prototype.isDevConsoleInputActive = GraveFallGam
 // Overrides
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Leaderboard.prototype.sanitizeBitmapText = function (text) {
     var safeText;
 
@@ -67,6 +69,9 @@ GraveFallGame.scene.Leaderboard.prototype.sanitizeBitmapText = function (text) {
     return safeText;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Leaderboard.prototype.createScreenFooter = function (text, framePaletteSwaps) {
     var screen = this.application.screen;
     var footerHeight = 62;
@@ -89,6 +94,9 @@ GraveFallGame.scene.Leaderboard.prototype.createScreenFooter = function (text, f
     return footer;
 };
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.Leaderboard.prototype.init = function () {
     GraveFallGame.useBitmapFont();
 
@@ -130,6 +138,9 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
     this.renderPage();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
     var i;
     var tab;
@@ -167,6 +178,9 @@ GraveFallGame.scene.Leaderboard.prototype.createPageTabs = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Leaderboard.prototype.getLeaderboardScores = function (partySize) {
     var scores = [];
     var parsed;
@@ -215,6 +229,9 @@ GraveFallGame.scene.Leaderboard.prototype.getLeaderboardScores = function (party
     return scores;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
     var i;
     var scores;
@@ -339,6 +356,9 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
     }
 };
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.Leaderboard.prototype.update = function (step) {
     var pressLeft;
     var pressRight;
@@ -390,6 +410,9 @@ GraveFallGame.scene.Leaderboard.prototype.update = function (step) {
     }
 };
 
+/**
+ * @inheritDoc
+ */
 GraveFallGame.scene.Leaderboard.prototype.dispose = function () {
     this.pageContainer = null;
     this.tabs = null;

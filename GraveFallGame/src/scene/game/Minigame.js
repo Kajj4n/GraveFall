@@ -2,6 +2,9 @@
 // Minigame phase logic
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startMinigamePhase = function () {
     var i;
     var menu;
@@ -33,6 +36,9 @@ GraveFallGame.scene.Game.prototype.startMinigamePhase = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getMinigameDefinition = function (minigameId) {
     var definitions = GraveFallGame.scene.Game.MINIGAME_DEFINITIONS || {};
     var fallback = GraveFallGame.scene.Game.DEFAULT_ATTACK_MINIGAME || "buttonSequence";
@@ -44,6 +50,9 @@ GraveFallGame.scene.Game.prototype.getMinigameDefinition = function (minigameId)
     return definitions[fallback] || null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createMinigamePanel = function (menu, title, width, height) {
     var theme = menu.theme || this.getPlayerTheme(0);
     var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -84,6 +93,9 @@ GraveFallGame.scene.Game.prototype.createMinigamePanel = function (menu, title, 
     return group;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setMinigameFeedback = function (menu, text) {
     if (!menu || !menu.minigame || !menu.minigame.feedbackText) {
         return;
@@ -101,6 +113,9 @@ GraveFallGame.scene.Game.prototype.setMinigameFeedback = function (menu, text) {
     this.centerMinigameText(menu.minigame.feedbackText, menu.minigame.group.width, menu.minigame.feedbackText.y);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createHiddenMinigameFeedbackText = function (y) {
     var feedback = new rune.text.BitmapField("READY");
 
@@ -113,6 +128,9 @@ GraveFallGame.scene.Game.prototype.createHiddenMinigameFeedbackText = function (
     return feedback;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.fitBitmapFieldToText = function (textField, text) {
     if (!textField) {
         return;
@@ -135,6 +153,9 @@ GraveFallGame.scene.Game.prototype.fitBitmapFieldToText = function (textField, t
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.centerMinigameText = function (textField, width, y, text) {
     if (!textField) {
         return;
@@ -145,6 +166,9 @@ GraveFallGame.scene.Game.prototype.centerMinigameText = function (textField, wid
     textField.y = y;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.positionMinigameScoreText = function (group) {
     var scoreText;
 
@@ -158,10 +182,16 @@ GraveFallGame.scene.Game.prototype.positionMinigameScoreText = function (group) 
     scoreText.y = 6;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getMinigameAttackItemBonus = function (menu) {
     return Math.max(0, Math.floor(menu ? (menu.permanentAttackBonus || 0) : 0));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.applyAttackItemBonusToMinigameDamage = function (menu, baseBonus) {
     var bonus = Math.max(0, Math.floor(baseBonus || 0));
 
@@ -172,10 +202,16 @@ GraveFallGame.scene.Game.prototype.applyAttackItemBonusToMinigameDamage = functi
     return bonus + this.getMinigameAttackItemBonus(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.isBossPowerUpMinigameActive = function (menu) {
     return !!(menu && menu.minigame && menu.minigame.isFinalCharge === true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startPlayerPowerUpShake = function (playerMenu) {
     if (!playerMenu || !playerMenu.stand) {
         return;
@@ -198,6 +234,9 @@ GraveFallGame.scene.Game.prototype.startPlayerPowerUpShake = function (playerMen
     playerMenu.previewShakeAmountY = 5;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.spawnMinigamePowerUpEffect = function (menu) {
     var anchor;
     var colors;
@@ -228,6 +267,9 @@ GraveFallGame.scene.Game.prototype.spawnMinigamePowerUpEffect = function (menu) 
     });
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateMinigameHud = function (menu) {
     var damage;
     var timerScale;
@@ -249,6 +291,9 @@ GraveFallGame.scene.Game.prototype.updateMinigameHud = function (menu) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createOptionalMinigameSprite = function (resourceName, x, y, width, height, fallbackColor) {
     var display;
 
@@ -262,6 +307,9 @@ GraveFallGame.scene.Game.prototype.createOptionalMinigameSprite = function (reso
     return display;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createThemedMinigameSprite = function (resourceNames, x, y, width, height, fallbackColor, targetColor) {
     var i;
     var resourceName = null;
@@ -287,6 +335,9 @@ GraveFallGame.scene.Game.prototype.createThemedMinigameSprite = function (resour
     return display;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getButtonIconForDirection = function (direction) {
     if (direction === "up") {
         return "Y_Button_Icon_T";
@@ -303,6 +354,9 @@ GraveFallGame.scene.Game.prototype.getButtonIconForDirection = function (directi
     return "A_Button_Icon_T";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getButtonLabelForDirection = function (direction) {
     if (direction === "up") {
         return "Y";
@@ -319,6 +373,9 @@ GraveFallGame.scene.Game.prototype.getButtonLabelForDirection = function (direct
     return "A";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getButtonPositionLabelForDirection = function (direction) {
     if (direction === "up") {
         return "TOP";
@@ -335,6 +392,9 @@ GraveFallGame.scene.Game.prototype.getButtonPositionLabelForDirection = function
     return "BOTTOM";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getGamepadMovementIconForDirection = function (direction) {
     if (direction === "up") {
         return "Gamepad_Button_Up_T";
@@ -351,6 +411,9 @@ GraveFallGame.scene.Game.prototype.getGamepadMovementIconForDirection = function
     return "Gamepad_Button_Down_T";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getMovementLabelForDirection = function (direction) {
     if (direction === "up") {
         return "UP";
@@ -367,6 +430,9 @@ GraveFallGame.scene.Game.prototype.getMovementLabelForDirection = function (dire
     return "DOWN";
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getSequenceIconForDirection = function (direction) {
     var resource = this.getGamepadMovementIconForDirection(direction);
 
@@ -377,6 +443,9 @@ GraveFallGame.scene.Game.prototype.getSequenceIconForDirection = function (direc
     return this.getButtonIconForDirection(direction);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createMinigameIcon = function (resource, x, y, scale) {
     var icon = new rune.display.Sprite(x, y, 100, 100, resource);
 
@@ -386,6 +455,9 @@ GraveFallGame.scene.Game.prototype.createMinigameIcon = function (resource, x, y
     return icon;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.layoutPlayerMinigame = function (menu) {
     var group;
     var gap;
@@ -404,6 +476,9 @@ GraveFallGame.scene.Game.prototype.layoutPlayerMinigame = function (menu) {
     group.alpha = 1;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setupPlayerMinigame = function (menu) {
     var definition;
     var setupName;
@@ -424,6 +499,9 @@ GraveFallGame.scene.Game.prototype.setupPlayerMinigame = function (menu) {
     this.layoutPlayerMinigame(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setButtonMashPromptIcon = function (menu, resource, x, y, scale) {
     var minigame = menu.minigame;
     var icon;
@@ -444,10 +522,16 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptIcon = function (menu, res
     return icon;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getButtonMashIconResource = function (direction) {
     return this.getButtonIconForDirection(direction);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearButtonMashPromptIcons = function (menu) {
     var i;
     var icons;
@@ -467,12 +551,18 @@ GraveFallGame.scene.Game.prototype.clearButtonMashPromptIcons = function (menu) 
     menu.minigame.buttonIcons = [];
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createCenteredMinigameIcon = function (resource, centerX, centerY, scale) {
     var size = Math.round(100 * (scale || 0.42));
 
     return this.createMinigameIcon(resource, Math.round(centerX - (size / 2)), Math.round(centerY - (size / 2)), scale);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, activeDirection) {
     var minigame = menu.minigame;
     var group;
@@ -523,6 +613,9 @@ GraveFallGame.scene.Game.prototype.setButtonMashPromptMatrix = function (menu, a
 
 // Minigame button prompts are face-button prompts, not D-pad/left-stick prompts.
 // Keyboard fallback stays on each player's existing movement keys for debug/keyboard play.
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu) {
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
         return null;
@@ -563,6 +656,9 @@ GraveFallGame.scene.Game.prototype.getPressedMinigameDirection = function (menu)
     return null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getPressedMovementMinigameDirection = function (menu) {
     var gp;
 
@@ -625,6 +721,9 @@ GraveFallGame.scene.Game.prototype.getPressedMovementMinigameDirection = functio
     return null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (menu) {
     if (!menu || !menu.minigame) {
         return null;
@@ -633,6 +732,9 @@ GraveFallGame.scene.Game.prototype.getPressedButtonMashDirection = function (men
     return this.getPressedMinigameDirection(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateButtonMashPromptText = function (menu, direction) {
     var minigame;
     var label;
@@ -658,6 +760,9 @@ GraveFallGame.scene.Game.prototype.updateButtonMashPromptText = function (menu, 
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
     var minigame = menu.minigame;
     var previous;
@@ -680,6 +785,9 @@ GraveFallGame.scene.Game.prototype.rollButtonMashButton = function (menu) {
     this.setMinigameFeedback(menu, "");
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
     var minigame = menu.minigame;
     var bonus;
@@ -703,6 +811,9 @@ GraveFallGame.scene.Game.prototype.completeButtonMashCycle = function (menu) {
     this.rollButtonMashButton(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("MASH SHOWN");
@@ -750,6 +861,9 @@ GraveFallGame.scene.Game.prototype.setupButtonMashMinigame = function (menu, def
     this.rollButtonMashButton(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
     var minigame;
     var ratio;
@@ -780,6 +894,9 @@ GraveFallGame.scene.Game.prototype.updateButtonMashMinigame = function (menu) {
 // Boss final charge / final strike logic
 //------------------------------------------------------------------------------
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setEnemyHealthBarVisible = function (visible) {
     var alpha = visible === true ? 1 : 0;
 
@@ -804,6 +921,9 @@ GraveFallGame.scene.Game.prototype.setEnemyHealthBarVisible = function (visible)
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.centerFinalChargeText = function (textField, containerWidth, y, text) {
     if (!textField) {
         return;
@@ -814,6 +934,9 @@ GraveFallGame.scene.Game.prototype.centerFinalChargeText = function (textField, 
     textField.y = y;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
     var screenW = this.application.screen.width;
     var uiSkin = this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown;
@@ -869,6 +992,9 @@ GraveFallGame.scene.Game.prototype.createFinalChargeBanner = function () {
     return group;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.preparePlayerMenusForFinalCharge = function () {
     var i;
     var menu;
@@ -922,6 +1048,9 @@ GraveFallGame.scene.Game.prototype.preparePlayerMenusForFinalCharge = function (
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
     var definition = {
         id: "finalChargeMash",
@@ -987,6 +1116,9 @@ GraveFallGame.scene.Game.prototype.setupFinalChargeMinigame = function (menu) {
     this.updateFinalChargeMinigameHud(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getFinalChargeMenuPowerScore = function (menu) {
     if (!menu || !menu.minigame) {
         return 0;
@@ -995,6 +1127,9 @@ GraveFallGame.scene.Game.prototype.getFinalChargeMenuPowerScore = function (menu
     return Math.max(0, Math.floor(menu.minigame.storedDamage || 0));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu) {
     var minigame;
     var score;
@@ -1019,6 +1154,9 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeMinigameHud = function (menu
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerScore = function () {
     var total = 0;
     var i;
@@ -1036,6 +1174,9 @@ GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerScore = function () {
     return total;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerGoal = function () {
     var activePlayers = 0;
     var scorePerSet = 18;
@@ -1059,6 +1200,9 @@ GraveFallGame.scene.Game.prototype.getFinalChargePartyPowerGoal = function () {
     return Math.max(scorePerSet, activePlayers * scorePerSet * 4);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
     var total = this.getFinalChargePartyPowerScore();
     var timerRatio = this.finalChargeDurationMs > 0 ? this.finalChargeTimerMs / this.finalChargeDurationMs : 0;
@@ -1081,6 +1225,9 @@ GraveFallGame.scene.Game.prototype.updateFinalChargeBanner = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearFinalChargeUi = function () {
     var i;
     var menu;
@@ -1113,6 +1260,9 @@ GraveFallGame.scene.Game.prototype.clearFinalChargeUi = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startFinalChargePhase = function () {
     var i;
     var menu;
@@ -1171,6 +1321,9 @@ GraveFallGame.scene.Game.prototype.startFinalChargePhase = function () {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateFinalChargePhase = function (step) {
     var i;
     var menu;
@@ -1220,6 +1373,9 @@ GraveFallGame.scene.Game.prototype.updateFinalChargePhase = function (step) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.finishFinalChargePhase = function () {
     var totalPower = this.getFinalChargePartyPowerScore();
 
@@ -1234,6 +1390,9 @@ GraveFallGame.scene.Game.prototype.finishFinalChargePhase = function () {
     this.startFinalStrikeSequence();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getFinalStrikeRepetitionCount = function (partySize) {
     if (partySize <= 1) {
         return 5;
@@ -1250,6 +1409,9 @@ GraveFallGame.scene.Game.prototype.getFinalStrikeRepetitionCount = function (par
     return 2;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.buildFinalStrikeQueue = function () {
     var living = [];
     var queue = [];
@@ -1278,6 +1440,9 @@ GraveFallGame.scene.Game.prototype.buildFinalStrikeQueue = function () {
     return queue;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getFinalStrikeDamageForPlayer = function (playerMenu) {
     var i;
     var playerStrikeCount = 0;
@@ -1296,6 +1461,9 @@ GraveFallGame.scene.Game.prototype.getFinalStrikeDamageForPlayer = function (pla
     return Math.max(1, Math.floor(playerPower / playerStrikeCount));
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
     this.phase = GraveFallGame.scene.Game.PHASE_FINAL_STRIKE;
     this.finalStrikeQueue = this.buildFinalStrikeQueue();
@@ -1325,6 +1493,9 @@ GraveFallGame.scene.Game.prototype.startFinalStrikeSequence = function () {
     this.beginFinalStrikeStep();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.beginFinalStrikeStep = function () {
     var menu;
     var damage;
@@ -1358,6 +1529,9 @@ GraveFallGame.scene.Game.prototype.beginFinalStrikeStep = function () {
     this.playActionPreviewSfx(menu, 0, true);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateFinalStrikePhase = function (step) {
     if (!this.finalStrikeQueue || this.finalStrikeQueue.length <= 0) {
         this.finishFinalStrikeSequence();
@@ -1386,6 +1560,9 @@ GraveFallGame.scene.Game.prototype.updateFinalStrikePhase = function (step) {
     this.beginFinalStrikeStep();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.clearFinalStrikeState = function () {
     var i;
 
@@ -1404,6 +1581,9 @@ GraveFallGame.scene.Game.prototype.clearFinalStrikeState = function () {
     this.finalStrikeCurrentMenu = null;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.finishFinalStrikeSequence = function () {
     this.clearFinalStrikeState();
     this.finalChargeCompleted = true;
@@ -1416,6 +1596,9 @@ GraveFallGame.scene.Game.prototype.finishFinalStrikeSequence = function () {
     this.startEnemyDefeatedSequence();
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
     var i;
     var directionIcon;
@@ -1496,11 +1679,17 @@ GraveFallGame.scene.Game.prototype.buildSequenceIcons = function (menu) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.randomMinigameDirection = function () {
     var directions = ["up", "left", "right", "down"];
     return directions[Math.floor(Math.random() * directions.length)];
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.rollButtonSequence = function (menu) {
     var i;
 
@@ -1514,6 +1703,9 @@ GraveFallGame.scene.Game.prototype.rollButtonSequence = function (menu) {
     this.buildSequenceIcons(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("CAST THE SEQUENCE");
@@ -1550,6 +1742,9 @@ GraveFallGame.scene.Game.prototype.setupButtonSequenceMinigame = function (menu,
     this.rollButtonSequence(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu) {
     var pressed;
     var expected;
@@ -1586,6 +1781,9 @@ GraveFallGame.scene.Game.prototype.updateButtonSequenceMinigame = function (menu
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("MOVE AIM + SHOOT");
@@ -1653,11 +1851,17 @@ GraveFallGame.scene.Game.prototype.setupTargetReticleMinigame = function (menu, 
     this.stage.addChild(group);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getTargetReticleResetAngle = function () {
     var side = Math.random() < 0.5 ? 0 : Math.PI;
     return side + ((Math.random() - 0.5) * 1.1);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
     var minigame = menu.minigame;
 
@@ -1676,6 +1880,9 @@ GraveFallGame.scene.Game.prototype.resetTargetReticleAim = function (menu) {
     minigame.jitterY = -1.25 + Math.random() * 2.5;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.getTargetReticleAimInput = function (menu) {
     var input = { x: 0, y: 0 };
     var gp;
@@ -1723,6 +1930,9 @@ GraveFallGame.scene.Game.prototype.getTargetReticleAimInput = function (menu) {
     return input;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu, step) {
     var minigame;
     var input;
@@ -1838,6 +2048,9 @@ GraveFallGame.scene.Game.prototype.updateTargetReticleMinigame = function (menu,
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.resetTimingBlock = function (menu) {
     var minigame = menu.minigame;
 
@@ -1846,6 +2059,9 @@ GraveFallGame.scene.Game.prototype.resetTimingBlock = function (menu) {
     minigame.block.x = minigame.barX + minigame.blockX;
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, definition) {
     var group = this.createMinigamePanel(menu, definition.title, 256, 128);
     var prompt = new rune.text.BitmapField("TIME THE STRIKE");
@@ -1896,7 +2112,10 @@ GraveFallGame.scene.Game.prototype.setupTimingBarMinigame = function (menu, defi
     this.resetTimingBlock(menu);
 };
 
-// --- UPDATED TO USE UNIVERSAL INPUT HELPERS ---
+// Universal input helpers are used for player controls.
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, step) {
     var minigame;
     var blockSlotCenter;
@@ -1948,6 +2167,9 @@ GraveFallGame.scene.Game.prototype.updateTimingBarMinigame = function (menu, ste
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updatePlayerMinigame = function (menu, step) {
     var definition;
     var updateName;
@@ -1973,6 +2195,9 @@ GraveFallGame.scene.Game.prototype.updatePlayerMinigame = function (menu, step) 
     this.updateMinigameHud(menu);
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.updateMinigamePhase = function (step) {
     var i;
     var menu;
@@ -1996,6 +2221,9 @@ GraveFallGame.scene.Game.prototype.updateMinigamePhase = function (step) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.cleanupPlayerMinigame = function (menu) {
     if (!menu || !menu.minigame) {
         return;
@@ -2014,6 +2242,9 @@ GraveFallGame.scene.Game.prototype.cleanupPlayerMinigame = function (menu) {
     }
 };
 
+/**
+ * ...
+ */
 GraveFallGame.scene.Game.prototype.endMinigamePhase = function () {
     var i;
     var menu;
