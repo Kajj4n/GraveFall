@@ -61,6 +61,9 @@ GraveFallGame.scene.Game.PHASE_ACTION_PREVIEW = "actionPreview";
 GraveFallGame.scene.Game.PHASE_GAME_OVER = "gameOver";
 GraveFallGame.scene.Game.PHASE_ENEMY_DEFEATED = "enemyDefeated";
 
+GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE = "Dungeon_Background";
+GraveFallGame.scene.Game.BOSS_BACKGROUND_RESOURCE = "Dungeon_Boss_Background";
+
 GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MIN = 1;
 GraveFallGame.scene.Game.LEADERBOARD_PARTY_SIZE_MAX = 4;
 GraveFallGame.scene.Game.LEADERBOARD_MAX_ENTRIES = 10;
@@ -1073,8 +1076,16 @@ GraveFallGame.scene.Game.CRYSTAL_HUSK_DAMAGE_STATE_RESOURCES = {
 };
 
 // --- DYNAMIC ENEMY SCALING ---
-GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_REPEAT = 10;
-GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_REPEAT = 0.03;
+GraveFallGame.scene.Game.ENEMY_PLAYER_HEALTH_MULTIPLIERS = {
+    1: 1.0,
+    2: 2.0,
+    3: 2.4,
+    4: 2.6
+};
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_REPEAT = 2;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_FLOOR = 1;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_REPEAT = 0.18;
+GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_FLOOR = 0.12;
 GraveFallGame.scene.Game.ENEMY_DIFFICULTY_SPEED_BONUS_PER_REPEAT = 0.02;
 GraveFallGame.scene.Game.ENEMY_DIFFICULTY_PATTERN_INTERVAL_REDUCTION_PER_REPEAT = 0.02;
 GraveFallGame.scene.Game.ENEMY_DIFFICULTY_ACTION_DURATION_REDUCTION_PER_REPEAT = 0.015;
@@ -1089,14 +1100,17 @@ GraveFallGame.scene.Game.prototype.getEnemyDifficultyProfile = function (enemyTy
     var resolvedEnemyType = enemyType || this.currentEnemyType || "ghoul";
     var encounterCount = counts[resolvedEnemyType] || 0;
     var repeatCount = Math.max(0, encounterCount - 1);
-    var hpBonus = (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_REPEAT) + (floorIndex * 4);
+    var hpBonus = (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_REPEAT) +
+        (floorIndex * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_HP_BONUS_PER_FLOOR);
 
     return {
         enemyType: resolvedEnemyType,
         encounterCount: encounterCount,
         repeatCount: repeatCount,
         hpBonus: hpBonus,
-        damageMultiplier: 1.0 + (floorIndex * 0.02) + (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_REPEAT),
+        damageMultiplier: 1.0 +
+            (floorIndex * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_FLOOR) +
+            (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_DAMAGE_BONUS_PER_REPEAT),
         speedMultiplier: Math.min(
             GraveFallGame.scene.Game.ENEMY_DIFFICULTY_MAX_SPEED_MULTIPLIER,
             1.0 + (floorIndex * 0.01) + (repeatCount * GraveFallGame.scene.Game.ENEMY_DIFFICULTY_SPEED_BONUS_PER_REPEAT)
@@ -1166,6 +1180,23 @@ GraveFallGame.scene.Game.prototype.getDifficultySpeedMultiplier = function () {
     }
 
     return profile.speedMultiplier * bonus;
+};
+
+GraveFallGame.scene.Game.prototype.getEnemyPlayerHealthMultiplier = function () {
+    var playerCount = this.partyMembers ? this.partyMembers.length : 0;
+    var multipliers = GraveFallGame.scene.Game.ENEMY_PLAYER_HEALTH_MULTIPLIERS || {};
+
+    if ((!playerCount || playerCount <= 0) && this.getAllPlayerMenus) {
+        playerCount = this.getAllPlayerMenus().length;
+    }
+
+    if ((!playerCount || playerCount <= 0) && this.playerMenus) {
+        playerCount = this.playerMenus.length;
+    }
+
+    playerCount = Math.max(1, Math.min(4, Math.floor(playerCount || 1)));
+
+    return typeof multipliers[playerCount] === "number" ? multipliers[playerCount] : playerCount;
 };
 
 GraveFallGame.scene.Game.ENEMIES = {
@@ -1280,6 +1311,7 @@ GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
     var key;
     var repeatCount;
     var actionScale;
+    var playerHealthMultiplier;
 
     for (key in baseConfig) {
         if (baseConfig.hasOwnProperty(key)) {
@@ -1290,10 +1322,9 @@ GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
     repeatCount = profile ? profile.repeatCount : 0;
     actionScale = profile ? profile.actionDurationScale : 1.0;
 
-    playerCount = this.partyMembers ? this.partyMembers.length : (this.getAllPlayerMenus ? this.getAllPlayerMenus().length : (this.playerMenus ? this.playerMenus.length : 1));
-    playerCount = Math.max(1, playerCount || 1);
+    playerHealthMultiplier = this.getEnemyPlayerHealthMultiplier ? this.getEnemyPlayerHealthMultiplier() : 1;
 
-    scaledConfig.hpMax = Math.max(1, Math.floor(((baseConfig.hpMax || 1) + (profile ? profile.hpBonus : 0)) * playerCount));
+    scaledConfig.hpMax = Math.max(1, Math.floor(((baseConfig.hpMax || 1) + (profile ? profile.hpBonus : 0)) * playerHealthMultiplier));
     scaledConfig.actionPhaseDuration = Math.max(1, Math.floor((baseConfig.actionPhaseDuration || 230) * actionScale));
     scaledConfig.patternInterval = Math.max(
         1,

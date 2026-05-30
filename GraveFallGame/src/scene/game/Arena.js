@@ -97,6 +97,32 @@ GraveFallGame.scene.Game.prototype.setPassageBackground = function (resource, ui
     this.backgroundBackdropResource = resource;
 };
 
+GraveFallGame.scene.Game.prototype.getBattleBackgroundResourceForEnemy = function (enemyType) {
+    var enemyConfig = GraveFallGame.scene.Game.ENEMIES[enemyType] || null;
+
+    if (enemyConfig && enemyConfig.isBoss === true) {
+        return GraveFallGame.scene.Game.BOSS_BACKGROUND_RESOURCE || "Dungeon_Boss_Background";
+    }
+
+    return GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE || "Dungeon_Background";
+};
+
+GraveFallGame.scene.Game.prototype.setBattleBackgroundForEnemy = function (enemyType, keepTransform) {
+    this.setPassageBackground(
+        this.getBattleBackgroundResourceForEnemy(enemyType),
+        this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown,
+        keepTransform === true
+    );
+};
+
+GraveFallGame.scene.Game.prototype.setDungeonPassageBackground = function (keepTransform) {
+    this.setPassageBackground(
+        GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE || "Dungeon_Background",
+        this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown,
+        keepTransform === true
+    );
+};
+
 GraveFallGame.scene.Game.prototype.getFloorPaletteKey = function (floorNumber) {
     var palettes = GraveFallGame.scene.Game.RUN_PALETTES || [];
     var index;
@@ -180,7 +206,7 @@ GraveFallGame.scene.Game.prototype.rebuildPlayerMenuFramesForSkin = function (pl
 };
 
 GraveFallGame.scene.Game.prototype.refreshPassageBackgroundPalette = function (keepTransform) {
-    var resource = this.backgroundBackdropResource || "Dungeon_Background";
+    var resource = this.backgroundBackdropResource || GraveFallGame.scene.Game.DUNGEON_BACKGROUND_RESOURCE || "Dungeon_Background";
 
     this.backgroundBackdropResource = null;
     this.setPassageBackground(resource, this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, keepTransform === true);
@@ -236,7 +262,7 @@ GraveFallGame.scene.Game.prototype.applyFloorVisualTheme = function () {
         }
     }
 
-    this.refreshPassageBackgroundPalette(true);
+    this.setDungeonPassageBackground(true);
 };
 
 GraveFallGame.scene.Game.prototype.advanceFloorAfterBossDefeat = function () {
@@ -913,24 +939,24 @@ GraveFallGame.scene.Game.prototype.applyPassageCameraTransition = function (elap
 };
 
 GraveFallGame.scene.Game.prototype.loadNextEnemyEncounterDuringTransition = function () {
+    var nextEnemyType;
+
     if (this.passageTransitionEncounterLoaded === true) {
         return;
     }
 
     this.passageTransitionEncounterLoaded = true;
 
-    if (this.backgroundBackdropResource !== "Dungeon_Background") {
-        this.setPassageBackground("Dungeon_Background", this.uiSkin || GraveFallGame.scene.Game.UI_SKINS.dullBrown, false);
-    }
-
-
     if (this.passageTransitionIsIntro === true) {
         this.passageTransitionIsIntro = false;
-        this.loadEnemyEncounter(this.currentEnemyType, true);
+        nextEnemyType = this.currentEnemyType;
     } else {
         this.encounterIndex++;
-        this.loadEnemyEncounter(this.getEnemyTypeForEncounter(this.encounterIndex), true);
+        nextEnemyType = this.getEnemyTypeForEncounter(this.encounterIndex);
     }
+
+    this.setBattleBackgroundForEnemy(nextEnemyType, false);
+    this.loadEnemyEncounter(nextEnemyType, true);
 
     this.resetPlayersForNewEncounter();
     this.setEnemyUiAlpha(0);
