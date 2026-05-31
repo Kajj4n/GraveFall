@@ -1661,13 +1661,6 @@ GraveFallGame.scene.CharacterSelect.prototype.joinPlayer = function (ctrl) {
     player.classIndex = this.findAvailableClassIndex(0, 1, player);
     this.claimPlayerSelection(player, player.classIndex);
 
-    var status = new rune.text.BitmapField(ctrl.id);
-    status.width = 150; 
-    status.scaleX = 1.5;
-    status.scaleY = 1.5;
-    this.stage.addChild(status);
-    player.statusText = status;
-
     this.updatePlayerCursor(player);
 };
 

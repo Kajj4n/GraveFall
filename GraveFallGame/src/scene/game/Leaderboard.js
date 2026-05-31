@@ -278,8 +278,8 @@ GraveFallGame.scene.Leaderboard.prototype.renderPage = function () {
     isRecentRunsTab = this.pageIndex === 4;
     scores = isRecentRunsTab ? GraveFallGame.scene.Game.getRecentRuns() : this.getLeaderboardScores(partySize);
     startY = 48;
-    startX = 112;
-    scoreRightX = 1000;
+    startX = this.tabs && this.tabs[0] ? Math.round(this.tabs[0].x - this.pageContainer.x) : 92;
+    scoreRightX = this.tabs && this.tabs[4] ? Math.round((this.tabs[4].x + (this.tabs[4].width || 180)) - this.pageContainer.x) : 1060;
     headerRowY = 14;
 
     var headerPlacement = new rune.text.BitmapField(this.sanitizeBitmapText ? this.sanitizeBitmapText("PLACEMENT") : "PLACEMENT");

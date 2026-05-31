@@ -458,7 +458,7 @@ GraveFallGame.scene.Menu.prototype.createQuickControls = function () {
     panel.addChild(heading);
     this.tintBitmapFieldText(heading, this.menuSkin.frame.light, true);
 
-    this.createControlHint(panel, 20, 34, ["Gamepad_Button_Up_T", "Gamepad_Button_Down_T"], "MOVE", "W/S OR D-PAD", GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight);
+    this.createControlHint(panel, 20, 42, ["Gamepad_Button_Up_T", "Gamepad_Button_Down_T"], "MOVE", "W/S OR D-PAD", GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight);
     this.createControlHint(panel, 236, 42, "A_Button_Icon_T", "SELECT", "ENTER/SPACE OR A", GraveFallGame.scene.Game.PLAYER_THEMES[3].accentLight);
     this.createControlHint(panel, 456, 42, "Y_Button_Icon_T", "HELP", "H/R OR Y", GraveFallGame.scene.Game.PLAYER_THEMES[1].accentLight);
 
