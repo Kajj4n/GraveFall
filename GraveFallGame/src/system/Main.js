@@ -32,7 +32,7 @@ GraveFallGame.system.Main = function() {
         framerate: 30,
         screenResolutionX: 1280,
         screenResolutionY: 720,
-        debug: false
+        debug: true
     });
 };
 

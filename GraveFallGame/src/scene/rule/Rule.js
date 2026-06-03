@@ -70,6 +70,7 @@ GraveFallGame.scene.Rule.prototype.init = function () {
     var subtitle;
 
     rune.scene.Scene.prototype.init.call(this);
+    GraveFallGame.startMenuMusic(this.application, GraveFallGame.menuMusicFadeInMs || 2200);
 
     screen = this.application.screen;
     palette = GraveFallGame.scene.Game.getRunPalette(
@@ -129,6 +130,7 @@ GraveFallGame.scene.Rule.prototype.update = function (step) {
     var gp;
 
     rune.scene.Scene.prototype.update.call(this, step);
+    GraveFallGame.updateMenuMusicFades(step);
 
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
         return;

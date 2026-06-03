@@ -218,6 +218,7 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
     GraveFallGame.useBitmapFont();
 
     rune.scene.Scene.prototype.init.call(this);
+    GraveFallGame.startMenuMusic(this.application, GraveFallGame.menuMusicFadeInMs || 2200);
 
     var screenWidth = this.application.screen.width;
     var screenHeight = this.application.screen.height;
@@ -282,6 +283,7 @@ GraveFallGame.scene.CharacterSelect.prototype.init = function () {
  */
 GraveFallGame.scene.CharacterSelect.prototype.update = function (step) {
     rune.scene.Scene.prototype.update.call(this, step);
+    GraveFallGame.updateMenuMusicFades(step);
 
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
         return;
@@ -1816,5 +1818,6 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
     }
 
     GraveFallGame.scene.Game.PARTY_MEMBERS = activeParty;
+    GraveFallGame.stopMenuMusic(GraveFallGame.menuMusicFadeOutMs || 1200);
     this.application.scenes.load([new GraveFallGame.scene.Game(activeParty, this.runPaletteKey)]);
 };
