@@ -1818,6 +1818,6 @@ GraveFallGame.scene.CharacterSelect.prototype.startGame = function () {
     }
 
     GraveFallGame.scene.Game.PARTY_MEMBERS = activeParty;
-    GraveFallGame.stopMenuMusic(700);
+    GraveFallGame.stopMenuMusic(GraveFallGame.menuMusicFadeOutMs || 1200);
     this.application.scenes.load([new GraveFallGame.scene.Game(activeParty, this.runPaletteKey)]);
 };

@@ -1683,16 +1683,16 @@ GraveFallGame.stopMusic = function (music) {
     }
 };
 
-
 GraveFallGame.menuMusic = null;
 GraveFallGame.menuMusicFades = [];
 GraveFallGame.menuMusicDefaultVolume = 0.16;
 GraveFallGame.menuMusicFadeInMs = 2200;
+GraveFallGame.menuMusicFadeOutMs = 1200;
 
 /**
- * Returns true when a Rune sound object still has a live media element. Scene
- * loads clear the normal sound/music channels, which can leave old references
- * with a null media source.
+ * Returns true while a Rune sound object still owns a live media element. Rune
+ * clears normal scene music when scenes are swapped, so stale references must
+ * never have loop, volume, pan, or play touched directly.
  *
  * @param {Object} music Music or sound object.
  *
@@ -1707,7 +1707,7 @@ GraveFallGame.isSoundUsable = function (music) {
 };
 
 /**
- * Returns the current sound volume without throwing on stale Rune sound refs.
+ * Reads the current volume without throwing on a disposed Rune sound object.
  *
  * @param {Object} music Music or sound object.
  * @param {number} fallback Fallback volume.
@@ -1726,7 +1726,7 @@ GraveFallGame.getSoundVolumeSafe = function (music, fallback) {
 };
 
 /**
- * Sets the volume for the shared menu music track.
+ * Sets the menu loop volume if the backing media element is still alive.
  *
  * @param {Object} music Music channel.
  * @param {number} volume Target volume.
@@ -1743,7 +1743,7 @@ GraveFallGame.setMenuMusicVolume = function (music, volume) {
 };
 
 /**
- * Cancels active fades for the shared menu music track.
+ * Cancels active menu-music fades for a specific sound object.
  *
  * @param {Object} music Music channel.
  *
@@ -1764,13 +1764,13 @@ GraveFallGame.cancelMenuMusicFade = function (music) {
 };
 
 /**
- * Fades the shared menu music track to a target volume.
+ * Fades the shared menu loop toward a target volume.
  *
  * @param {number} targetVolume Target volume.
  * @param {number} durationMs Fade duration in milliseconds.
- * @param {boolean} stopWhenComplete Stop after the fade reaches zero.
+ * @param {boolean} stopWhenComplete Stop after fading to zero.
  *
- * @return {*} Returned value.
+ * @return {*} Fade object or null.
  */
 GraveFallGame.fadeMenuMusic = function (targetVolume, durationMs, stopWhenComplete) {
     var fade;
@@ -1812,14 +1812,14 @@ GraveFallGame.fadeMenuMusic = function (targetVolume, durationMs, stopWhenComple
         targetVolume: targetVolume,
         stopWhenComplete: stopWhenComplete === true
     };
-    GraveFallGame.menuMusicFades.push(fade);
 
+    GraveFallGame.menuMusicFades.push(fade);
     return fade;
 };
 
 /**
- * Advances menu music fades. Call from every scene that can be active while the
- * shared menu music is fading.
+ * Advances menu-music fades. Menu-like scenes call this every update so the
+ * quiet fade-in stays smooth while moving between screens.
  *
  * @param {number} step Fixed time step supplied by the Rune engine.
  *
@@ -1867,8 +1867,8 @@ GraveFallGame.updateMenuMusicFades = function (step) {
 };
 
 /**
- * Plays the menu music through Rune's master channel so it is not cleared when
- * menu scenes are swapped.
+ * Plays the menu music on Rune's persistent master channel. Unlike the normal
+ * music channel, this is not cleared during scene swaps.
  *
  * @param {Object} application Rune application instance.
  * @param {number} volume Playback volume.
@@ -1907,12 +1907,12 @@ GraveFallGame.playPersistentMenuMusic = function (application, volume, pan) {
 };
 
 /**
- * Starts the menu loop once and lets it continue across all non-combat menus.
+ * Starts the quiet menu loop once and keeps it playing across menu screens.
  *
  * @param {Object} application Rune application instance.
  * @param {number} fadeMs Optional fade-in duration.
  *
- * @return {*} Returned value.
+ * @return {*} Music object or null.
  */
 GraveFallGame.startMenuMusic = function (application, fadeMs) {
     var targetVolume = typeof GraveFallGame.menuMusicDefaultVolume === "number" ? GraveFallGame.menuMusicDefaultVolume : 0.16;
@@ -2002,6 +2002,7 @@ GraveFallGame.quitGame = function (application) {
 
     closeWindow();
 };
+
 /**
  * Plays a sound effect when the resource exists.
  *
@@ -2930,7 +2931,6 @@ GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps = function (uiSkin)
         { from: source.darkest, to: colors[7] },
         { from: "#050005", to: colors[7] },
 
-        /* Compatibility for older three-color placeholder backgrounds. */
         { from: GraveFallGame.scene.Game.FRAME_SOURCE.light, to: colors[1] },
         { from: GraveFallGame.scene.Game.FRAME_SOURCE.mid, to: colors[3] },
         { from: GraveFallGame.scene.Game.FRAME_SOURCE.dark, to: colors[5] }
