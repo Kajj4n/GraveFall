@@ -118,6 +118,7 @@ GraveFallGame.scene.Leaderboard.prototype.init = function () {
     GraveFallGame.useBitmapFont();
 
     rune.scene.Scene.prototype.init.call(this);
+    GraveFallGame.startMenuMusic(this.application, GraveFallGame.menuMusicFadeInMs || 2200);
     var screen = this.application.screen;
     var palette = GraveFallGame.scene.Game.getRunPalette(
         GraveFallGame.scene.Game.resolveRunPaletteKey(GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY)
@@ -396,6 +397,7 @@ GraveFallGame.scene.Leaderboard.prototype.update = function (step) {
     var gp;
 
     rune.scene.Scene.prototype.update.call(this, step);
+    GraveFallGame.updateMenuMusicFades(step);
 
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
         return;

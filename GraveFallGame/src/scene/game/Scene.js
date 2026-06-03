@@ -11,6 +11,7 @@ GraveFallGame.scene.Game.prototype.init = function () {
     GraveFallGame.useBitmapFont();
 
     rune.scene.Scene.prototype.init.call(this);
+    GraveFallGame.stopMenuMusic(700);
 
     this.runPaletteKey = GraveFallGame.scene.Game.resolveRunPaletteKey(this.runPaletteKey);
     this.runPalette = GraveFallGame.scene.Game.getRunPalette(this.runPaletteKey);
@@ -951,6 +952,7 @@ GraveFallGame.scene.Game.prototype.update = function (step) {
 
     rune.scene.Scene.prototype.update.call(this, step);
 
+    GraveFallGame.updateMenuMusicFades(step);
     this.updateMusicFades(step);
 
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {

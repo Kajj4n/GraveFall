@@ -67,6 +67,8 @@ GraveFallGame.scene.Menu.prototype.init = function () {
 
     rune.scene.Scene.prototype.init.call(this);
 
+    GraveFallGame.startMenuMusic(this.application, GraveFallGame.menuMusicFadeInMs || 2200);
+
     screen = this.application.screen;
     paletteKey = GraveFallGame.scene.Game.resolveRunPaletteKey(GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY);
     palette = GraveFallGame.scene.Game.getRunPalette(paletteKey);
@@ -96,53 +98,91 @@ GraveFallGame.scene.Menu.prototype.init = function () {
     this.optionCards = [];
     this.optionCards.push(this.createOptionCard({
         x: 378,
-        y: 168,
+        y: 154,
         width: 524,
-        height: 84,
+        height: 76,
         title: "START GAME",
         description: "BUILD A LOCAL 1-4 PLAYER PARTY",
         icon: "Start_Menu_Button_T",
-        iconScale: 0.72,
-        iconInactiveScale: 0.66,
+        iconScale: 0.66,
+        iconInactiveScale: 0.60,
         iconX: 20,
-        iconY: 15,
+        iconY: 12,
         accent: GraveFallGame.scene.Game.PLAYER_THEMES[0].accent,
         accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[0].accentLight
     }));
     this.optionCards.push(this.createOptionCard({
         x: 378,
-        y: 272,
+        y: 244,
         width: 524,
-        height: 84,
+        height: 76,
         title: "HOW TO PLAY",
         description: "CONTROLS, RULES, MINIGAMES",
         icon: "Help_Menu_Button_T",
-        iconScale: 0.72,
-        iconInactiveScale: 0.66,
+        iconScale: 0.66,
+        iconInactiveScale: 0.60,
         iconX: 20,
-        iconY: 15,
+        iconY: 12,
         accent: GraveFallGame.scene.Game.PLAYER_THEMES[1].accent,
         accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[1].accentLight
     }));
     this.optionCards.push(this.createOptionCard({
         x: 378,
-        y: 376,
+        y: 334,
         width: 524,
-        height: 84,
+        height: 76,
         title: "LEADERBOARDS",
         description: "VIEW TOP 10 PARTIES",
         icon: "Score_Menu_Button_T",
-        iconScale: 0.72,
-        iconInactiveScale: 0.66,
+        iconScale: 0.66,
+        iconInactiveScale: 0.60,
         iconX: 20,
-        iconY: 15,
+        iconY: 12,
         accent: GraveFallGame.scene.Game.PLAYER_THEMES[2].accent,
         accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[2].accentLight
     }));
+    this.optionCards.push(this.createOptionCard({
+        x: 378,
+        y: 424,
+        width: 524,
+        height: 64,
+        title: "CREDITS",
+        description: "MEET THE DEVS",
+        icon: "Help_Menu_Button_T",
+        iconScale: 0.44,
+        iconInactiveScale: 0.40,
+        iconX: 22,
+        iconY: 12,
+        textX: 104,
+        titleY: 14,
+        descriptionY: 44,
+        titleScale: 2.0,
+        descriptionScale: 1.08,
+        accent: GraveFallGame.scene.Game.PLAYER_THEMES[3].accent,
+        accentLight: GraveFallGame.scene.Game.PLAYER_THEMES[3].accentLight
+    }));
+    this.optionCards.push(this.createOptionCard({
+        x: 378,
+        y: 500,
+        width: 524,
+        height: 64,
+        title: "QUIT",
+        description: "EXIT THE GAME",
+        icon: "Start_Menu_Button_T",
+        iconScale: 0.44,
+        iconInactiveScale: 0.40,
+        iconX: 22,
+        iconY: 12,
+        textX: 104,
+        titleY: 14,
+        descriptionY: 44,
+        titleScale: 2.0,
+        descriptionScale: 1.08,
+        accent: this.menuSkin.frame.mid,
+        accentLight: this.menuSkin.frame.light
+    }));
 
-    this.createQuickControls();
-
-    this.createScreenFooter("CONTROLLER PREFERRED GAME METHOD    VERSION 1.0", framePaletteSwaps);
+    this.createScreenFooter("UP/DOWN SELECT    A/ENTER CONFIRM    H/R HELP", framePaletteSwaps);
 
     this.updateVisuals();
 };
@@ -157,12 +197,15 @@ GraveFallGame.scene.Menu.prototype.init = function () {
 GraveFallGame.scene.Menu.prototype.update = function (step) {
     var pressDown;
     var pressUp;
+    var pressLeft;
+    var pressRight;
     var pressConfirm;
     var pressRules;
     var i;
     var gp;
 
     rune.scene.Scene.prototype.update.call(this, step);
+    GraveFallGame.updateMenuMusicFades(step);
 
     if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
         return;
@@ -173,6 +216,8 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
 
     pressDown = this.keyboard.justPressed("down") || this.keyboard.justPressed("s");
     pressUp = this.keyboard.justPressed("up") || this.keyboard.justPressed("w");
+    pressLeft = this.keyboard.justPressed("left") || this.keyboard.justPressed("a");
+    pressRight = this.keyboard.justPressed("right") || this.keyboard.justPressed("d");
     pressConfirm = this.keyboard.justPressed("space") || this.keyboard.justPressed("enter");
     pressRules = this.keyboard.justPressed("h") || this.keyboard.justPressed("r");
 
@@ -181,6 +226,8 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
         if (gp) {
             if (gp.justPressed(13) || gp.stickLeftJustDown) pressDown = true;
             if (gp.justPressed(12) || gp.stickLeftJustUp) pressUp = true;
+            if (gp.justPressed(14) || gp.stickLeftJustLeft) pressLeft = true;
+            if (gp.justPressed(15) || gp.stickLeftJustRight) pressRight = true;
             if (gp.justPressed(0)) pressConfirm = true;
             if (gp.justPressed(3)) pressRules = true;
         }
@@ -204,6 +251,10 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
         this.updateVisuals();
     }
 
+    if (pressLeft || pressRight) {
+        // The bottom actions are stacked now, so horizontal input is ignored.
+    }
+
     if (pressConfirm) {
         GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_CONFIRM, 0.6);
 
@@ -219,6 +270,12 @@ GraveFallGame.scene.Menu.prototype.update = function (step) {
             this.application.scenes.load([
                 new GraveFallGame.scene.Leaderboard(1)
             ]);
+        } else if (this.index === 3) {
+            this.application.scenes.load([
+                new GraveFallGame.scene.Credits()
+            ]);
+        } else if (this.index === 4) {
+            GraveFallGame.quitGame(this.application);
         }
     }
 };
@@ -347,10 +404,14 @@ GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     var accent = new rune.display.Graphic(0, 0, 6, options.height);
     var selectGlow = new rune.display.Graphic(12, options.height - 9, options.width - 24, 4);
     var icon = new rune.display.Sprite(options.iconX || 20, options.iconY || 14, options.iconSize || 80, options.iconSize || 80, options.icon);
-    var title = this.createText(options.title, 104, 20, 2.35, 360);
-    var description = this.createText(options.description, 106, 56, 1.15, 380);
+    var textX = options.textX || 104;
+    var title = this.createText(options.title, textX, options.titleY || 20, options.titleScale || 2.35, options.titleWidth || Math.max(120, options.width - textX - 24));
+    var description = this.createText(options.description, textX + 2, options.descriptionY || 56, options.descriptionScale || 1.15, options.descriptionWidth || Math.max(120, options.width - textX - 24));
     var iconScale = options.iconScale || 0.54;
     var iconInactiveScale = options.iconInactiveScale || Math.max(0.1, iconScale - 0.04);
+    var stripe;
+    var stripeWidth;
+    var i;
 
     backgroundTop.backgroundColor = this.menuSkin.panelTop;
     backgroundBottom.backgroundColor = this.menuSkin.panelBottom;
@@ -367,6 +428,16 @@ GraveFallGame.scene.Menu.prototype.createOptionCard = function (options) {
     card.addChild(backgroundTop);
     card.addChild(backgroundBottom);
     card.addChild(accent);
+
+    if (options.stripes && options.stripes.length > 0) {
+        stripeWidth = Math.ceil(options.width / options.stripes.length);
+        for (i = 0; i < options.stripes.length; i++) {
+            stripe = new rune.display.Graphic(i * stripeWidth, options.height - 7, stripeWidth, 5);
+            stripe.backgroundColor = options.stripes[i];
+            card.addChild(stripe);
+        }
+    }
+
     card.addChild(selectGlow);
     card.addChild(icon);
     card.addChild(title);
@@ -507,4 +578,268 @@ GraveFallGame.scene.Menu.prototype.updateAnimatedVisuals = function () {
     pulse = (Math.sin(this.animTime / 180) + 1) / 2;
     card = this.optionCards[this.index];
     card.glow.alpha = 0.28 + (pulse * 0.18);
+};
+
+//------------------------------------------------------------------------------
+// Credits scene
+//------------------------------------------------------------------------------
+
+/**
+ * Creates the credits screen.
+ *
+ * @constructor
+ * @extends rune.scene.Scene
+ */
+GraveFallGame.scene.Credits = function () {
+    this.backgroundSkin = null;
+    this.menuSkin = null;
+    this.animTime = 0;
+    this.backButton = null;
+
+    rune.scene.Scene.call(this);
+};
+
+GraveFallGame.scene.Credits.prototype = Object.create(rune.scene.Scene.prototype);
+GraveFallGame.scene.Credits.prototype.constructor = GraveFallGame.scene.Credits;
+
+GraveFallGame.scene.Credits.prototype.applyPaletteSwaps = GraveFallGame.scene.Game.prototype.applyPaletteSwaps;
+GraveFallGame.scene.Credits.prototype.getFramePaletteSwaps = GraveFallGame.scene.Game.prototype.getFramePaletteSwaps;
+GraveFallGame.scene.Credits.prototype.getBackgroundPaletteSwaps = GraveFallGame.scene.Game.prototype.getBackgroundPaletteSwaps;
+GraveFallGame.scene.Credits.prototype.applyMonochromeIconColor = GraveFallGame.scene.Game.prototype.applyMonochromeIconColor;
+GraveFallGame.scene.Credits.prototype.createFramePiece = GraveFallGame.scene.Game.prototype.createFramePiece;
+GraveFallGame.scene.Credits.prototype.createBoxFrame = GraveFallGame.scene.Game.prototype.createBoxFrame;
+GraveFallGame.scene.Credits.prototype.createSeparator = GraveFallGame.scene.Game.prototype.createSeparator;
+GraveFallGame.scene.Credits.prototype.tintBitmapFieldText = GraveFallGame.scene.Game.prototype.tintBitmapFieldText;
+GraveFallGame.scene.Credits.prototype.isDevConsoleInputActive = GraveFallGame.scene.Game.prototype.isDevConsoleInputActive;
+GraveFallGame.scene.Credits.prototype.createText = GraveFallGame.scene.Menu.prototype.createText;
+GraveFallGame.scene.Credits.prototype.centerText = GraveFallGame.scene.Menu.prototype.centerText;
+GraveFallGame.scene.Credits.prototype.createMenuPanel = GraveFallGame.scene.Menu.prototype.createMenuPanel;
+GraveFallGame.scene.Credits.prototype.createScreenFooter = GraveFallGame.scene.Menu.prototype.createScreenFooter;
+
+/**
+ * Initializes the credits screen.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.scene.Credits.prototype.init = function () {
+    GraveFallGame.useBitmapFont();
+
+    var screen;
+    var palette;
+    var framePaletteSwaps;
+    var background;
+    var shell;
+    var title;
+    var subtitle;
+    var note;
+    var colors;
+
+    rune.scene.Scene.prototype.init.call(this);
+    GraveFallGame.startMenuMusic(this.application, GraveFallGame.menuMusicFadeInMs || 2200);
+
+    screen = this.application.screen;
+    palette = GraveFallGame.scene.Game.getRunPalette(
+        GraveFallGame.scene.Game.resolveRunPaletteKey(GraveFallGame.scene.Game.ACTIVE_RUN_PALETTE_KEY)
+    );
+    this.backgroundSkin = palette.outside;
+    this.menuSkin = palette.inside;
+    framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
+    colors = GraveFallGame.scene.Game.PLAYER_THEMES;
+
+    background = new rune.display.Sprite(0, 0, screen.width, screen.height, "MainMenu_Background");
+    this.applyPaletteSwaps(background, this.getBackgroundPaletteSwaps(this.backgroundSkin));
+    this.stage.addChild(background);
+
+    shell = this.createMenuPanel(94, 34, screen.width - 188, screen.height - 106, this.menuSkin, framePaletteSwaps);
+    this.stage.addChild(shell);
+
+    title = this.createText("CREDITS", 0, 64, 3.45, 520);
+    this.centerText(title, screen.centerX, 3.45);
+    this.stage.addChild(title);
+
+    subtitle = this.createText("DEVELOPED BY RASMUS AND KAJUS", 0, 112, 1.45, 760);
+    this.centerText(subtitle, screen.centerX, 1.45);
+    this.stage.addChild(subtitle);
+    this.tintBitmapFieldText(subtitle, this.menuSkin.frame.light, true);
+
+    this.createDeveloperCard(210, 174, 390, 366, "RASMUS", "GAMEPLAY  DESIGN  CODE", "Fighter_Portrait", colors[0].accent, colors[0].accentLight, [colors[0].accent, colors[3].accent, colors[1].accent, colors[2].accent]);
+    this.createDeveloperCard(680, 174, 390, 366, "KAJUS", "ART  AUDIO  DESIGN", "Wizard_Portrait", colors[3].accent, colors[3].accentLight, [colors[3].accent, colors[1].accent, colors[2].accent, colors[0].accent]);
+
+    note = this.createText("PLACEHOLDER PORTRAITS CAN BE REPLACED WITH REAL IMAGES LATER", 0, 552, 1.08, 880);
+    this.centerText(note, screen.centerX, 1.08);
+    this.stage.addChild(note);
+    this.tintBitmapFieldText(note, this.menuSkin.frame.light, true);
+
+    this.backButton = this.createBackButton(520, 588, 240, 48, colors[1].accent, colors[1].accentLight);
+
+    this.createScreenFooter("B/BACKSPACE/ESC RETURN TO MAIN MENU", framePaletteSwaps);
+};
+
+/**
+ * Updates the credits screen once per engine tick.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.scene.Credits.prototype.update = function (step) {
+    var pressBack;
+    var pressConfirm;
+    var i;
+    var gp;
+    var pulse;
+
+    rune.scene.Scene.prototype.update.call(this, step);
+    GraveFallGame.updateMenuMusicFades(step);
+
+    if (this.isDevConsoleInputActive && this.isDevConsoleInputActive()) {
+        return;
+    }
+
+    this.animTime += step;
+    pressBack = this.keyboard.justPressed("escape") || this.keyboard.justPressed("backspace");
+    pressConfirm = this.keyboard.justPressed("space") || this.keyboard.justPressed("enter");
+
+    for (i = 0; i < 4; i++) {
+        gp = this.gamepads.get(i);
+        if (gp) {
+            if (gp.justPressed(0)) pressConfirm = true;
+            if (gp.justPressed(1) || gp.justPressed(2)) pressBack = true;
+        }
+    }
+
+    if (this.backButton) {
+        pulse = (Math.sin(this.animTime / 180) + 1) / 2;
+        this.backButton.glow.alpha = 0.24 + (pulse * 0.18);
+    }
+
+    if (pressBack || pressConfirm) {
+        GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_BACK, 0.55);
+        this.application.scenes.load([
+            new GraveFallGame.scene.Menu()
+        ]);
+    }
+};
+
+/**
+ * Creates one developer card for the credits screen.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} name Developer name.
+ * @param {string} role Developer role text.
+ * @param {string} portraitResource Resource name for the placeholder portrait.
+ * @param {string} accent Accent color.
+ * @param {string} accentLight Light accent color.
+ * @param {Array} stripes RGBY stripe colors.
+ *
+ * @return {Object} Created display object.
+ */
+GraveFallGame.scene.Credits.prototype.createDeveloperCard = function (x, y, width, height, name, role, portraitResource, accent, accentLight, stripes) {
+    var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
+    var card = new rune.display.DisplayObjectContainer(x, y, width, height);
+    var top = new rune.display.Graphic(0, 0, width, Math.round(height * 0.5));
+    var bottom = new rune.display.Graphic(0, Math.round(height * 0.5), width, height - Math.round(height * 0.5));
+    var accentBar = new rune.display.Graphic(0, 0, 8, height);
+    var imageBack = new rune.display.Graphic(72, 44, 246, 210);
+    var portrait = new rune.display.Sprite(0, 0, 100, 100, portraitResource);
+    var nameText;
+    var roleText;
+    var stripe;
+    var stripeWidth;
+    var i;
+
+    top.backgroundColor = this.menuSkin.panelTop;
+    bottom.backgroundColor = this.menuSkin.panelBottom;
+    accentBar.backgroundColor = accent;
+    imageBack.backgroundColor = this.menuSkin.panelBottom;
+
+    card.addChild(top);
+    card.addChild(bottom);
+    card.addChild(accentBar);
+    card.addChild(imageBack);
+    card.addChild(this.createBoxFrame(72, 44, 246, 210, framePaletteSwaps));
+
+    portrait.scaleX = 1.62;
+    portrait.scaleY = 1.62;
+    portrait.x = Math.round((width / 2) - ((portrait.width * portrait.scaleX) / 2));
+    portrait.y = 64;
+    card.addChild(portrait);
+
+    stripeWidth = Math.ceil(width / stripes.length);
+    for (i = 0; i < stripes.length; i++) {
+        stripe = new rune.display.Graphic(i * stripeWidth, height - 10, stripeWidth, 6);
+        stripe.backgroundColor = stripes[i];
+        card.addChild(stripe);
+    }
+
+    nameText = this.createText(name, 0, 278, 2.4, width);
+    this.centerText(nameText, Math.round(width / 2), 2.4);
+    card.addChild(nameText);
+    this.tintBitmapFieldText(nameText, accentLight || accent, true);
+
+    roleText = this.createText(role, 0, 322, 1.08, width);
+    this.centerText(roleText, Math.round(width / 2), 1.08);
+    card.addChild(roleText);
+    this.tintBitmapFieldText(roleText, this.menuSkin.frame.light, true);
+
+    card.addChild(this.createBoxFrame(0, 0, width, height, framePaletteSwaps));
+    this.stage.addChild(card);
+
+    return card;
+};
+
+/**
+ * Creates the credits back button.
+ *
+ * @param {number} x Horizontal position.
+ * @param {number} y Vertical position.
+ * @param {number} width Width in pixels.
+ * @param {number} height Height in pixels.
+ * @param {string} accent Accent color.
+ * @param {string} accentLight Light accent color.
+ *
+ * @return {Object} Created display object.
+ */
+GraveFallGame.scene.Credits.prototype.createBackButton = function (x, y, width, height, accent, accentLight) {
+    var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
+    var button = new rune.display.DisplayObjectContainer(x, y, width, height);
+    var top = new rune.display.Graphic(0, 0, width, Math.round(height / 2));
+    var bottom = new rune.display.Graphic(0, Math.round(height / 2), width, height - Math.round(height / 2));
+    var glow = new rune.display.Graphic(14, height - 9, width - 28, 4);
+    var icon = new rune.display.Sprite(20, 10, 100, 100, "Back_Arrow_Icon_T");
+    var text = this.createText("BACK", 82, 15, 1.65, width - 96);
+
+    top.backgroundColor = this.menuSkin.panelTop;
+    bottom.backgroundColor = this.menuSkin.panelBottom;
+    glow.backgroundColor = accent;
+    glow.alpha = 0.32;
+    button.glow = glow;
+
+    icon.scaleX = 0.30;
+    icon.scaleY = 0.30;
+    this.applyMonochromeIconColor(icon, accentLight || accent);
+
+    button.addChild(top);
+    button.addChild(bottom);
+    button.addChild(glow);
+    button.addChild(icon);
+    button.addChild(text);
+    button.addChild(this.createBoxFrame(0, 0, width, height, framePaletteSwaps));
+    this.tintBitmapFieldText(text, accentLight || accent, true);
+    this.stage.addChild(button);
+
+    return button;
+};
+
+/**
+ * Disposes the credits screen resources.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.scene.Credits.prototype.dispose = function () {
+    this.backButton = null;
+    rune.scene.Scene.prototype.dispose.call(this);
 };

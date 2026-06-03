@@ -1568,6 +1568,7 @@ GraveFallGame.scene.Game.prototype.getCurrentEnemyConfig = function () {
 //------------------------------------------------------------------------------
 
 GraveFallGame.MUSIC = {
+    MENU_LOOP: "GraveFall_Menu_Loop",
     DUNGEON_LOOP: "GraveFall_Dungeon_Loop",
     BOSS_LOOP: "GraveFall_Boss_Loop"
 };
@@ -1682,6 +1683,325 @@ GraveFallGame.stopMusic = function (music) {
     }
 };
 
+
+GraveFallGame.menuMusic = null;
+GraveFallGame.menuMusicFades = [];
+GraveFallGame.menuMusicDefaultVolume = 0.16;
+GraveFallGame.menuMusicFadeInMs = 2200;
+
+/**
+ * Returns true when a Rune sound object still has a live media element. Scene
+ * loads clear the normal sound/music channels, which can leave old references
+ * with a null media source.
+ *
+ * @param {Object} music Music or sound object.
+ *
+ * @return {boolean} True if the sound object can still be controlled.
+ */
+GraveFallGame.isSoundUsable = function (music) {
+    try {
+        return !!(music && music.m_source && music.m_source.mediaElement);
+    } catch (e) {
+        return false;
+    }
+};
+
+/**
+ * Returns the current sound volume without throwing on stale Rune sound refs.
+ *
+ * @param {Object} music Music or sound object.
+ * @param {number} fallback Fallback volume.
+ *
+ * @return {number} Resolved volume.
+ */
+GraveFallGame.getSoundVolumeSafe = function (music, fallback) {
+    try {
+        if (GraveFallGame.isSoundUsable(music) && typeof music.volume === "number") {
+            return music.volume;
+        }
+    } catch (e) {
+    }
+
+    return typeof fallback === "number" ? fallback : 0;
+};
+
+/**
+ * Sets the volume for the shared menu music track.
+ *
+ * @param {Object} music Music channel.
+ * @param {number} volume Target volume.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.setMenuMusicVolume = function (music, volume) {
+    try {
+        if (GraveFallGame.isSoundUsable(music)) {
+            music.volume = Math.max(0, Math.min(1, volume));
+        }
+    } catch (e) {
+    }
+};
+
+/**
+ * Cancels active fades for the shared menu music track.
+ *
+ * @param {Object} music Music channel.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.cancelMenuMusicFade = function (music) {
+    var i;
+
+    if (!music || !GraveFallGame.menuMusicFades) {
+        return;
+    }
+
+    for (i = GraveFallGame.menuMusicFades.length - 1; i >= 0; i--) {
+        if (GraveFallGame.menuMusicFades[i].music === music) {
+            GraveFallGame.menuMusicFades.splice(i, 1);
+        }
+    }
+};
+
+/**
+ * Fades the shared menu music track to a target volume.
+ *
+ * @param {number} targetVolume Target volume.
+ * @param {number} durationMs Fade duration in milliseconds.
+ * @param {boolean} stopWhenComplete Stop after the fade reaches zero.
+ *
+ * @return {*} Returned value.
+ */
+GraveFallGame.fadeMenuMusic = function (targetVolume, durationMs, stopWhenComplete) {
+    var fade;
+    var music = GraveFallGame.menuMusic;
+    var startVolume;
+
+    if (!GraveFallGame.isSoundUsable(music)) {
+        GraveFallGame.menuMusic = null;
+        return null;
+    }
+
+    if (!GraveFallGame.menuMusicFades) {
+        GraveFallGame.menuMusicFades = [];
+    }
+
+    targetVolume = Math.max(0, Math.min(1, typeof targetVolume === "number" ? targetVolume : 0));
+    durationMs = Math.max(0, durationMs || 0);
+    GraveFallGame.cancelMenuMusicFade(music);
+
+    if (durationMs <= 0) {
+        GraveFallGame.setMenuMusicVolume(music, targetVolume);
+
+        if (stopWhenComplete === true) {
+            GraveFallGame.stopMusic(music);
+            if (music === GraveFallGame.menuMusic) {
+                GraveFallGame.menuMusic = null;
+            }
+        }
+
+        return null;
+    }
+
+    startVolume = GraveFallGame.getSoundVolumeSafe(music, targetVolume);
+    fade = {
+        music: music,
+        elapsedMs: 0,
+        durationMs: durationMs,
+        startVolume: startVolume,
+        targetVolume: targetVolume,
+        stopWhenComplete: stopWhenComplete === true
+    };
+    GraveFallGame.menuMusicFades.push(fade);
+
+    return fade;
+};
+
+/**
+ * Advances menu music fades. Call from every scene that can be active while the
+ * shared menu music is fading.
+ *
+ * @param {number} step Fixed time step supplied by the Rune engine.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.updateMenuMusicFades = function (step) {
+    var i;
+    var fade;
+    var ratio;
+    var volume;
+
+    if (!GraveFallGame.menuMusicFades) {
+        return;
+    }
+
+    for (i = GraveFallGame.menuMusicFades.length - 1; i >= 0; i--) {
+        fade = GraveFallGame.menuMusicFades[i];
+
+        if (!fade || !GraveFallGame.isSoundUsable(fade.music)) {
+            if (fade && fade.music === GraveFallGame.menuMusic) {
+                GraveFallGame.menuMusic = null;
+            }
+            GraveFallGame.menuMusicFades.splice(i, 1);
+            continue;
+        }
+
+        fade.elapsedMs += Math.max(0, step || 0);
+        ratio = Math.min(1, fade.elapsedMs / Math.max(1, fade.durationMs));
+        volume = fade.startVolume + ((fade.targetVolume - fade.startVolume) * ratio);
+        GraveFallGame.setMenuMusicVolume(fade.music, volume);
+
+        if (ratio >= 1) {
+            GraveFallGame.setMenuMusicVolume(fade.music, fade.targetVolume);
+
+            if (fade.stopWhenComplete === true) {
+                GraveFallGame.stopMusic(fade.music);
+                if (fade.music === GraveFallGame.menuMusic) {
+                    GraveFallGame.menuMusic = null;
+                }
+            }
+
+            GraveFallGame.menuMusicFades.splice(i, 1);
+        }
+    }
+};
+
+/**
+ * Plays the menu music through Rune's master channel so it is not cleared when
+ * menu scenes are swapped.
+ *
+ * @param {Object} application Rune application instance.
+ * @param {number} volume Playback volume.
+ * @param {number} pan Stereo pan value.
+ *
+ * @return {Object} Played music object, or null if playback is unavailable.
+ */
+GraveFallGame.playPersistentMenuMusic = function (application, volume, pan) {
+    var channel;
+    var music;
+
+    try {
+        if (!application || !application.sounds) {
+            return null;
+        }
+
+        channel = application.sounds.master || application.sounds.music;
+
+        if (!channel || typeof channel.get !== "function") {
+            return null;
+        }
+
+        music = channel.get(GraveFallGame.MUSIC.MENU_LOOP, false);
+
+        if (GraveFallGame.isSoundUsable(music)) {
+            music.loop = true;
+            music.volume = typeof volume === "number" ? volume : 0.16;
+            music.pan = typeof pan === "number" ? pan : 0;
+            music.play(true);
+            return music;
+        }
+    } catch (e) {
+    }
+
+    return null;
+};
+
+/**
+ * Starts the menu loop once and lets it continue across all non-combat menus.
+ *
+ * @param {Object} application Rune application instance.
+ * @param {number} fadeMs Optional fade-in duration.
+ *
+ * @return {*} Returned value.
+ */
+GraveFallGame.startMenuMusic = function (application, fadeMs) {
+    var targetVolume = typeof GraveFallGame.menuMusicDefaultVolume === "number" ? GraveFallGame.menuMusicDefaultVolume : 0.16;
+    var currentVolume;
+
+    if (GraveFallGame.menuMusic && !GraveFallGame.isSoundUsable(GraveFallGame.menuMusic)) {
+        GraveFallGame.cancelMenuMusicFade(GraveFallGame.menuMusic);
+        GraveFallGame.menuMusic = null;
+    }
+
+    if (!GraveFallGame.menuMusic) {
+        GraveFallGame.menuMusic = GraveFallGame.playPersistentMenuMusic(
+            application,
+            fadeMs > 0 ? 0 : targetVolume
+        );
+    }
+
+    if (GraveFallGame.isSoundUsable(GraveFallGame.menuMusic)) {
+        try {
+            GraveFallGame.menuMusic.loop = true;
+        } catch (e) {
+            GraveFallGame.menuMusic = null;
+            return null;
+        }
+
+        currentVolume = GraveFallGame.getSoundVolumeSafe(GraveFallGame.menuMusic, 0);
+
+        if (fadeMs > 0 && currentVolume < targetVolume) {
+            GraveFallGame.fadeMenuMusic(targetVolume, fadeMs, false);
+        } else {
+            GraveFallGame.cancelMenuMusicFade(GraveFallGame.menuMusic);
+            GraveFallGame.setMenuMusicVolume(GraveFallGame.menuMusic, targetVolume);
+        }
+    }
+
+    return GraveFallGame.menuMusic;
+};
+
+/**
+ * Stops the shared menu music.
+ *
+ * @param {number} fadeMs Fade-out duration.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.stopMenuMusic = function (fadeMs) {
+    if (!GraveFallGame.isSoundUsable(GraveFallGame.menuMusic)) {
+        GraveFallGame.menuMusic = null;
+        return;
+    }
+
+    if (fadeMs > 0) {
+        GraveFallGame.fadeMenuMusic(0, fadeMs, true);
+    } else {
+        GraveFallGame.cancelMenuMusicFade(GraveFallGame.menuMusic);
+        GraveFallGame.stopMusic(GraveFallGame.menuMusic);
+        GraveFallGame.menuMusic = null;
+    }
+};
+
+/**
+ * Attempts to close the game window after stopping menu audio.
+ *
+ * @param {Object} application Rune application instance.
+ *
+ * @return {undefined}
+ */
+GraveFallGame.quitGame = function (application) {
+    var closeWindow = function () {
+        try {
+            if (typeof window !== "undefined" && typeof window.close === "function") {
+                window.close();
+            }
+        } catch (e) {
+        }
+    };
+
+    GraveFallGame.stopMenuMusic(0);
+
+    try {
+        if (application && typeof application.stop === "function") {
+            application.stop(closeWindow);
+            return;
+        }
+    } catch (e) {
+    }
+
+    closeWindow();
+};
 /**
  * Plays a sound effect when the resource exists.
  *
