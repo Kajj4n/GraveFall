@@ -601,7 +601,6 @@ GraveFallGame.scene.Menu.prototype.updateVisuals = function () {
  */
 GraveFallGame.scene.Menu.prototype.updateAnimatedVisuals = function () {
     var card;
-    var pulse;
 
     if (!this.optionCards || !this.optionCards[this.index]) {
         return;
@@ -696,10 +695,8 @@ GraveFallGame.scene.Credits.prototype.init = function () {
     this.stage.addChild(subtitle);
     this.tintBitmapFieldText(subtitle, this.menuSkin.frame.light, true);
 
-    this.developerCards.push(this.createDeveloperCard(206, 166, 392, 378, "RASMUS JILDHOLT", "ART  AUDIO  DESIGN  CODE", "Fighter_Portrait", colors[0].accentLight, colors[1].accentLight));
+    this.developerCards.push(this.createDeveloperCard(206, 166, 392, 378, "RASMUS JILDHOLT", "ART  AUDIO  DESIGN  CODE", "Rasmus_Portrait", colors[0].accentLight, colors[1].accentLight, { frameWidth: 152, frameHeight: 152, frames: 16, framerate: 8 }));
     this.developerCards.push(this.createDeveloperCard(682, 166, 392, 378, "KAJUS TRINKUNAS", "GAMEPLAY  DESIGN  CODE", "Wizard_Portrait", colors[3].accentLight, colors[2].accentLight));
-
-    this.backButton = this.createBackButton(535, 590, 210, 44, colors[1].accent, colors[1].accentLight);
 
     this.createScreenFooter("B/BACKSPACE/ESC RETURN TO MAIN MENU", framePaletteSwaps);
 };
@@ -713,10 +710,8 @@ GraveFallGame.scene.Credits.prototype.init = function () {
  */
 GraveFallGame.scene.Credits.prototype.update = function (step) {
     var pressBack;
-    var pressConfirm;
     var i;
     var gp;
-    var pulse;
 
     rune.scene.Scene.prototype.update.call(this, step);
     GraveFallGame.updateMenuMusicFades(step);
@@ -728,22 +723,14 @@ GraveFallGame.scene.Credits.prototype.update = function (step) {
     this.animTime += step;
 
     pressBack = this.keyboard.justPressed("escape") || this.keyboard.justPressed("backspace");
-    pressConfirm = this.keyboard.justPressed("space") || this.keyboard.justPressed("enter");
-
     for (i = 0; i < 4; i++) {
         gp = this.gamepads.get(i);
         if (gp) {
-            if (gp.justPressed(0)) pressConfirm = true;
             if (gp.justPressed(1) || gp.justPressed(2)) pressBack = true;
         }
     }
 
-    if (this.backButton) {
-        pulse = (Math.sin(this.animTime / 180) + 1) / 2;
-        this.backButton.glow.alpha = 0.24 + (pulse * 0.18);
-    }
-
-    if (pressBack || pressConfirm) {
+    if (pressBack) {
         GraveFallGame.playSound(this.application, GraveFallGame.SOUNDS.UI_BACK, 0.55);
         this.application.scenes.load([
             new GraveFallGame.scene.Menu()
@@ -763,20 +750,23 @@ GraveFallGame.scene.Credits.prototype.update = function (step) {
  * @param {string} portraitResource Resource name for the portrait.
  * @param {string} nameColor Name text color.
  * @param {string} roleColor Role text color.
+ * @param {Object} animationOptions Optional sprite-sheet animation options.
  *
  * @return {Object} Created display object.
  */
-GraveFallGame.scene.Credits.prototype.createDeveloperCard = function (x, y, width, height, name, role, portraitResource, nameColor, roleColor) {
+GraveFallGame.scene.Credits.prototype.createDeveloperCard = function (x, y, width, height, name, role, portraitResource, nameColor, roleColor, animationOptions) {
     var framePaletteSwaps = this.getFramePaletteSwaps(this.menuSkin);
     var card = new rune.display.DisplayObjectContainer(x, y, width, height);
     var top = new rune.display.Graphic(0, 0, width, Math.round(height * 0.5));
     var bottom = new rune.display.Graphic(0, Math.round(height * 0.5), width, height - Math.round(height * 0.5));
-    var frameX = 67;
+    var frameWidth = 220;
+    var frameHeight = 220;
+    var frameX = Math.round((width - frameWidth) / 2);
     var frameY = 38;
-    var frameWidth = 258;
-    var frameHeight = 222;
+    var portraitFrameWidth = animationOptions && animationOptions.frameWidth ? animationOptions.frameWidth : 100;
+    var portraitFrameHeight = animationOptions && animationOptions.frameHeight ? animationOptions.frameHeight : 100;
     var imageBack = new rune.display.Graphic(frameX, frameY, frameWidth, frameHeight);
-    var portrait = new rune.display.Sprite(0, 0, 100, 100, portraitResource);
+    var portrait = new rune.display.Sprite(0, 0, portraitFrameWidth, portraitFrameHeight, portraitResource);
     var nameText;
     var roleText;
     var portraitBaseWidth;
@@ -784,6 +774,8 @@ GraveFallGame.scene.Credits.prototype.createDeveloperCard = function (x, y, widt
     var scale;
     var scaledWidth;
     var scaledHeight;
+    var frames;
+    var i;
 
     top.backgroundColor = this.menuSkin.panelTop;
     bottom.backgroundColor = this.menuSkin.panelBottom;
@@ -802,6 +794,21 @@ GraveFallGame.scene.Credits.prototype.createDeveloperCard = function (x, y, widt
     portrait.scaleY = scale;
     portrait.x = Math.round(frameX + ((frameWidth - scaledWidth) / 2));
     portrait.y = Math.round(frameY + ((frameHeight - scaledHeight) / 2));
+
+    if (animationOptions && portrait.animation && typeof portrait.animation.create === "function") {
+        frames = [];
+        for (i = 0; i < (animationOptions.frames || 1); i++) {
+            frames.push(i);
+        }
+        portrait.animation.create(
+            "idle",
+            frames,
+            3,
+            true
+        );
+        portrait.animation.gotoAndPlay("idle", 0);
+    }
+
     card.addChild(portrait);
 
     card.addChild(this.createBoxFrame(frameX, frameY, frameWidth, frameHeight, framePaletteSwaps));
