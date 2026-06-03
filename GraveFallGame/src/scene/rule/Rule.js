@@ -803,7 +803,7 @@ GraveFallGame.scene.Rule.prototype.createCommandIconCard = function (parent, x, 
     var bg = new rune.display.Graphic(0, 0, 218, 102);
     var stripe = new rune.display.Graphic(0, 0, 5, 102);
     var icon = new rune.display.Sprite(14, 18, 100, 100, resource);
-    var titleText = this.createText(title, 72, 20, 1.3, 120);
+    var titleText = this.createText(title, 72, 35, 1.3, 120);
     var desc = this.createText(description, 72, 54, 1.05, 140);
 
     bg.backgroundColor = this.menuSkin.panelTop;
