@@ -696,7 +696,7 @@ GraveFallGame.scene.Credits.prototype.init = function () {
     this.tintBitmapFieldText(subtitle, this.menuSkin.frame.light, true);
 
     this.developerCards.push(this.createDeveloperCard(206, 166, 392, 378, "RASMUS JILDHOLT", "ART  AUDIO  DESIGN  CODE", "Rasmus_Portrait", colors[0].accentLight, colors[1].accentLight, { frameWidth: 152, frameHeight: 152, frames: 16, framerate: 8 }));
-    this.developerCards.push(this.createDeveloperCard(682, 166, 392, 378, "KAJUS TRINKUNAS", "GAMEPLAY  DESIGN  CODE", "Wizard_Portrait", colors[3].accentLight, colors[2].accentLight));
+    this.developerCards.push(this.createDeveloperCard(682, 166, 392, 378, "KAJUS TRINKUNAS", "GAMEPLAY  DESIGN  CODE", "Kajus_Portrait", colors[3].accentLight, colors[2].accentLight, { frameWidth: 110, frameHeight: 110, frames: 16, framerate: 8 }));
 
     this.createScreenFooter("B/BACKSPACE/ESC RETURN TO MAIN MENU", framePaletteSwaps);
 };
