@@ -11,25 +11,24 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v4
 
+      - name: Show files
+        run: |
+          pwd
+          ls -la
+          ls -la GraveFallGame
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Check project files
-        run: |
-          pwd
-          ls -la
-          ls -la GraveFallGame
-          test -f GraveFallGame/package.json
-
       - name: Install dependencies
-        working-directory: GraveFallGame
         run: npm install
+        working-directory: ./GraveFallGame
 
       - name: Build macOS app
-        working-directory: GraveFallGame
         run: npm run dist:mac
+        working-directory: ./GraveFallGame
 
       - name: Upload macOS build
         uses: actions/upload-artifact@v4
