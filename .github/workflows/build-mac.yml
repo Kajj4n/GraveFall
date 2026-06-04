@@ -7,6 +7,10 @@ jobs:
   build-mac:
     runs-on: macos-latest
 
+    defaults:
+      run:
+        working-directory: ./GraveFallGame
+
     steps:
       - name: Checkout project
         uses: actions/checkout@v4
@@ -26,4 +30,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: GraveFallGame-macOS
-          path: release/*.dmg
+          path: GraveFallGame/release/*.dmg
